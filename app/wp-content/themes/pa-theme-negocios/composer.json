@@ -1,0 +1,14 @@
+{
+    "name": "igrejaadventista/pa-theme-negocios",
+    "type": "wordpress-theme",
+    "repositories": [
+      {
+        "type": "composer",
+        "url": "https://wpackagist.org"
+      }
+    ],
+  "require": {
+    "wordplate/acf": "^13.0.1"
+  }
+}
+  

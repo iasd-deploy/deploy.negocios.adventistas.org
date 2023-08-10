@@ -1,0 +1,308 @@
+.pa-widget {
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: normal;
+    margin-bottom: auto;
+  }
+
+  h2 {
+    @include pa-h2-widget-title;
+  }
+
+  .pa-all-content {
+    display: table-cell;
+    color: var(--pa-color-default);
+    text-decoration: none;
+
+    &::after {
+      content: "\f105";
+      font-family: "Font Awesome 5 Free", Arial, Verdana, Tahoma, sans-serif;
+      font-weight: 900;
+      font-size: 1rem;
+      color: var(--pa-color-default);
+      margin-left: 0.5rem;
+    }
+  }
+
+  .card:last-child {
+    margin-bottom: 1rem !important;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    @include pa-list-posts;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+
+  .pa-w-apps {
+    p {
+      color: var(--pa-color-gray03);
+    }
+
+    .pa-stores {
+      color: var(--pa-color-gray01);
+
+      .pa-store {
+        border: solid 1px var(--pa-color-gray01);
+
+        i {
+          font-size: 1.8rem;
+        }
+
+        p {
+          font-size: 0.8rem;
+          line-height: 1rem;
+          color: var(--pa-color-gray01);
+        }
+      }
+    }
+
+    .icon.fa-circle {
+      color: #004d99;
+    }
+  }
+
+  .pa-tag-icon{
+    color: var(--pa-color-default);
+    background-color: var(--pa-color-default-aux);
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+
+  .pag-tag-icon-video{
+    font-size: 0.45rem;
+    padding: 3px 5px 3px 6px;
+    border-radius: 50%;
+  }
+
+  .pag-tag-icon-audio{
+    padding: 1px 4px 1px 4px;
+    border-radius: 50%;
+    font-size: 0.65rem;
+  }
+}
+
+
+.row .pa-find-church:first-of-type,.row .pa-w-feliz7play:first-of-type {
+  margin-top: -3rem !important;
+}
+
+.row .pa-find-church:last-of-type,.row .pa-w-feliz7play:last-of-type {
+  margin-bottom: 0rem !important;
+}
+
+.pa-find-church {
+  color: #fff;
+
+  &::before,
+  &::after {
+    content: "";
+    height: 100%;
+    left: 50%;
+    position: absolute;
+    top: 0;
+    transform: translateX(-50.01%);
+    width: 100vw;
+
+    @media (min-width: 1200px) {
+      transform: translateX(-43%);
+    }
+  }
+
+  &::before {
+    background: linear-gradient(94.83deg, #036 -3.92%, #4066b3 114.08%);
+    z-index: -2;
+  }
+
+  &::after {
+    background: url("./assets/imgs/bg-find-church-mask.png");
+    z-index: -1;
+  }
+
+  h2,
+  h3,
+  h1 {
+    font-family: var(--pa-font-secondary);
+    color: #fff;
+    text-transform: none;
+    font-size: 1.5rem;
+    border-left: none;
+    padding-left: 0;
+    font-weight: bold;
+  }
+
+  .fa-stack-2x {
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  p, a {
+    color: #fff;
+  }
+
+  a, a:hover{
+    text-decoration: none;
+  }
+
+  .form-control {
+    color: var(--pa-color-default-dark) !important;
+  }
+}
+
+.pa-w-feliz7play,
+.pa-destaques {
+  .pa-slider-header {
+    img {
+      height: auto;
+      width: 10.5rem;
+    }
+  }
+}
+
+.pa-w-feliz7play {
+  &::after,
+  &::before {
+    background-color: #f8f9fa;
+    content: "";
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+
+  &::after {
+    right: -100%;
+  }
+
+  &::before {
+    left: -100%;
+  }
+}
+
+.pa-slider-controle {
+  color: var(--pa-color-default-aux);
+  cursor: pointer;
+  position: relative;
+
+  .icon {
+    color: var(--pa-color-default);
+  }
+
+  .pa-slider-bullet {
+    font-size: 0.5rem;
+  }
+
+  .glide__bullet--active {
+    color: var(--pa-color-default);
+  }
+}
+
+.pa-carousel-download {
+  @include pa-carousel-download;
+}
+
+.pa-w-list-videos,
+.pa-w-carousel-videos,
+.pa-carousel-download {
+  .figure {
+    width: 100%;
+  }
+
+  .figure-caption {
+    top: 0;
+    left: 0;
+
+    i.pa-play {
+      -webkit-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      top: 50%;
+      left: 50%;
+      font-size: 4rem;
+      color: rgba(255, 255, 255, 0.8);
+      text-shadow: 0 0 1rem rgba(0, 0, 0, 0.3);
+    }
+
+    span {
+      right: 8px;
+      bottom: 8px;
+      background: rgba(30, 46, 60, 0.76);
+      color: #fff;
+    }
+  }
+}
+
+.pa-w-carousel-ministry {
+  .glide__slide {
+    figure {
+      @include pa-figure-overlay;
+    }
+  }
+}
+
+.pa-w-list-buttons {
+  .pa-icon {
+    display: none;
+  }
+
+  &.pa-w-list-buttons-icons {
+    .pa-icon {
+      display: inline-block;
+    }
+  }
+
+  .pa-widget-button {
+    a {
+      background: var(--pa-color-gray05);
+
+      // border-radius: .25rem!important;
+      &:hover {
+        color: #fff;
+        background: var(--pa-color-default-light);
+
+        i {
+          color: #fff;
+        }
+      }
+    }
+
+    i:first-of-type {
+      color: var(--pa-color-default);
+    }
+
+    span {
+      font-size: 1.2rem;
+    }
+  }
+}
+
+.pa-w-carousel-magazines {
+  .pa-slider-controle {
+    color: var(--pa-color-default);
+    position: absolute;
+    transform: translateX(-50%) translateY(-50%) !important;
+  }
+
+  .pa-controle-left {
+    left: 0;
+    top: 50%;
+  }
+
+  .pa-controle-right {
+    left: 100%;
+    top: 50%;
+  }
+}
+
+aside .widget_block .pa-widget {
+  margin-bottom: 60px !important;
+}

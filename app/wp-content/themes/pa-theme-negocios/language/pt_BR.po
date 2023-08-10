@@ -1,0 +1,883 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2022-10-11 15:16-0300\n"
+"PO-Revision-Date: 2022-10-11 15:19-0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.1.1\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: __;_e;_x;esc_html__;esc_html_e;esc_html_x;esc_attr__;"
+"esc_attr_e;esc_attr_x\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: assets\n"
+"X-Poedit-SearchPathExcluded-1: vendor\n"
+"X-Poedit-SearchPathExcluded-2: node_modules\n"
+
+#: classes/controllers/PA_ACF_Leaders.class.php:55
+msgid "/leaders/"
+msgstr "/lideres/"
+
+#: classes/controllers/PA_ACF_Leaders.class.php:62
+msgid "leaders"
+msgstr "lideres"
+
+#: classes/controllers/PA_ACF_Leaders.class.php:63
+#: classes/controllers/PA_CPT_Leaders.class.php:25
+#: classes/controllers/PA_CPT_Leaders.class.php:27
+#: classes/controllers/PA_CPT_Leaders.class.php:28
+#: classes/controllers/PA_CPT_Leaders.class.php:65
+msgid "Leaders"
+msgstr "Líderes"
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:19
+msgid "Ministry select"
+msgstr "Selecionar departamento"
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:22
+msgid "Ministry"
+msgstr "Departamento"
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:24
+msgid "Institucional"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:25
+msgid "Adolescente"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:26
+msgid "ADRA"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:27
+msgid "AFAM"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:28
+msgid "ASA"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:29
+msgid "Associação Ministerial"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:30
+msgid "Aventureiros"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:31
+msgid "Comunicação"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:32
+msgid "Criança"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:33
+msgid "Desbravadores"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:34
+msgid "Educação"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:35
+msgid "Escola Sabatina"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:36
+msgid "Espirito de Profecia"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:37
+msgid "Evangelismo"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:38
+msgid "Família"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:39
+msgid "Jovens"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:40
+msgid "Liberdade Religiosa"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:41
+msgid "Ministério Adventista das Possibilidades"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:42
+msgid "Ministério Pessoal"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:43
+msgid "Missão Global"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:44
+msgid "Mordomia"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:45
+msgid "Mulher"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:46
+msgid "Música"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:47
+msgid "Publicações"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:48
+msgid "Recepção"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:49
+msgid "SALT"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:50
+msgid "Saúde"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:51
+msgid "Universitários"
+msgstr ""
+
+#: classes/controllers/PA_ACF_Site-ministries.class.php:52
+msgid "Voluntários"
+msgstr ""
+
+#: classes/controllers/PA_CPT_District.class.php:27
+#: classes/controllers/PA_CPT_District.class.php:29
+#: classes/controllers/PA_CPT_District.class.php:30
+#: classes/controllers/PA_CPT_District.class.php:66
+msgid "Districts"
+msgstr "Distritos"
+
+#: classes/controllers/PA_CPT_District.class.php:28
+#: classes/controllers/PA_CPT_District.class.php:42 single-districts.php:33
+msgid "District"
+msgstr "Distrito"
+
+#: classes/controllers/PA_CPT_District.class.php:31
+#: classes/controllers/PA_CPT_Leaders.class.php:29
+#: classes/controllers/PA_CPT_Projects.class.php:19
+#: classes/controllers/PA_CPT_SliderHome.class.php:23
+msgid "Add New"
+msgstr "Adicionar novo"
+
+#: classes/controllers/PA_CPT_District.class.php:32
+#: classes/controllers/PA_CPT_Leaders.class.php:30
+#: classes/controllers/PA_CPT_Projects.class.php:20
+#: classes/controllers/PA_CPT_SliderHome.class.php:24
+msgid "Add New Item"
+msgstr "Adicionar novo item"
+
+#: classes/controllers/PA_CPT_District.class.php:33
+#: classes/controllers/PA_CPT_Leaders.class.php:31
+#: classes/controllers/PA_CPT_Projects.class.php:21
+#: classes/controllers/PA_CPT_SliderHome.class.php:25
+msgid "New item"
+msgstr "Novo item"
+
+#: classes/controllers/PA_CPT_District.class.php:34
+#: classes/controllers/PA_CPT_Leaders.class.php:32
+#: classes/controllers/PA_CPT_Projects.class.php:22
+#: classes/controllers/PA_CPT_SliderHome.class.php:26
+msgid "Edit item"
+msgstr "Editar item"
+
+#: classes/controllers/PA_CPT_District.class.php:35
+#: classes/controllers/PA_CPT_Leaders.class.php:33
+#: classes/controllers/PA_CPT_Projects.class.php:23
+#: classes/controllers/PA_CPT_SliderHome.class.php:27
+msgid "View item"
+msgstr "Visualizar item"
+
+#: classes/controllers/PA_CPT_District.class.php:36
+#: classes/controllers/PA_CPT_Leaders.class.php:34
+#: classes/controllers/PA_CPT_Projects.class.php:24
+#: classes/controllers/PA_CPT_SliderHome.class.php:28
+msgid "All items"
+msgstr "Todos os itens"
+
+#: classes/controllers/PA_CPT_District.class.php:37
+#: classes/controllers/PA_CPT_Leaders.class.php:35
+#: classes/controllers/PA_CPT_Projects.class.php:25
+#: classes/controllers/PA_CPT_SliderHome.class.php:29
+msgid "Search item"
+msgstr "Buscar item"
+
+#: classes/controllers/PA_CPT_District.class.php:38
+#: classes/controllers/PA_CPT_Leaders.class.php:36
+#: classes/controllers/PA_CPT_Projects.class.php:26
+#: classes/controllers/PA_CPT_SliderHome.class.php:30
+msgid "Not found."
+msgstr "Nenhuma correspondência encontrada."
+
+#: classes/controllers/PA_CPT_District.class.php:39
+#: classes/controllers/PA_CPT_Leaders.class.php:37
+#: classes/controllers/PA_CPT_Projects.class.php:27
+#: classes/controllers/PA_CPT_SliderHome.class.php:31
+msgid "Not found in Trash."
+msgstr "Nada foi encontrado na lixeira."
+
+#: classes/controllers/PA_CPT_District.class.php:69
+msgid "Tab churches"
+msgstr "Aba Igrejas"
+
+#: classes/controllers/PA_CPT_District.class.php:70 single-districts.php:94
+msgid "Churches"
+msgstr "Igrejas"
+
+#: classes/controllers/PA_CPT_District.class.php:72
+#: classes/controllers/PA_CPT_District.class.php:95
+#: classes/controllers/PA_CPT_Leaders.class.php:82
+msgid "Name"
+msgstr "Nome"
+
+#: classes/controllers/PA_CPT_District.class.php:73
+#: classes/controllers/PA_CPT_District.class.php:96
+#: classes/controllers/PA_CPT_Leaders.class.php:84
+msgid "Picture"
+msgstr "Foto"
+
+#: classes/controllers/PA_CPT_District.class.php:79
+msgid "Address"
+msgstr "Endereço"
+
+#: classes/controllers/PA_CPT_District.class.php:80
+msgid "Church Netork"
+msgstr "Igreja Netork"
+
+#: classes/controllers/PA_CPT_District.class.php:89
+msgid "Add church"
+msgstr "Adicionar igreja"
+
+#: classes/controllers/PA_CPT_District.class.php:92
+msgid "Tab shepherds"
+msgstr "Aba pastores"
+
+#: classes/controllers/PA_CPT_District.class.php:93
+msgid "Shepherds"
+msgstr "Pastores"
+
+#: classes/controllers/PA_CPT_District.class.php:102
+msgid "Shepherd Netork"
+msgstr "Pastor Netork"
+
+#: classes/controllers/PA_CPT_District.class.php:111
+msgid "Add shepherd"
+msgstr "Adicionar pastor"
+
+#: classes/controllers/PA_CPT_District.class.php:126
+#: classes/controllers/PA_CPT_District.class.php:127
+#: classes/controllers/PA_CPT_District.class.php:130
+#: classes/controllers/PA_CPT_District.class.php:131
+#: classes/controllers/PA_CPT_District.class.php:136
+#: classes/controllers/PA_CPT_District.class.php:145
+msgid "Region"
+msgstr "Região"
+
+#: classes/controllers/PA_CPT_District.class.php:128
+msgid "Search"
+msgstr "Buscar"
+
+#: classes/controllers/PA_CPT_District.class.php:129
+msgid "All itens"
+msgstr "Todos os itens"
+
+#: classes/controllers/PA_CPT_District.class.php:132
+msgid "Edit"
+msgstr "Editar"
+
+#: classes/controllers/PA_CPT_District.class.php:133
+msgid "Update"
+msgstr "Atualizar"
+
+#: classes/controllers/PA_CPT_District.class.php:134
+msgid "Add new"
+msgstr "Adicionar novo"
+
+#: classes/controllers/PA_CPT_District.class.php:135
+msgid "New"
+msgstr "Novo"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:26
+#: classes/controllers/PA_CPT_Leaders.class.php:40
+msgid "Leader"
+msgstr "Líder"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:68
+msgid "Role/Field"
+msgstr "Cargo/Campo"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:69
+msgid "Biography"
+msgstr "Biografia"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:72
+msgid "Social Netork"
+msgstr "Redes sociais"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:80
+msgid "Staff"
+msgstr "Equipe"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:83
+msgid "Role"
+msgstr "Cargo"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:90
+msgid "E-mail"
+msgstr ""
+
+#: classes/controllers/PA_CPT_Leaders.class.php:91
+msgid "Telephone"
+msgstr "Telefone"
+
+#: classes/controllers/PA_CPT_Leaders.class.php:93
+msgid "Add member"
+msgstr "Adicionar membro"
+
+#: classes/controllers/PA_CPT_Projects.class.php:15
+#: classes/controllers/PA_CPT_Projects.class.php:17
+#: classes/controllers/PA_CPT_Projects.class.php:18
+#: classes/controllers/PA_CPT_Projects.class.php:41
+msgid "Projects"
+msgstr "Projetos"
+
+#: classes/controllers/PA_CPT_Projects.class.php:16
+#: classes/controllers/PA_CPT_Projects.class.php:30
+msgid "Project"
+msgstr "Projeto"
+
+#: classes/controllers/PA_CPT_Projects.class.php:47
+msgid "project-slug"
+msgstr "projeto"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:18
+#: classes/controllers/PA_CPT_SliderHome.class.php:20
+#: classes/controllers/PA_CPT_SliderHome.class.php:21
+#: classes/controllers/PA_CPT_SliderHome.class.php:22
+msgid "Sliders"
+msgstr ""
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:19
+#: classes/controllers/PA_CPT_SliderHome.class.php:34
+msgid "Slider"
+msgstr ""
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:60
+msgid "Image - Desktop"
+msgstr "Imagem - Desktop"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:65
+msgid "Image - Mobile"
+msgstr "Imagem - Mobile"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:70
+msgid "Line 1 - Text"
+msgstr "Linha 1 - Texto"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:71
+msgid "Line 2 - Text"
+msgstr "Linha 2 - Texto - Título"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:72
+msgid "Line 3 - Text"
+msgstr "Linha 3 - Texto"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:73
+msgid "Button text color"
+msgstr "Texto do botão - Cor"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:75
+msgid "Button color"
+msgstr "Botão - Cor"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:77
+msgid "Button text"
+msgstr "Botão - Texto"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:78
+msgid "Access"
+msgstr "Acessar"
+
+#: classes/controllers/PA_CPT_SliderHome.class.php:79
+msgid "Button URL"
+msgstr "URL de destino"
+
+#: classes/controllers/PA_Page_Lideres.php:77 page-lideres.php:45
+msgid "View profile"
+msgstr "Ver perfil"
+
+#: home.php:15 home.php:28
+msgid "Post"
+msgstr ""
+
+#: single-districts.php:44
+msgid "Shepherd"
+msgstr "Pastor"
+
+#: single-lideres.php:86
+msgid "Back to leaders page"
+msgstr "Voltar para a página de líderes"
+
+#: taxonomy-xtt-pa-region.php:35
+msgid "Distrito"
+msgstr "Distrito"
+
+#: taxonomy-xtt-pa-region.php:37
+msgid "Pr."
+msgstr ""
+
+#~ msgid "Shepherdx"
+#~ msgstr "Pastores"
+
+#~ msgid "Illustrative image of the front end of the block."
+#~ msgstr "Imagem ilustrativa."
+
+#~ msgid "Adventist churches that are located in the South American Division."
+#~ msgstr "Busque uma Igreja Adventista localizada na América do Sul."
+
+#~ msgid "Search by Postcode, city, neighborhood."
+#~ msgstr "Buscar por CEP, cidade ou bairro."
+
+#~ msgid "Projeto - "
+#~ msgstr "Projeto - "
+
+#~ msgid "Access the website"
+#~ msgstr "Acessar o site"
+
+#~ msgid "Apps"
+#~ msgstr "Aplicativos"
+
+#~ msgid "Apps available for:"
+#~ msgstr "Aplicativos disponíveis para:"
+
+#~ msgid "I'm sorry! Content not found! :("
+#~ msgstr "Me desculpe! Conteúdo não encontrado! :("
+
+#~ msgid "The content which you are looking don't exist and don't be found."
+#~ msgstr ""
+#~ "O conteúdo que você esta procurando não existe e não foi encontrado."
+
+#~ msgid "Do you want to do a new search?"
+#~ msgstr "Você quer fazer uma nova busca?"
+
+#~ msgid "Sync data"
+#~ msgstr "Sincronizar dados"
+
+#~ msgid "App"
+#~ msgstr "Aplicativo"
+
+#~ msgid "Title"
+#~ msgstr "Título"
+
+#~ msgid "Description"
+#~ msgstr "Descrição"
+
+#~ msgid "Block from downloads content on carousel format."
+#~ msgstr "Bloco para exibir conteúdos em destaque no formato de slides."
+
+#~ msgid "File format"
+#~ msgstr "Formato do arquivo"
+
+#~ msgid "File size"
+#~ msgstr "Tamanho do arquivo"
+
+#~ msgid "Block to feature content on carousel format."
+#~ msgstr "Bloco para exibir conteúdos em destaque no formato de carrossel."
+
+#~ msgid "Block to feature content in slider format."
+#~ msgstr "Bloco para exibir conteúdos em destaque no formato de slides."
+
+#~ msgid "IASD Facebok block."
+#~ msgstr "Bloco do Facebook."
+
+#~ msgid "Facebook page URL."
+#~ msgstr "URL da página do Facebook."
+
+#~ msgid "Feliz7Play content block."
+#~ msgstr "Bloco do Feliz7Play."
+
+#~ msgid "Block with links buttons."
+#~ msgstr "Bloco com links."
+
+#~ msgid "Block to show downloads contents in list format."
+#~ msgstr "Bloco para exibir conteúdos de downloads no formato de lista."
+
+#~ msgid "Block to show contents in list format with icons."
+#~ msgstr "Bloco para exibir conteúdos no formato de lista com ícones."
+
+#~ msgid "Icon"
+#~ msgstr "Ícone"
+
+#~ msgid "Block to show contents in list format with images."
+#~ msgstr "Bloco para exibir conteúdos no formato de lista com imagens."
+
+#~ msgid "Block to show news content in list format."
+#~ msgstr "Bloco para exibir as notícias no formato de lista."
+
+#~ msgid "Post format"
+#~ msgstr "Formato do post"
+
+#~ msgid "Editorial"
+#~ msgstr "Editoria"
+
+#~ msgid "Block to show videos content in list format."
+#~ msgstr "Bloco para exibir os vídeos no formato de lista."
+
+#~ msgid "Format"
+#~ msgstr "Formato"
+
+#~ msgid "Time (in seconds)"
+#~ msgstr "Time (em segundos)"
+
+#~ msgid "Block to show magazines content in carousel format."
+#~ msgstr "Bloco para exibir as revistas no formato de carrossel."
+
+#~ msgid "Block to group IASD blocks."
+#~ msgstr "Bloco para agrupar os blocos da IASD."
+
+#~ msgid "Loading"
+#~ msgstr "Carregando"
+
+#~ msgid "Local data"
+#~ msgstr "Conteúdo local"
+
+#~ msgid "Quantity"
+#~ msgstr "Quantidade"
+
+#~ msgid "Filter by Post Type"
+#~ msgstr "Filtrar por tipo de post"
+
+#~ msgid "All post types"
+#~ msgstr "Todos os tipos de post"
+
+#~ msgid "Taxonomias"
+#~ msgstr "Taxonomias"
+
+#~ msgid "Select taxonomies"
+#~ msgstr "Selecionar as taxonomias"
+
+#~ msgid "Enable: Search?"
+#~ msgstr "Habilitar: Buscar?"
+
+#~ msgid "Enable: Number of items?"
+#~ msgstr "Habilitar: Número de itens?"
+
+#~ msgid "Enable: Sticky itens?"
+#~ msgstr "Habilitar: Itens fixos?"
+
+#~ msgid "Enable: Manual content?"
+#~ msgstr "Habilitar: Conteúdo manual?"
+
+#~ msgid "Manual content fields"
+#~ msgstr "Campos de conteúdo manual"
+
+#~ msgid "Add manual itens"
+#~ msgstr "Adicionar item manual"
+
+#~ msgid "Refresh"
+#~ msgstr "Atualizar"
+
+#~ msgid "Search..."
+#~ msgstr "Buscar…"
+
+#~ msgid "Number of items to be displayed."
+#~ msgstr "Número de itens que serão exibidos."
+
+#~ msgid ""
+#~ "Filter by post type.<br />Obs: Fixed items are not affected by this "
+#~ "filter."
+#~ msgstr ""
+#~ "Filtrar por tipo de post.<br />Obs: Conteúdos fixos não são afetados por "
+#~ "esse filtro."
+
+#~ msgid "Results"
+#~ msgstr "Resultados"
+
+#~ msgid "Sticky"
+#~ msgstr "Fixos"
+
+#~ msgid "Recents"
+#~ msgstr "Recentes"
+
+#~ msgid "Thumbnail"
+#~ msgstr "Miniatura"
+
+#~ msgid "Excerpt"
+#~ msgstr "Resumo"
+
+#~ msgid "Remote data"
+#~ msgstr "Conteúdo remoto"
+
+#~ msgid "Endpoints"
+#~ msgstr "Endereço"
+
+#~ msgid "Endpoint where the content will be catch."
+#~ msgstr "Endereço onde o conteúdo será capturado."
+
+#~ msgid "Write the URLs"
+#~ msgstr "Escreva as URLs"
+
+#~ msgid "Filter field?"
+#~ msgstr "Filtrar campo?"
+
+#~ msgid "Write the fields names."
+#~ msgstr "Escreva os nomes dos campos."
+
+#~ msgid "Taxonomies"
+#~ msgstr "Taxonomias"
+
+#~ msgid "Select the taxonomies."
+#~ msgstr "Selecionar as taxonomias."
+
+#~ msgid "Enable: Number of itens?"
+#~ msgstr "Habilitar: Número de itens?"
+
+#~ msgid "Add"
+#~ msgstr "Adicionar"
+
+#~ msgid "Number of itens to be displayed. From 1 to 100."
+#~ msgstr "Número de itens a serem exibidos. De 1 a 100."
+
+#~ msgid "Taxonomie"
+#~ msgstr "Taxonomia"
+
+#~ msgid "Terms"
+#~ msgstr "Termos"
+
+#~ msgid "Select the wanted terms:"
+#~ msgstr "Selecionar os termos desejados:"
+
+#~ msgid "Remove taxonomie"
+#~ msgstr "Remover taxonomia"
+
+#~ msgid "Add taxonomie"
+#~ msgstr "Adicionar taxonomia"
+
+#~ msgid "More content"
+#~ msgstr "Mais conteúdos"
+
+#~ msgid "Enable"
+#~ msgstr "Habilitar"
+
+#~ msgid "Disable"
+#~ msgstr "Desabilitar"
+
+#~ msgid "Content source"
+#~ msgstr "Fonte do conteúdo"
+
+#~ msgid "Select where the content will be brought from."
+#~ msgstr "Selecione onde iremos buscar o conteúdo."
+
+#~ msgid "Remote"
+#~ msgstr "Remoto"
+
+#~ msgid "Taxonomy Terms"
+#~ msgstr "Termos de taxonomia"
+
+#~ msgid "Allow Taxonomy"
+#~ msgstr "Permitir Taxonomia"
+
+#~ msgid "All taxonomies"
+#~ msgstr "Todas as taxonomias"
+
+#~ msgid "Allow Terms"
+#~ msgstr "Permitir termos"
+
+#~ msgid "All terms"
+#~ msgstr "Todos os termos"
+
+#~ msgid "All"
+#~ msgstr "Todos"
+
+#~ msgid "Appearance"
+#~ msgstr "Aparência"
+
+#~ msgid "Select the appearance of this field"
+#~ msgstr "Selecionar os termos desejados"
+
+#~ msgid "Radio Buttons"
+#~ msgstr "Radio Buttons"
+
+#~ msgid "Select"
+#~ msgstr "Selecione"
+
+#~ msgid "Default Value"
+#~ msgstr "Valor padrão"
+
+#~ msgid "Enter each default value on a new line"
+#~ msgstr "Insira cada valor padrão em uma nova linha"
+
+#~ msgid "Return Value"
+#~ msgstr "Valor de retorno"
+
+#~ msgid "Term object"
+#~ msgstr "Objeto do termo"
+
+#~ msgid "Term name"
+#~ msgstr "Nome do termo"
+
+#~ msgid "Term ID"
+#~ msgstr "ID do termo"
+
+#~ msgid "Appears within the input"
+#~ msgstr "Aparece na entrada"
+
+#~ msgid "Search Input Placeholder"
+#~ msgstr "Espaço reservado para entrada de pesquisa"
+
+#~ msgid "Appears within the search input"
+#~ msgstr "Aparece na entrada de pesquisa"
+
+#~ msgid "Select multiple values?"
+#~ msgstr "Selecione vários valores?"
+
+#~ msgid "Use AJAX to lazy load choices?"
+#~ msgstr "Usar AJAX para opções de carregamento lento?"
+
+#~ msgid "Prepend an extra checkbox to toggle all choices"
+#~ msgstr "Adicione uma caixa de seleção extra para alternar todas as opções"
+
+#~ msgid "Save Terms"
+#~ msgstr "Salvar Termos"
+
+#~ msgid "Connect selected terms to the post"
+#~ msgstr "Conecte os termos selecionados à postagem"
+
+#~ msgid "Load Terms"
+#~ msgstr "Carregar Termos"
+
+#~ msgid "Load value from posts terms"
+#~ msgstr "Carregar valor dos termos das postagens"
+
+#~ msgid "News"
+#~ msgstr "Notícias"
+
+#~ msgid "IASD Site - Custom Settings"
+#~ msgstr "IASD Site - Configurações customizadas"
+
+#~ msgid "Headquarter"
+#~ msgstr "Sede Regional"
+
+#~ msgid "Site settings"
+#~ msgstr "Configurações do site"
+
+#~ msgid "Rewrite global settings"
+#~ msgstr "Reescrever configurações globais"
+
+#~ msgid "Content not found..."
+#~ msgstr "Conteúdo não encontrado…"
+
+#~ msgid "Our social networks"
+#~ msgstr "Nossas redes sociais"
+
+#~ msgid "Seventh-day Adventist Church"
+#~ msgstr "Igreja Adventista do Sétimo Dia"
+
+#~ msgid "Go to top"
+#~ msgstr "Ir ao topo"
+
+#~ msgid "Share:"
+#~ msgstr "Compartilhar:"
+
+#~ msgid "Headquarter - Owner"
+#~ msgstr "Sede Proprietária"
+
+#~ msgid "Quick&nbsp;Edit"
+#~ msgstr "Edição&nbsp;Rápida"
+
+#~ msgid "Once every 20 minutes"
+#~ msgstr "Uma vez a cada 20 minutos"
+
+#~ msgid "By"
+#~ msgstr "Por"
+
+#~ msgid "Hear text"
+#~ msgstr "Ouvir texto"
+
+#~ msgid "Results for:"
+#~ msgstr "Resultados para:"
+
+#~ msgid "Next article"
+#~ msgstr "Próximo artigo"
+
+#~ msgid "Featured"
+#~ msgstr "Destaque"
+
+#~ msgid "Selecione as taxonomias"
+#~ msgstr "Selecionar as taxonomias"
+
+#~ msgid ""
+#~ "Access <a href=\"https://fontawesome.com/v5.15/icons?"
+#~ "d=gallery&p=2&s=solid&m=free\" target=\"_blank\">icon list</a>, and "
+#~ "select an icon and insert the respective css class here."
+#~ msgstr ""
+#~ "Acesse <a href=“https://fontawesome.com/v5.15/icons?"
+#~ "d=gallery&p=2&s=solid&m=free” target=“_blank”>lista de ícones</a>, e "
+#~ "selecione um ícone e insira a respectiva classe csi aqui."
+
+#~ msgid "Headquarter - Owner, father"
+#~ msgstr "Sede Proprietária - Pai"
+
+#~ msgid "Collection"
+#~ msgstr "Coleção"
+
+#~ msgid "Collection, father"
+#~ msgstr "Coleção - Pai"
+
+#~ msgid "Editorial, father"
+#~ msgstr "Editoria - Pai"
+
+#~ msgid "editorial"
+#~ msgstr "editoria"
+
+#~ msgid "Ministry, father"
+#~ msgstr "Departamento - Pai"
+
+#~ msgid "Projects, father"
+#~ msgstr "Projetos - Pai"
+
+#~ msgid "Regions, father"
+#~ msgstr "Regi - Pai"
+
+#~ msgid "region"
+#~ msgstr "Região"
+
+#~ msgid "Regional Headquarter"
+#~ msgstr "Sede Regional"
+
+#~ msgid "Regional Headquarter, father"
+#~ msgstr "Sede Regional - Pai"
+
+#~ msgid "Latest posts"
+#~ msgstr "Últimos Posts"
+
+#~ msgid "Invalid taxonomy server."
+#~ msgstr "Servidor de taxonomias inválido."
+
+#~ msgid "Settings"
+#~ msgstr "Configurações"
+
+#~ msgid "Configure the taxonomy server."
+#~ msgstr "Configurar o servidor de taxonomia."
+
+#~ msgid "Manual fields content"
+#~ msgstr "Campos de conteúdo manual"

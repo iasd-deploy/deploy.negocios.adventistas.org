@@ -1,0 +1,9 @@
+/style.css
+/.sass-cache
+/node_modules
+/vendor
+/script.js
+/style.css.map
+/storage
+/mix-manifest.json
+/assets/js/*
