@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInite996e6ff3d29468874f2190a8aedff8f
+class ComposerStaticInitbc88d34b703f49d335f5f70922dd173f
 {
     public static $files = array (
         '413614dbc06bade22a685c0ebe14027c' => __DIR__ . '/..' . '/wordplate/acf/src/helpers.php',
@@ -31,9 +31,9 @@ class ComposerStaticInite996e6ff3d29468874f2190a8aedff8f
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInite996e6ff3d29468874f2190a8aedff8f::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInite996e6ff3d29468874f2190a8aedff8f::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInite996e6ff3d29468874f2190a8aedff8f::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitbc88d34b703f49d335f5f70922dd173f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitbc88d34b703f49d335f5f70922dd173f::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitbc88d34b703f49d335f5f70922dd173f::$classMap;
 
         }, null, ClassLoader::class);
     }

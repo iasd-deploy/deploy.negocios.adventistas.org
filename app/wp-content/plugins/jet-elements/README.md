@@ -4,8 +4,11 @@ Brand new addon for Elementor Page builder. It provides the set of modules to cr
 
 # ChangeLog
 
+## [2.6.12.1](https://github.com/ZemezLab/jet-elements/archive/2.6.12.1.zip) - 10.08.2023
+* Fixed: Change template render method for Elementor to avoid errors in the editor 
+
 ## [2.6.12](https://github.com/ZemezLab/jet-elements/archive/2.6.12.zip) - 03.08.2023
-* Fixed: Сompatibility global styles for elementor 3.15.0
+* Fixed: Сompatibility global styles for Elementor 3.15.0
 
 ## [2.6.11](https://github.com/ZemezLab/jet-elements/archive/2.6.11.zip) - 05.07.2023
 * Fixed: Better sanitize custom callbacks before execute

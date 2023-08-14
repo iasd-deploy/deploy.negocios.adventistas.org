@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'igrejaadventista/pa-theme-negocios',
-        'pretty_version' => 'dev-main',
-        'version' => 'dev-main',
-        'reference' => 'e27e73ad9df6ca576d4955318b0e98b00434f059',
+        'pretty_version' => '1.0.0+no-version-set',
+        'version' => '1.0.0.0',
+        'reference' => NULL,
         'type' => 'wordpress-theme',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'igrejaadventista/pa-theme-negocios' => array(
-            'pretty_version' => 'dev-main',
-            'version' => 'dev-main',
-            'reference' => 'e27e73ad9df6ca576d4955318b0e98b00434f059',
+            'pretty_version' => '1.0.0+no-version-set',
+            'version' => '1.0.0.0',
+            'reference' => NULL,
             'type' => 'wordpress-theme',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
