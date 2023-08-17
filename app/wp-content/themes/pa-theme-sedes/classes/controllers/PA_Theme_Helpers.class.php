@@ -135,7 +135,7 @@ class PaThemeHelpers
       self::setGlobalMenu();
     }
 
-    return get_option('menu_' . $name);
+    return apply_filters('iasd_global_menu', get_option('menu_' . $name), $name);
   }
 
   static function setGlobalMenu()

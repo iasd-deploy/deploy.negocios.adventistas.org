@@ -96,8 +96,12 @@ class PACoreInstall
     if ($post->post_type != 'post')
       return $actions;
 
-    $nonce = wp_create_nonce('xtt-pa-owner-sexuality_' . $post->ID);
     $term = wp_get_post_terms($post->ID, 'xtt-pa-owner', array('fields' => 'all'));
+
+    if(is_wp_error($term))
+      return $actions;  
+
+    $nonce = wp_create_nonce('xtt-pa-owner-sexuality_' . $post->ID);
 
     $actions['inline hide-if-no-js'] = '<a href="#" class="editinline"';
     $actions['inline hide-if-no-js'] .= !empty($term) ? " onclick=\"set_inline__tt_pa_owner(event, '{$term[0]->name}', '{$nonce}')\">" : ">";

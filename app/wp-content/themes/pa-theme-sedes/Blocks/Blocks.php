@@ -160,7 +160,7 @@ class Blocks
     function addCategory($categories)
     {
       if(!Modules::isActiveModule('blocks'))
-        return;
+        return $categories;
 
         return array_merge(
             array(
