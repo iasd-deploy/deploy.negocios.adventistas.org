@@ -532,7 +532,9 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 						$result[ $field_name ]['value']
 					);
 
-					if ( 'separate' === $this->storage_type && ! empty( $this->page['option_prefix'] ) ) {
+					if ( 'separate' === $this->storage_type && ! empty( $this->page['option_prefix'] )
+						 && ! empty( $result[ $field_name ]['description'] )
+					) {
 						$result[ $field_name ]['description'] = str_replace(
 							$field_name,
 							$this->get_separate_option_name( $field_name ),

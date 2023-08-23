@@ -33,11 +33,18 @@ if ( ! class_exists( 'Jet_Engine_Listings_Ajax_Handlers' ) ) {
 		 * Check if is AJAX listing request
 		 * Need to duplicate it there because to avoid conflicts with class calling stack
 		 */
-		public function is_listing_ajax() {
-			return (
+		public function is_listing_ajax( $handler = false ) {
+
+			$is_listing_ajax = (
 				( ! empty( $_REQUEST['action'] ) && 'jet_engine_ajax' === $_REQUEST['action'] && ! empty( $_REQUEST['handler'] ) )
 				|| ! empty( $_REQUEST['jet_engine_action'] )
 			);
+
+			if ( $is_listing_ajax && ! empty( $handler ) ) {
+				return ( ! empty( $_REQUEST['handler'] ) && $handler === $_REQUEST['handler'] );
+			}
+
+			return $is_listing_ajax;
 		}
 
 		/**

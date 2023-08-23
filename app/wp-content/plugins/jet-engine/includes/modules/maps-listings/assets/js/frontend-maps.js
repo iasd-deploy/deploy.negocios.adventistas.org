@@ -362,7 +362,8 @@
 				return;
 			}
 
-			var popupID = settings.id;
+			var popupID = settings.id,
+				zoom = settings.zoom ? +settings.zoom : false;
 
 			if ( undefined === JetEngineMaps.markersData[ popupID ] ) {
 				return;
@@ -378,7 +379,14 @@
 					var clustererIndex   = JetEngineMaps.markersData[ popupID ][i].clustererIndex,
 						markersClusterer = JetEngineMaps.clusterersData[ clustererIndex ];
 
-					mapProvider.fitMapToMarker( marker, markersClusterer );
+					mapProvider.fitMapToMarker( marker, markersClusterer, zoom );
+				} else {
+					// Centering the map
+					mapProvider.panTo( {
+						map: map,
+						position: mapProvider.getMarkerPosition( marker ),
+						zoom: zoom,
+					} );
 				}
 
 				mapProvider.triggerOpenPopup( marker );

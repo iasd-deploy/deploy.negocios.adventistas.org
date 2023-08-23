@@ -161,6 +161,7 @@ if ( ! class_exists( 'Jet_Engine_Module_Listing_Injections' ) ) {
 
 			$this->injected_counter = array();
 			$this->injected_indexes = array();
+			$this->is_last_static_hooked = false;
 		}
 
 		public function set_parent_injected_counter() {

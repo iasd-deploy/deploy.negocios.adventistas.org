@@ -51,6 +51,10 @@ class Current_WP_Query extends Posts_Query {
 		if ( $current_query ) {
 			$query_args = $current_query->query;
 
+			if ( empty( $query_args ) ) {
+				$query_args = array();
+			}
+
 			// ensure we have set obvious post_type for the query
 			if ( empty( $query_args['post_type'] ) ) {
 				

@@ -323,10 +323,6 @@ if ( ! class_exists( 'Jet_Engine_Frontend' ) ) {
 
 				if ( '_permalink' === $source ) {
 					$url = jet_engine()->listings->data->get_current_object_permalink();
-				} elseif ( 'open_map_listing_popup' === $source ) {
-					$url = jet_engine()->modules->get_module( 'maps-listings' )->instance->get_action_url();
-				} elseif ( 'open_map_listing_popup_hover' === $source ) {
-					$url = jet_engine()->modules->get_module( 'maps-listings' )->instance->get_action_url( null, 'hover' );
 				} elseif ( 'options_page' === $source ) {
 					$option = ! empty( $settings['listing_link_option'] ) ? $settings['listing_link_option'] : false;
 					$url    = jet_engine()->listings->data->get_option( $option );

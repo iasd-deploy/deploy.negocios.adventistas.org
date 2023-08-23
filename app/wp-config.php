@@ -51,6 +51,8 @@ define('FORCE_SSL', true);
 define('FORCE_SSL_ADMIN', true);
 $_SERVER['HTTPS'] = 'on';
 
+define('WP_MEMORY_LIMIT', '512M');
+
 /**#@+
  * Authentication unique keys and salts.
  *

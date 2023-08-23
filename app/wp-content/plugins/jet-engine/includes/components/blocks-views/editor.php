@@ -220,7 +220,6 @@ if ( ! class_exists( 'Jet_Engine_Blocks_Views_Editor' ) ) {
 					),
 					'condition' => array(
 						'jet_engine_listing_link' => 'yes',
-						'jet_engine_listing_link_source!' => array( 'open_map_listing_popup', 'open_map_listing_popup_hover' ),
 					),
 				),
 				'jet_engine_listing_link_rel_attr' => array(
@@ -229,7 +228,6 @@ if ( ! class_exists( 'Jet_Engine_Blocks_Views_Editor' ) ) {
 					'options'   => \Jet_Engine_Tools::get_rel_attr_options(),
 					'condition' => array(
 						'jet_engine_listing_link' => 'yes',
-						'jet_engine_listing_link_source!' => array( 'open_map_listing_popup', 'open_map_listing_popup_hover' ),
 					),
 				),
 				'jet_engine_listing_link_aria_label' => array(
@@ -408,7 +406,12 @@ if ( ! class_exists( 'Jet_Engine_Blocks_Views_Editor' ) ) {
 
 							echo '</select>';
 						} else {
-							echo '<input type="text" id="' . $control_name . '" name="' . $control_name . '" class="components-text-control__input" value="' . esc_attr( $control_args['value'] ) . '">';
+							$input_type = ! empty( $control_args['input_type'] ) ? $control_args['input_type'] : 'text';
+							printf( '<input type="%1$s" id="%2$s" name="%2$s" class="components-text-control__input" value="%3$s">',
+								esc_attr( $input_type ),
+								$control_name,
+								esc_attr( $control_args['value'] )
+							);
 						}
 
 						if ( ! empty( $control_args['description'] ) ) {

@@ -168,8 +168,8 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 		/**
 		 * Check if is AJAX listing request
 		 */
-		public function is_listing_ajax() {
-			return $this->ajax_handlers->is_listing_ajax();
+		public function is_listing_ajax( $handler = false ) {
+			return $this->ajax_handlers->is_listing_ajax( $handler );
 		}
 
 		public function repeater_sources() {
@@ -531,11 +531,6 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 
 			if ( jet_engine()->options_pages ) {
 				$default['options']['options_page'] = __( 'Options', 'jet-engine' );
-			}
-
-			if ( jet_engine()->modules->is_module_active( 'maps-listings' ) ) {
-				$default['options']['open_map_listing_popup']       = __( 'Open Map Listing Popup', 'jet-engine' );
-				$default['options']['open_map_listing_popup_hover'] = __( 'Open Map Listing Popup on Hover', 'jet-engine' );
 			}
 
 			if ( jet_engine()->meta_boxes ) {

@@ -44,6 +44,7 @@ class Manager {
 		add_filter( 'bricks/link_css_selectors', [ $this, 'link_css_selectors' ], 10, 1 );
 		add_filter( 'bricks/element/render', [ $this, 'set_post_id' ], 10, 2 );
 		add_action( 'jet-engine/listing-element/before-render', [ $this, 'set_current_object_in_bricks_loop' ] );
+		add_action( 'bricks/query/after_loop', [ $this, 'reset_current_object_in_bricks_loop' ] );
 
 		require_once jet_engine()->bricks_views->component_path( 'listing/render.php' );
 		$this->render = new Render();
@@ -214,6 +215,13 @@ class Manager {
 
 		if ( in_array( \Bricks\Query::get_query_object_type(), [ 'user', 'term' ] ) ) {
 			jet_engine()->listings->data->set_current_object( \Bricks\Query::get_loop_object() );
+		}
+	}
+
+	// Reset current User or Term object for dynamic widgets in a bricks loop
+	public function reset_current_object_in_bricks_loop() {
+		if ( in_array( \Bricks\Query::get_query_object_type(), [ 'user', 'term' ] ) ) {
+			jet_engine()->listings->data->reset_current_object();
 		}
 	}
 

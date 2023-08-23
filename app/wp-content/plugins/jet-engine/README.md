@@ -1,7 +1,17 @@
 # ChangeLog
 
+## 3.2.4
+ADD: Zoom option for Map Listing popup;
+FIX: Prevent PHP warnings on Option Page;
+FIX: Clear a repeater query cache if a repeater listing is inside another listing;
+FIX: https://github.com/Crocoblock/suggestions/issues/6960;
+FIX: Dynamic visibility. Days of week condition for Blocks editor;
+FIX: Reset `is_last_static_hooked` injected prop after listing;
+FIX: Meta Boxes for Products Data. Tab priority option;
+FIX: Bricks. {post_content} issue when dynamic elements was used.
+
 ## 3.2.3.2
-FIX: Change listing grid items render method for Elementor to avoid errors in the editor.
+* FIX: Change listing grid items render method for Elementor to avoid errors in the editor.
 
 ## 3.2.3.1
 * FIX: error loading the Listing Grid block.

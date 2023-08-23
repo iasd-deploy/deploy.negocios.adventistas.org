@@ -64,9 +64,12 @@ window.JetEngineMapsProvider = function() {
 
 		const map = L.map( container, parsedSettings );
 
-		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		const tileURL = window.JetPlugins.hooks.applyFilters( 'jet-engine.maps-listings.leaflet.tileURL', 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' );
+		const tileOptions = window.JetPlugins.hooks.applyFilters( 'jet-engine.maps-listings.leaflet.tileOptions', {
 			attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-		}).addTo( map );
+		} );
+
+		L.tileLayer( tileURL, tileOptions ).addTo( map );
 
 		return map;
 	}
@@ -214,10 +217,21 @@ window.JetEngineMapsProvider = function() {
 		return marker._map;
 	}
 
-	this.fitMapToMarker = function( marker, markersClusterer ) {
+	this.fitMapToMarker = function( marker, markersClusterer, zoom ) {
 		markersClusterer.zoomToShowLayer( marker, () => {
-			markersClusterer._map.setView( this.getMarkerPosition( marker ) );
+			this.panTo( {
+				map: markersClusterer._map,
+				position: this.getMarkerPosition( marker ),
+				zoom: zoom
+			} );
+
+			this.triggerOpenPopup( marker );
 		} );
+	}
+
+	this.panTo = function( data ) {
+		var zoom = ( data.zoom && data.zoom > data.map.getZoom() ) ? data.zoom : data.map.getZoom();
+		data.map.flyTo( data.position, zoom );
 	}
 
 }

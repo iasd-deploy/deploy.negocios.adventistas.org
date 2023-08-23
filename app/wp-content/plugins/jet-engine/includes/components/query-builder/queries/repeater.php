@@ -331,6 +331,8 @@ class Repeater_Query extends Base_Query {
 	public function setup_current_object( $object ) {
 
 		if ( ! $object ) {
+			// Added to clear a query cache if a repeater listing is inside another listing.
+			$this->apply_macros( '%current_id%' );
 			return;
 		}
 

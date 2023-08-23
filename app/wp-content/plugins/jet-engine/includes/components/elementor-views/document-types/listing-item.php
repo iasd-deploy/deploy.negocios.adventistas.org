@@ -226,7 +226,6 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 				'default'      => '',
 				'condition'    => array(
 					'listing_link' => 'yes',
-					'listing_link_source!' => array( 'open_map_listing_popup', 'open_map_listing_popup_hover' ),
 				),
 			)
 		);
@@ -240,7 +239,6 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 				'options' => \Jet_Engine_Tools::get_rel_attr_options(),
 				'condition' => array(
 					'listing_link' => 'yes',
-					'listing_link_source!' => array( 'open_map_listing_popup', 'open_map_listing_popup_hover' ),
 				),
 			)
 		);

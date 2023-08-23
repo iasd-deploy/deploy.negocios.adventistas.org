@@ -26,7 +26,7 @@ class Session_Store extends Base_Store {
 			return;
 		}
 
-		if ( ! session_id() ) {
+		if ( ! session_id() || PHP_SESSION_ACTIVE !== session_status() ) {
 			session_start();
 		}
 	}

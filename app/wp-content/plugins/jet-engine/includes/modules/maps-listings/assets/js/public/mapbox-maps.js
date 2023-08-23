@@ -202,6 +202,10 @@ window.JetEngineMapsProvider = function() {
 		} );
 	}
 
+	this.getMapZoom = function( map ) {
+		return map.getZoom();
+	}
+
 	this.setAutoCenter = function( data ) {
 		this.fitMapBounds( data );
 	}
@@ -251,12 +255,20 @@ window.JetEngineMapsProvider = function() {
 			this._activePopup.remove();
 		}
 
-		map.flyTo( {
-			center: this.getMarkerPosition( marker ),
-			zoom:   zoom,
-		} );
+		this.panTo( {
+			map: map,
+			position: this.getMarkerPosition( marker ),
+			zoom: zoom
+		} )
 
 		map.on( 'idle', idleHandler );
+	}
+
+	this.panTo = function( data ) {
+		data.map.flyTo( {
+			center: data.position,
+			zoom:   ( data.zoom && data.zoom > data.map.getZoom() ) ? data.zoom : data.map.getZoom(),
+		} );
 	}
 
 }
