@@ -52,6 +52,16 @@ define('FORCE_SSL_ADMIN', true);
 $_SERVER['HTTPS'] = 'on';
 
 define('WP_MEMORY_LIMIT', '512M');
+define('WP_MAX_MEMORY_LIMIT', '512M');
+
+// Desativar atualizações principais (core)
+define( 'WP_AUTO_UPDATE_CORE', false );
+// Desativar atualizações de plugins
+define( 'WP_AUTO_UPDATE_PLUGIN', false );
+// Desativar atualizações de temas
+define( 'WP_AUTO_UPDATE_THEME', false );
+
+
 
 /**#@+
  * Authentication unique keys and salts.
