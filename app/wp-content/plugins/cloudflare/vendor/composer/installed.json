@@ -104,17 +104,17 @@
     },
     {
         "name": "symfony/polyfill-intl-idn",
-        "version": "v1.27.0",
-        "version_normalized": "1.27.0.0",
+        "version": "v1.30.0",
+        "version_normalized": "1.30.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/polyfill-intl-idn.git",
-            "reference": "639084e360537a19f9ee352433b84ce831f3d2da"
+            "reference": "a6e83bdeb3c84391d1dfe16f42e40727ce524a5c"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/polyfill-intl-idn/zipball/639084e360537a19f9ee352433b84ce831f3d2da",
-            "reference": "639084e360537a19f9ee352433b84ce831f3d2da",
+            "url": "https://api.github.com/repos/symfony/polyfill-intl-idn/zipball/a6e83bdeb3c84391d1dfe16f42e40727ce524a5c",
+            "reference": "a6e83bdeb3c84391d1dfe16f42e40727ce524a5c",
             "shasum": ""
         },
         "require": {
@@ -125,12 +125,9 @@
         "suggest": {
             "ext-intl": "For best performance"
         },
-        "time": "2022-11-03T14:55:06+00:00",
+        "time": "2024-05-31T15:07:36+00:00",
         "type": "library",
         "extra": {
-            "branch-alias": {
-                "dev-main": "1.27-dev"
-            },
             "thanks": {
                 "name": "symfony/polyfill",
                 "url": "https://github.com/symfony/polyfill"
@@ -174,7 +171,7 @@
             "shim"
         ],
         "support": {
-            "source": "https://github.com/symfony/polyfill-intl-idn/tree/v1.27.0"
+            "source": "https://github.com/symfony/polyfill-intl-idn/tree/v1.30.0"
         },
         "funding": [
             {
@@ -193,17 +190,17 @@
     },
     {
         "name": "symfony/polyfill-intl-normalizer",
-        "version": "v1.27.0",
-        "version_normalized": "1.27.0.0",
+        "version": "v1.30.0",
+        "version_normalized": "1.30.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/polyfill-intl-normalizer.git",
-            "reference": "19bd1e4fcd5b91116f14d8533c57831ed00571b6"
+            "reference": "a95281b0be0d9ab48050ebd988b967875cdb9fdb"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/19bd1e4fcd5b91116f14d8533c57831ed00571b6",
-            "reference": "19bd1e4fcd5b91116f14d8533c57831ed00571b6",
+            "url": "https://api.github.com/repos/symfony/polyfill-intl-normalizer/zipball/a95281b0be0d9ab48050ebd988b967875cdb9fdb",
+            "reference": "a95281b0be0d9ab48050ebd988b967875cdb9fdb",
             "shasum": ""
         },
         "require": {
@@ -212,12 +209,9 @@
         "suggest": {
             "ext-intl": "For best performance"
         },
-        "time": "2022-11-03T14:55:06+00:00",
+        "time": "2024-05-31T15:07:36+00:00",
         "type": "library",
         "extra": {
-            "branch-alias": {
-                "dev-main": "1.27-dev"
-            },
             "thanks": {
                 "name": "symfony/polyfill",
                 "url": "https://github.com/symfony/polyfill"
@@ -260,7 +254,7 @@
             "shim"
         ],
         "support": {
-            "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.27.0"
+            "source": "https://github.com/symfony/polyfill-intl-normalizer/tree/v1.30.0"
         },
         "funding": [
             {
@@ -279,28 +273,25 @@
     },
     {
         "name": "symfony/polyfill-php72",
-        "version": "v1.27.0",
-        "version_normalized": "1.27.0.0",
+        "version": "v1.30.0",
+        "version_normalized": "1.30.0.0",
         "source": {
             "type": "git",
             "url": "https://github.com/symfony/polyfill-php72.git",
-            "reference": "869329b1e9894268a8a61dabb69153029b7a8c97"
+            "reference": "10112722600777e02d2745716b70c5db4ca70442"
         },
         "dist": {
             "type": "zip",
-            "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/869329b1e9894268a8a61dabb69153029b7a8c97",
-            "reference": "869329b1e9894268a8a61dabb69153029b7a8c97",
+            "url": "https://api.github.com/repos/symfony/polyfill-php72/zipball/10112722600777e02d2745716b70c5db4ca70442",
+            "reference": "10112722600777e02d2745716b70c5db4ca70442",
             "shasum": ""
         },
         "require": {
             "php": ">=7.1"
         },
-        "time": "2022-11-03T14:55:06+00:00",
+        "time": "2024-06-19T12:30:46+00:00",
         "type": "library",
         "extra": {
-            "branch-alias": {
-                "dev-main": "1.27-dev"
-            },
             "thanks": {
                 "name": "symfony/polyfill",
                 "url": "https://github.com/symfony/polyfill"
@@ -338,7 +329,7 @@
             "shim"
         ],
         "support": {
-            "source": "https://github.com/symfony/polyfill-php72/tree/v1.27.0"
+            "source": "https://github.com/symfony/polyfill-php72/tree/v1.30.0"
         },
         "funding": [
             {

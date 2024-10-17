@@ -8,6 +8,7 @@ use Elementor\TemplateLibrary\Source_Local;
 use Elementor\Widget_Base;
 use ElementorPro\Base\Module_Base;
 use ElementorPro\Core\Utils;
+use ElementorPro\Modules\QueryControl\Controls\Group_Control_Taxonomy;
 use ElementorPro\Modules\QueryControl\Controls\Template_Query;
 use ElementorPro\Modules\QueryControl\Classes\Elementor_Post_Query;
 use ElementorPro\Modules\QueryControl\Classes\Elementor_Related_Query;
@@ -738,7 +739,7 @@ class Module extends Module_Base {
 				foreach ( $query->posts as $post ) {
 					$document = Plugin::elementor()->documents->get( $post->ID );
 					if ( $document ) {
-						$results[ $post->ID ] = esc_html( $post->post_title ) . ' (' . $document->get_post_type_title() . ')';
+						$results[ $post->ID ] = htmlentities( esc_html( $post->post_title ) ) . ' (' . $document->get_post_type_title() . ')';
 					}
 				}
 				break;
@@ -847,6 +848,8 @@ class Module extends Module_Base {
 		$controls_manager->add_group_control( Group_Control_Query::get_type(), new Group_Control_Query() );
 
 		$controls_manager->add_group_control( Group_Control_Related::get_type(), new Group_Control_Related() );
+
+		$controls_manager->add_group_control( Group_Control_Taxonomy::get_type(), new Group_Control_Taxonomy() );
 
 		$controls_manager->register( new Query() );
 
@@ -970,15 +973,6 @@ class Module extends Module_Base {
 		 */
 		$ajax_manager->register_ajax_action( 'query_control_value_titles_deprecated', [ $this, 'ajax_posts_control_value_titles_deprecated' ] );
 		$ajax_manager->register_ajax_action( 'pro_panel_posts_control_filter_autocomplete_deprecated', [ $this, 'ajax_posts_filter_autocomplete_deprecated' ] );
-	}
-
-	/**
-	 * @deprecated 3.1.0
-	 */
-	public function localize_settings() {
-		Plugin::elementor()->modules_manager->get_modules( 'dev-tools' )->deprecation->deprecated_function( __METHOD__, '3.1.0' );
-
-		return [];
 	}
 
 	protected function add_actions() {

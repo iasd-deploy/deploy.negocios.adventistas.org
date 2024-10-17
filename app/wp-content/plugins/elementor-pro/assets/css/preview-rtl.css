@@ -1,4 +1,4 @@
-/*! elementor-pro - v3.15.0 - 09-08-2023 */
+/*! elementor-pro - v3.24.0 - 09-10-2024 */
 *[data-editable-elementor-document] {
   position: relative;
 }
@@ -8,7 +8,7 @@
 }
 *[data-editable-elementor-document] .elementor-document-handle {
   position: absolute;
-  z-index: 2147483639;
+  z-index: 2147483620;
   cursor: pointer;
   inset: 0;
   display: none;
@@ -54,8 +54,7 @@
 }
 *[data-editable-elementor-document].e-embedded-document-active .elementor-document-handle:not(.elementor-document-save-back-handle), *[data-editable-elementor-document].elementor-widget-container .elementor-document-handle:not(.elementor-document-save-back-handle) {
   bottom: unset;
-  -webkit-border-after: unset;
-          border-block-end: unset;
+  border-block-end: unset;
 }
 *[data-editable-elementor-document].e-embedded-document-active .elementor-document-handle:not(.elementor-document-save-back-handle)::before, *[data-editable-elementor-document].elementor-widget-container .elementor-document-handle:not(.elementor-document-save-back-handle)::before {
   display: none;
@@ -105,6 +104,26 @@
   right: -14px;
 }
 
+.elementor-editor-active .elementor.elementor-edit-mode .elementor-widget.elementor-global-widget:hover {
+  outline: 1px solid var(--e-p-border-global);
+}
+.elementor-editor-active .elementor.elementor-edit-mode .elementor-widget.elementor-global-widget.elementor-element-editable, .elementor-editor-active .elementor.elementor-edit-mode .elementor-widget.elementor-global-widget.elementor-element-editable:hover {
+  box-shadow: 0 0 0 2px var(--e-p-border-global);
+}
+.elementor-editor-active .elementor.elementor-edit-mode .elementor-global-widget .elementor-editor-widget-settings {
+  background-color: var(--e-p-border-global);
+}
+.elementor-editor-active .elementor.elementor-edit-mode .elementor-global-widget .elementor-editor-widget-settings .elementor-editor-element-setting {
+  background-color: var(--e-p-border-global);
+  color: var(--e-p-border-global-invert);
+}
+.elementor-editor-active .elementor.elementor-edit-mode .elementor-global-widget .elementor-editor-widget-settings .elementor-editor-element-setting:hover {
+  background-color: var(--e-p-border-global-hover);
+}
+.elementor-editor-active .elementor.elementor-edit-mode .elementor-global-widget .elementor-editor-widget-settings .elementor-editor-element-setting.elementor-editor-element-save {
+  display: none;
+}
+
 .elementor-embedded-editor.elementor-location-header .elementor-section-wrap:not(:empty) + #elementor-add-new-section {
   display: none;
 }
@@ -141,8 +160,7 @@
 }
 .elementor-document-handle.elementor-document-save-back-handle .eicon-arrow-left,
 .elementor-document-handle.elementor-document-save-back-handle .eicon-arrow-right {
-  -webkit-margin-end: 5px;
-          margin-inline-end: 5px;
+  margin-inline-end: 5px;
 }
 .elementor-loop-container > div.elementor-edit-area-active:first-of-type {
   border: 2px solid #5EEAD4;

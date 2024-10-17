@@ -2,10 +2,13 @@
 namespace ElementorPro\Modules\Forms\Actions;
 
 use Elementor\Controls_Manager;
+use ElementorPro\Core\Utils\Hints;
 use ElementorPro\Core\Utils;
+use ElementorPro\Core\Utils\Collection;
 use ElementorPro\Modules\Forms\Classes\Ajax_Handler;
 use ElementorPro\Modules\Forms\Classes\Action_Base;
 use ElementorPro\Modules\Forms\Classes\Form_Record;
+use ElementorPro\Modules\Forms\Fields\Upload;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -217,6 +220,34 @@ class Email extends Action_Base {
 			]
 		);
 
+		$notice_id = 'site_mailer_forms_email_notice';
+		if ( Hints::should_show_hint( $notice_id ) ) {
+			$notice_content = esc_html__( 'Experiencing email deliverability issues? Get your emails delivered with Site Mailer.', 'elementor-pro' );
+
+			if ( 2 === Utils\Abtest::get_variation( 'plg_site_mailer_submission' ) ) {
+				$notice_content = esc_html__( 'Make sure your emails reach the inbox every time with Site Mailer', 'elementor-pro' );
+			}
+
+			$widget->add_control(
+				$this->get_control_id( 'site_mailer_promo' ),
+				[
+					'type' => Controls_Manager::RAW_HTML,
+					'raw' => Hints::get_notice_template( [
+						'display' => ! Hints::is_dismissed( $notice_id ),
+						'type' => 'info',
+						'content' => $notice_content,
+						'icon' => true,
+						'dismissible' => $notice_id,
+						'button_text' => Hints::is_plugin_installed( 'site-mailer' ) ? __( 'Activate Plugin', 'elementor-pro' ) : __( 'Install Plugin', 'elementor-pro' ),
+						'button_event' => $notice_id,
+						'button_data' => [
+							'action_url' => Hints::get_plugin_action_url( 'site-mailer' ),
+						],
+					], true ),
+				]
+			);
+		}
+
 		$widget->end_controls_section();
 	}
 
@@ -301,7 +332,7 @@ class Email extends Action_Base {
 		/**
 		 * Email headers.
 		 *
-		 * Filters the headers sent when an email is send from Elementor forms. This
+		 * Filters the headers sent when an email is sent from Elementor forms. This
 		 * hook allows developers to alter email headers triggered by Elementor forms.
 		 *
 		 * @since 1.0.0
@@ -322,13 +353,32 @@ class Email extends Action_Base {
 		 */
 		$fields['email_content'] = apply_filters( 'elementor_pro/forms/wp_mail_message', $fields['email_content'] );
 
-		$email_sent = wp_mail( $fields['email_to'], $fields['email_subject'], $fields['email_content'], $headers . $cc_header );
+		$attachments_mode_attach = $this->get_file_by_attachment_type( $settings['form_fields'], $record, Upload::MODE_ATTACH );
+		$attachments_mode_both = $this->get_file_by_attachment_type( $settings['form_fields'], $record, Upload::MODE_BOTH );
+
+		$email_sent = wp_mail(
+			$fields['email_to'],
+			$fields['email_subject'],
+			$fields['email_content'],
+			$headers . $cc_header,
+			array_merge( $attachments_mode_attach, $attachments_mode_both )
+		);
 
 		if ( ! empty( $fields['email_to_bcc'] ) ) {
 			$bcc_emails = explode( ',', $fields['email_to_bcc'] );
 			foreach ( $bcc_emails as $bcc_email ) {
-				wp_mail( trim( $bcc_email ), $fields['email_subject'], $fields['email_content'], $headers );
+				wp_mail(
+					trim( $bcc_email ),
+					$fields['email_subject'],
+					$fields['email_content'],
+					$headers,
+					array_merge( $attachments_mode_attach, $attachments_mode_both )
+				);
 			}
+		}
+
+		foreach ( $attachments_mode_attach as $file ) {
+			@unlink( $file );
 		}
 
 		/**
@@ -398,10 +448,16 @@ class Email extends Action_Base {
 		if ( false !== strpos( $email_content, $all_fields_shortcode ) ) {
 			$text = '';
 			foreach ( $record->get( 'fields' ) as $field ) {
+				// Skip upload fields that only attached to the email
+				if ( isset( $field['attachment_type'] ) && Upload::MODE_ATTACH === $field['attachment_type'] ) {
+					continue;
+				}
+
 				$formatted = $this->field_formatted( $field );
 				if ( ( 'textarea' === $field['type'] ) && ( '<br>' === $line_break ) ) {
 					$formatted = str_replace( [ "\r\n", "\n", "\r" ], '<br />', $formatted );
 				}
+
 				$text .= $formatted . $line_break;
 			}
 
@@ -410,5 +466,27 @@ class Email extends Action_Base {
 		}
 
 		return $email_content;
+	}
+
+	/**
+	 * @param array       $form_fields
+	 * @param Form_Record $record
+	 * @param string      $type
+	 *
+	 * @return array
+	 */
+	private function get_file_by_attachment_type( $form_fields, $record, $type ) {
+		return Collection::make( $form_fields )
+			->filter( function ( $field ) use ( $type ) {
+				return $type === $field['attachment_type'];
+			} )
+			->map( function ( $field ) use ( $record ) {
+				$id = $field['custom_id'];
+
+				return $record->get( 'files' )[ $id ]['path'] ?? null;
+			} )
+			->filter()
+			->flatten()
+			->values();
 	}
 }

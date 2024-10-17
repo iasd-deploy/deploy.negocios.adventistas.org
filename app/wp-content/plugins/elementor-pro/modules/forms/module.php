@@ -15,6 +15,8 @@ use ElementorPro\Modules\Forms\Registrars\Form_Fields_Registrar;
 use ElementorPro\Modules\Forms\Submissions\Component as Form_Submissions_Component;
 use ElementorPro\Modules\Forms\Controls\Fields_Repeater;
 use ElementorPro\Plugin;
+use ElementorPro\License\API;
+use ElementorPro\Modules\Forms\Submissions\AdminMenuItems\Submissions_Promotion_Menu_Item;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -31,24 +33,47 @@ class Module extends Module_Base {
 	 */
 	public $fields_registrar;
 
+	const ACTIVITY_LOG_LICENSE_FEATURE_NAME = 'activity-log';
+	const CF7DB_LICENSE_FEATURE_NAME = 'cf7db';
+	const AKISMET_LICENSE_FEATURE_NAME = 'akismet';
+
+	const WIDGET_NAME_CLASS_NAME_MAP = [
+		'form' => 'Form',
+		'login' => 'Login',
+	];
+
 	public function get_name() {
 		return 'forms';
 	}
 
 	public function get_widgets() {
-		return [
-			'Form',
-			'Login',
-		];
+		return API::filter_active_features( static::WIDGET_NAME_CLASS_NAME_MAP );
 	}
 
 	/**
-	 * @deprecated 3.1.0
+	 * Get the base URL for assets.
+	 *
+	 * @return string
 	 */
-	public function localize_settings() {
-		Plugin::elementor()->modules_manager->get_modules( 'dev-tools' )->deprecation->deprecated_function( __METHOD__, '3.1.0' );
+	public function get_assets_base_url(): string {
+		return ELEMENTOR_PRO_URL;
+	}
 
-		return [];
+	/**
+	 * Register styles.
+	 *
+	 * At build time, Elementor compiles `/modules/forms/assets/scss/frontend.scss`
+	 * to `/assets/css/widget-forms.min.css`.
+	 *
+	 * @return void
+	 */
+	public function register_styles() {
+		wp_register_style(
+			'widget-forms',
+			$this->get_css_assets_url( 'widget-forms', null, true, true ),
+			[ 'elementor-frontend' ],
+			ELEMENTOR_PRO_VERSION
+		);
 	}
 
 	public static function find_element_recursive( $elements, $form_id ) {
@@ -168,6 +193,7 @@ class Module extends Module_Base {
 	public function __construct() {
 		parent::__construct();
 
+		add_action( 'elementor/frontend/after_register_styles', [ $this, 'register_styles' ] );
 		add_action( 'elementor/controls/register', [ $this, 'register_controls' ] );
 		add_action( 'elementor/ajax/register_actions', [ $this, 'register_ajax_actions' ] );
 
@@ -175,7 +201,18 @@ class Module extends Module_Base {
 		$this->add_component( 'recaptcha_v3', new Classes\Recaptcha_V3_Handler() );
 		$this->add_component( 'honeypot', new Classes\Honeypot_Handler() );
 
-		$this->register_submissions_component();
+		// Akismet
+		if ( class_exists( '\Akismet' ) && API::is_licence_has_feature( static::AKISMET_LICENSE_FEATURE_NAME, API::BC_VALIDATION_CALLBACK ) ) {
+			$this->add_component( 'akismet', new Classes\Akismet() );
+		}
+
+		if ( API::is_licence_has_feature( Form_Submissions_Component::NAME, API::BC_VALIDATION_CALLBACK ) ) {
+			$this->register_submissions_component();
+		} else {
+			add_action( 'elementor/admin/menu/register', function( $admin_menu ) {
+				$admin_menu->register( Form_Submissions_Component::PAGE_ID, new Submissions_Promotion_Menu_Item() );
+			}, 9 /* After "Settings" */ );
+		}
 
 		// Initialize registrars.
 		$this->actions_registrar = new Form_Actions_Registrar();
@@ -184,12 +221,12 @@ class Module extends Module_Base {
 		// Add Actions as components, that runs manually in the Ajax_Handler
 
 		// Activity Log
-		if ( function_exists( 'aal_insert_log' ) ) {
+		if ( function_exists( 'aal_insert_log' ) && API::is_licence_has_feature( static::ACTIVITY_LOG_LICENSE_FEATURE_NAME, API::BC_VALIDATION_CALLBACK ) ) {
 			$this->add_component( 'activity_log', new Actions\Activity_Log() );
 		}
 
 		// Contact Form to Database
-		if ( function_exists( 'CF7DBPlugin_init' ) ) {
+		if ( function_exists( 'CF7DBPlugin_init' ) && API::is_licence_has_feature( static::CF7DB_LICENSE_FEATURE_NAME, API::BC_VALIDATION_CALLBACK ) ) {
 			$this->add_component( 'cf7db', new Actions\CF7DB() );
 		}
 

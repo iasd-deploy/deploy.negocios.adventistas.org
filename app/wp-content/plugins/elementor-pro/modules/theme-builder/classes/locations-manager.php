@@ -1,12 +1,13 @@
 <?php
 namespace ElementorPro\Modules\ThemeBuilder\Classes;
 
-use ElementorPro\Modules\ThemeBuilder\Files\CSS\Template as Template_CSS;
+use Elementor\Core\Base\Elements_Iteration_Actions\Assets;
 use ElementorPro\Core\Utils;
 use ElementorPro\Modules\ThemeBuilder\Documents\Theme_Document;
 use ElementorPro\Modules\ThemeBuilder\Module;
 use ElementorPro\Plugin;
 use Elementor\Modules\PageTemplates\Module as PageTemplatesModule;
+use Elementor\Core\Files\CSS\Post as Post_CSS;
 use ElementorPro\Modules\Posts\Traits\Pagination_Trait;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -127,8 +128,13 @@ class Locations_Manager {
 
 				// Don't enqueue current post here (let the  preview/frontend components to handle it)
 				if ( $current_post_id !== $post_id ) {
-					$css_file = new Template_CSS( $post_id );
+					$css_file = new Post_CSS( $post_id );
 					$css_files[] = $css_file;
+
+					$page_assets = get_post_meta( $post_id, Assets::ASSETS_META_KEY, true );
+					if ( ! empty( $page_assets ) ) {
+						Plugin::elementor()->assets_loader->enable_assets( $page_assets );
+					}
 				}
 			}
 		}
@@ -382,6 +388,11 @@ class Locations_Manager {
 		do_action( "elementor/theme/after_do_{$location}", $this );
 
 		return true;
+	}
+
+
+	public function get_documents_for_location( string $location ) : array {
+		return $this->locations_queue[ $location ] ?? [];
 	}
 
 	public function did_location( $location ) {
