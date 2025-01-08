@@ -15,6 +15,7 @@ class PaThemeHelpers
     add_action('PA-update_menu_global', [$this, 'setGlobalMenu']);
     add_action('PA-update_banner_global', [$this, 'setGlobalBanner']);
     add_action('rest_api_init', [$this, 'adding_collection_meta_rest']);
+    add_action( 'customize_register', [$this, 'customizer_custom_logo_label'], 20 );
 
     if (!wp_next_scheduled('PA-update_menu_global')) {
       wp_schedule_event(time(), 'daily', 'PA-update_menu_global');
@@ -36,6 +37,13 @@ class PaThemeHelpers
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
     add_theme_support('responsive-embeds');
+    add_theme_support('custom-logo', array(
+      // 'height'      => 109,  
+      // 'width'       => 204,  
+      'flex-height' => false,
+      'flex-width'  => false,
+      'crop'        => true  
+    ));;
 
     remove_action('wp_head', 'wp_generator');
     remove_action('wp_head', 'print_emoji_detection_script', 7);
@@ -56,8 +64,6 @@ class PaThemeHelpers
       $content_width = 856;
     }
   }
-
-
 
   function registerAssets()
   {
@@ -135,7 +141,7 @@ class PaThemeHelpers
       self::setGlobalMenu();
     }
 
-    return apply_filters('iasd_global_menu', get_option('menu_' . $name), $name);
+    return get_option('menu_' . $name);
   }
 
   static function setGlobalMenu()
@@ -143,9 +149,13 @@ class PaThemeHelpers
     $menus = ['global-header', 'global-footer'];
 
     foreach ($menus as $name) {
-      $json = file_get_contents("https://" . API_PA . "/tax/" . LANG . "/menus/{$name}");
+     $file_path = "https://" . API_PA . "/tax/" . LANG . "/menus/{$name}";
+
+     if (file_exists($file_path) && is_readable($file_path)) {
+      $json = file_get_contents( $file_path);   
       $json_content = json_decode($json);
-      update_option('menu_' . $name, $json_content, '', 'yes');
+          update_option('menu_' . $name, $json_content, '', 'yes');
+     }     
     }
   }
 
@@ -160,9 +170,13 @@ class PaThemeHelpers
 
   static function setGlobalBanner()
   {
-    $json = file_get_contents("https://" . API_PA . "/tax/" . LANG . "/banner");
-    $json_content = json_decode($json);
-    update_option('banner_global', $json_content, '', 'yes');
+    $file_path = "https://" . API_PA . "/tax/" . LANG . "/banner";
+    
+    if (file_exists($file_path) && is_readable($file_path)) {
+      $json = file_get_contents($file_path);
+      $json_content = json_decode($json);
+      update_option('banner_global', $json_content, '', 'yes');
+    }    
   }
 
   function bodyClass($classes)
@@ -272,6 +286,15 @@ class PaThemeHelpers
       foreach ($data as $name => $content) {
         echo '<meta name="' . esc_attr($name) . '" content="' . esc_attr($content) . '">';
       }
+    }
+  }
+
+  public function customizer_custom_logo_label( $wp_customize )
+  {
+    $logo_control = $wp_customize->get_control( 'custom_logo' );
+
+    if ( ! empty( $logo_control ) ) {
+      $logo_control->label = 'Logo - Tamanho recomendado 240x109';
     }
   }
 }

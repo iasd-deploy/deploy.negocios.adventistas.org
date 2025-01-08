@@ -17,7 +17,13 @@ $menus = PaThemeHelpers::getGlobalMenu('global-footer');
     <div class="row">
       <div class="col d-flex flex-column justify-content-xl-between">
         <div class="d-flex flex-column align-items-center align-items-xl-start px-5 px-xl-0">
-          <?php get_template_part('components/menu/footer-logo', 'logo', ['campo' => $campo]); ?>
+          <?php if(!empty($campo) && !is_wp_error($campo)): ?>
+            <div class="pa-brand">
+              <a href="/" title="<?= !empty($campo->name) ? $campo->name : '' ?>" class="d-flex flex-column justify-content-center"><img src="<?= get_template_directory_uri() . "/assets/sedes/" . LANG . "/logo-iasd-vertical.svg" ?>" alt="<?= $campo->name ?>" title="<?= $campo->name ?>" class="img-fluid"></a>
+              <span class="d-block mt-4"><?= !empty($campo->name) ? $campo->name : '' ?></span>
+            </div>
+            <hr class="mt-4 mb-4">
+          <?php endif; ?>
           
           <div class="pa-contact">
             <?php if ($adress) {
@@ -72,6 +78,17 @@ $menus = PaThemeHelpers::getGlobalMenu('global-footer');
       </div>
     </div>
   </div>
-  
-  <?php get_template_part('components/menu/copyright', 'copyright'); ?>
+  <div class="pa-copyright">
+    <div class="container">
+      <div class="row">
+        <div class="py-2 d-flex flex-xl-row justify-content-xl-between flex-column align-items-center">
+          <span class="py-2"><?= _e('Seventh-day Adventist Church', 'iasd'); ?></span>
+          <span class="py-2">Copyright © 2013-<?= date("Y") ?></span>
+        </div>
+        <div class="col mb-5 mt-3 text-center pa-go-back-top d-xl-none">
+          <a href="#topo" class="btn btn-sm"><i class="fas fa-arrow-up me-2"></i><?= _e('Go to top', 'iasd'); ?></a>
+        </div>
+      </div>
+    </div>
+  </div>
 </footer>

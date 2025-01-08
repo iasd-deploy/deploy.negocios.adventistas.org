@@ -5,6 +5,108 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.9.4] - 2023-12-17
+
+### Fix
+
+- Inclui logo do campo ASC, ACRS
+
+## [1.9.3] - 2023-12-09
+
+### Fix
+
+- Validação JS slide-downloads
+
+## [1.9.2] - 2023-11-27
+
+### Fix
+
+- Inclui logo do campo MLA
+
+
+## [1.9.1] - 2024-11-19
+
+### Added
+
+- Corrige erro nos blocos
+
+## [1.9.0] - 2024-11-06
+
+### Added
+
+- Adiciona novas features ao bloco 7class
+
+
+## [1.8.0] - 2024-10-07
+
+### Added
+
+- Corrige o CSS do bloco "Find a Church"
+- Adiciona novas features ao bloco Carousel Kits
+- Adiciona nova feature de autoplay ao bloco "Carousel Ministry
+- Adiciona novas features ao bloco Felix7Play
+
+
+## [1.7.2] - 2024-10-03
+
+### Added
+
+- Corrige a versão do Font Awesome p/ a 6.
+
+
+## [1.7.1] - 2023-11-22
+
+### Added
+
+- Corrige a proporção da imagem da logo customizada no header.
+
+
+## [1.7.0] - 2023-11-22
+
+### Added
+
+- Inclui a opção de customizar a logo via painel do wordpress.
+
+
+## [1.6.5] - 2023-11-22
+
+### Fix
+
+- Inclui logo do campo MRP
+
+
+## [1.6.4] - 2023-11-22
+
+### Fix
+
+- Ajustando termos de tradução. O arquivo .PO foi aberto sem as devidas configurações de extrator para os templates blade. 
+- Utilizando o gia presente na [página](https://github.com/roots/sage/issues/1875) o problema foi resolvido.
+
+## [1.6.3] - 2023-08-30
+
+### Fix
+
+- Ajustando ordem da chamada do array que faz o registro das taxonomías.
+- Corrigindo bug de tradução.
+## [1.6.2] - 2023-08-17
+
+### Fix
+
+- Ajustando condicional na chamada para construir a linha especial da taxonomia (owner) no list post.
+
+## [1.6.1] - 2023-07-19
+
+### Fix
+
+- Restringindo versão minima do php 8.0
+
+## [1.6.0] - 2023-07-19
+
+### Added
+
+- Adicionando seletor de módulos
+- Compatível e Limitado a PHP 8.0 ou superior
+
 ## [1.5.32] - 2023-05-24
 
 ### Fix

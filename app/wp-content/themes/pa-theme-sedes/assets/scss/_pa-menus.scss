@@ -3,7 +3,7 @@ header.pa-menu {
 }
 .pa-menu-desktop {
   height: 109px;
-
+  
   a {
     img {
       height: -webkit-fill-available;
@@ -13,10 +13,19 @@ header.pa-menu {
   .pa-header-logo {
     z-index: 999;
     height: 100%;
+  }
+}
 
-    .pa-logo-iasd {
-      max-width: 240px;
-    }
+.pa-menu-desktop, .pa-menu-mobile {
+  .pa-header-logo {
+    z-index: 999;
+    height: 100%;
+  }
+
+  .pa-logo-iasd {
+    max-width: 240px;
+    height: auto !important;
+    max-height: 110px;
   }
 }
 
@@ -113,9 +122,11 @@ div.ativo ~ .mask {
   z-index: 9999;
 }
 
-.pa-menu-mobile ul {
-  list-style: none;
-  // padding: 0;
+.pa-menu-mobile {
+    ul {
+    list-style: none;
+    // padding: 0;
+  }
 }
 
 .pa-menu-lang,

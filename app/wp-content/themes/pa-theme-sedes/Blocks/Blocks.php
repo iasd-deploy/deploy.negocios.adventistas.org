@@ -20,6 +20,7 @@ use Blocks\PAListDownloads\PAListDownloads;
 use Blocks\PAListNews\PAListNews;
 use Blocks\PAListVideos\PAListVideos;
 use Blocks\PAQueroVidaSaude\PAQueroVidaSaude;
+use Blocks\PA7Class\PA7Class;
 use Blocks\PARow\PARow;
 use Blocks\PASevenCast\PASevenCast;
 use Blocks\Plugins\RemoteData\RemoteData;
@@ -87,6 +88,7 @@ class Blocks
             PAFindChurch::class,
             PACarouselKits::class,
             PAQueroVidaSaude::class,
+            PA7Class::class,
         ];
 
         $newBlocks = array_filter($newBlocks, function ($block) {
@@ -160,7 +162,7 @@ class Blocks
     function addCategory($categories)
     {
       if(!Modules::isActiveModule('blocks'))
-        return $categories;
+        return;
 
         return array_merge(
             array(
