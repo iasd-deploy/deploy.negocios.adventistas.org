@@ -1,0 +1,44 @@
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    environment: main
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
+
+    - name: Transform wp-config.php
+      run: |
+        echo "Init transform: wp-config.php"
+        
+        # Função para escapar caracteres especiais
+        escape_sed() {
+          printf '%s\n' "$1" | sed -e 's/[\/&]/\\&/g'
+        }
+
+        # Substituição das variáveis no arquivo wp-config.php
+        sed -i "s/WP_DB_NAME/$(escape_sed '${{ secrets.WP_DB_NAME }}')/g" ./app/wp-config.php
+        sed -i "s/WP_DB_USER/$(escape_sed '${{ secrets.WP_DB_USER }}')/g" ./app/wp-config.php
+        sed -i "s/WP_DB_PASSWORD/$(escape_sed '${{ secrets.WP_DB_PASSWORD }}')/g" ./app/wp-config.php
+        sed -i "s/WP_DB_HOST/$(escape_sed '${{ secrets.WP_DB_HOST }}')/g" ./app/wp-config.php
+        sed -i "s/WP_S3_ACCESS_KEY/$(escape_sed '${{ secrets.WP_S3_ACCESS_KEY }}')/g" ./app/wp-config.php
+        sed -i "s/WP_S3_SECRET_KEY/$(escape_sed '${{ secrets.WP_S3_SECRET_KEY }}')/g" ./app/wp-config.php
+        sed -i "s/WP_S3_BUCKET/$(escape_sed '${{ secrets.WP_S3_BUCKET }}')/g" ./app/wp-config.php
+
+        echo "End transform: wp-config.php"
+
+    - name: Deploy to Server - SSH
+      uses: easingthemes/ssh-deploy@main
+      with:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SOURCE: "./app/"
+        REMOTE_HOST: ${{ secrets.FTP_HOST }}
+        REMOTE_PORT: 65002
+        REMOTE_USER: ${{ secrets.FTP_USER }}
+        TARGET: "/home/${{ secrets.FTP_USER }}/domains/negocios.adventistas.org/public_html"
+        EXCLUDE: "/dist/,/node_modules/"
