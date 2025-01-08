@@ -44,7 +44,8 @@ define('AS3CF_SETTINGS', serialize(array(
     'secret-access-key' => 'WP_S3_SECRET_KEY',
 	'bucket' => 'WP_S3_BUCKET',
 	'enable-delivery-domain' => true,
-	'delivery-domain' => 'files.adventistas.org'
+	'delivery-domain' => 'files.adventistas.org',
+	'region' => 'us-east-1'
 )));
 
 define('FORCE_SSL', true);
