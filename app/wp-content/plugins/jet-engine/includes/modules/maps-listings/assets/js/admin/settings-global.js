@@ -9,12 +9,18 @@
 				settings: mapsSettings.settings,
 				nonce: mapsSettings._nonce,
 				sources: mapsSettings.sources,
+				customSources: mapsSettings.customSources,
 				allFields: mapsSettings.fields,
 				renderProviders: mapsSettings.renderProviders,
+				fieldsProviders: mapsSettings.fieldsProviders,
 				geoProviders: mapsSettings.geoProviders,
 				showPopup: false,
+				currentPopupProvider: 'jet-engine',
+				currentPopupCustomSource: 'posts',
 				currentPopupSource: '',
+				currentPopupCustomFields: '',
 				currentPopupFields: [],
+				preloadWarnings: mapsSettings.preloadWarnings ?? '',
 			};
 		},
 		methods: {
@@ -40,6 +46,8 @@
 							type: 'success',
 							duration: 7000,
 						} );
+
+						self.preloadWarnings = response.data.additionalData.preloadWarnings ?? '';
 					} else {
 						self.$CXNotice.add( {
 							message: response.data.message,
@@ -67,21 +75,58 @@
 						preloadMeta = this.currentPopupFields.join( '+' );
 					}
 
-					this.updateSetting( preloadMeta, 'preload_meta' );
 				}
 
-				this.showPopup = false;
-				this.currentPopupSource = '';
-				this.currentPopupFields = [];
+				let newFields = this.getPopupValue();
+
+				if ( newFields ) {
+
+					var preloadMeta = this.settings.preload_meta;
+
+					if ( preloadMeta ) {
+						preloadMeta = preloadMeta + ',' + newFields;
+					} else {
+						preloadMeta = newFields;
+					}
+
+					this.updateSetting( preloadMeta, 'preload_meta' );
+
+				}
+
+				this.handlePopupCancel();
+			},
+			getPopupValue: function() {
+
+				let value = false;
+
+				if ( 'jet-engine' === this.currentPopupProvider ) {
+					if ( this.currentPopupFields.length ) {
+						value = this.currentPopupFields.join( '+' );
+					}
+				} else {
+					if ( this.currentPopupCustomFields ) {
+						value = [ '_custom', this.currentPopupCustomSource, this.currentPopupCustomFields ].join( '::' );
+					}
+				}
+
+				return value;
+
 			},
 			handlePopupCancel: function() {
 				this.showPopup = false;
+				this.currentPopupProvider = 'jet-engine';
 				this.currentPopupSource = '';
+				this.currentPopupCustomSource = 'posts';
 				this.currentPopupFields = [];
+				this.currentPopupCustomFields = '';
 			},
 			resetPopupFields: function() {
 				this.currentPopupFields = [];
 				this.$refs.current_popup_fields.setValues( [] );
+				this.currentPopupCustomFields = '';
+			},
+			showPreloadWarnings: function() {
+				return this.preloadWarnings?.length > 0;
 			}
 		}
 	} );

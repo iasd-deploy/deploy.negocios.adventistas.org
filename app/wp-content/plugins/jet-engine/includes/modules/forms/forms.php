@@ -34,6 +34,15 @@ if ( ! class_exists( 'Jet_Engine_Module_Booking_Forms' ) ) {
 		}
 
 		/**
+		 * Is module supports blocks view
+		 *
+		 * @return [type] [description]
+		 */
+		public function support_bricks() {
+			return false;
+		}
+
+		/**
 		 * Returns detailed information about current module for the dashboard page
 		 * @return [type] [description]
 		 */

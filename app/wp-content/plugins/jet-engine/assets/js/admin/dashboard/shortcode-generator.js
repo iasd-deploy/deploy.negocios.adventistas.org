@@ -2,136 +2,183 @@ Vue.component( 'jet-engine-shortcode-generator', {
 	name: 'jet-engine-shortcode-generator',
 	template: '#jet-engine-shortcode-generator',
 	data: function() {
+		const {
+			sources,
+			object_fields: objectFields,
+			source_args: sourceArgs,
+			meta_fields: metaFields,
+			options_pages: optionsPages,
+			callbacks,
+			cb_args: cbArgs,
+			context_list: contextList,
+			labels,
+			shortcode_types: shortcodeTypes,
+			tag_type: tagType,
+		} = window.JetEngineDashboardConfig.shortode_generator;
+
 		return {
-			sources: window.JetEngineDashboardConfig.shortode_generator.sources,
-			objectFields: window.JetEngineDashboardConfig.shortode_generator.object_fields,
-			sourceArgs: window.JetEngineDashboardConfig.shortode_generator.source_args,
-			metaFields: window.JetEngineDashboardConfig.shortode_generator.meta_fields,
-			optionsPages: window.JetEngineDashboardConfig.shortode_generator.options_pages,
-			callbacks: window.JetEngineDashboardConfig.shortode_generator.callbacks,
-			cbArgs: window.JetEngineDashboardConfig.shortode_generator.cb_args,
-			contextList: window.JetEngineDashboardConfig.shortode_generator.context_list,
-			labels: window.JetEngineDashboardConfig.shortode_generator.labels,
+			sources,
+			objectFields,
+			sourceArgs,
+			metaFields,
+			optionsPages,
+			callbacks,
+			cbArgs,
+			contextList,
+			labels,
+			shortcodeTypes,
+			tagType,
 			shortcode: '[jet_engine_data ]',
 			controls: {},
 			showCopyShortcode: undefined !== navigator.clipboard && undefined !== navigator.clipboard.writeText,
-			attrs: {},
+			attrs: {
+				shortcode_types: 'jet_engine_data',
+				tag_type: 'selfclosed',
+			},
 			copied: false,
 		};
 	},
 	created: function() {
-		
-		this.addControl( 'dynamic_field_source', {
+
+		const addControl = (name, config) => this.addControl(name, config);
+
+		if ( 1 < this.shortcodeTypes.length ) {
+			addControl( 'shortcode_types', {
+				label: this.labels.shortcode_types.label,
+				description: this.labels.shortcode_types.description,
+				type: 'select',
+				default: 'jet_engine_data',
+				options: this.shortcodeTypes,
+			} );
+		}
+
+		const conditionJetEngineData = {
+			'shortcode_types': 'jet_engine_data',
+		};
+
+		addControl( 'dynamic_field_source', {
 			label: this.labels.dynamic_field_source.label,
 			type: 'select',
 			default: 'object',
 			options: this.sources,
+			condition: conditionJetEngineData,
 		} );
 
-		this.addControl( 'dynamic_field_post_object', {
+		addControl( 'dynamic_field_post_object', {
 			label: this.labels.dynamic_field_post_object.label,
 			type: 'select',
 			default: 'post_title',
 			groups: this.objectFields,
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source': 'object',
 			},
 		} );
 
-		this.addControl( 'dynamic_field_wp_excerpt', {
+		addControl( 'dynamic_field_wp_excerpt', {
 			label: this.labels.dynamic_field_wp_excerpt.label,
 			type: 'switcher',
 			default: '',
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source': 'object',
 				'dynamic_field_post_object': 'post_excerpt',
 			},
 		} );
 
-		this.addControl( 'dynamic_excerpt_more', {
+		addControl( 'dynamic_excerpt_more', {
 			label: this.labels.dynamic_excerpt_more.label,
 			type: 'text',
 			default: '...',
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source': 'object',
 				'dynamic_field_post_object': 'post_excerpt',
 			},
 		} );
 
-		this.addControl( 'dynamic_excerpt_length', {
+		addControl( 'dynamic_excerpt_length', {
 			label: this.labels.dynamic_excerpt_length.label,
 			type: 'text',
 			default: 0,
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source': 'object',
 				'dynamic_field_post_object': 'post_excerpt',
 			},
 		} );
 
-		this.addControl( 'dynamic_field_post_meta', {
+		addControl( 'dynamic_field_post_meta', {
 			label: this.labels.dynamic_field_post_meta.label,
 			type: 'select',
 			default: '',
 			groups: this.metaFields,
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source': 'meta',
 			},
 		} );
 
-		this.addControl( 'dynamic_field_option', {
+		addControl( 'dynamic_field_option', {
 			label: this.labels.dynamic_field_option.label,
 			type: 'select',
 			default: '',
 			groups: this.optionsPages,
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source': 'options_page',
 			},
 		} );
 
-		this.addControl( 'dynamic_field_var_name', {
+		addControl( 'dynamic_field_var_name', {
 			label: this.labels.dynamic_field_var_name.label,
 			type: 'text',
 			default: '',
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source': 'query_var',
 			},
 		} );
 
 		if ( this.sourceArgs && this.sourceArgs.length ) {
 			for (var i = 0; i < this.sourceArgs.length; i++) {
-				this.addControl( this.sourceArgs[ i ].name, this.sourceArgs[ i ].data );
+				addControl( this.sourceArgs[ i ].name, this.sourceArgs[ i ].data );
 			}
 		}
 
-		this.addControl( 'dynamic_field_post_meta_custom', {
+		addControl( 'dynamic_field_post_meta_custom', {
 			label: this.labels.dynamic_field_post_meta_custom.label,
 			type: 'text',
 			default: '',
 			description: this.labels.dynamic_field_post_meta_custom.description,
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_source!': [ 'query_var', 'options_page', 'relations_hierarchy' ],
 			},
 		} );
 
-		this.addControl( 'hide_if_empty', {
+		addControl( 'hide_if_empty', {
 			label: this.labels.hide_if_empty.label,
 			type: 'switcher',
 			default: '',
+			condition: conditionJetEngineData,
 		} );
 
-		this.addControl( 'field_fallback', {
+		addControl( 'field_fallback', {
 			label: this.labels.field_fallback.label,
 			type: 'text',
 			default: '',
 			condition: {
+				...conditionJetEngineData,
 				'hide_if_empty': false,
 			},
 		} );
 
-		this.addControl( 'dynamic_field_filter', {
+		addControl( 'dynamic_field_filter', {
 			label: this.labels.dynamic_field_filter.label,
 			type: 'switcher',
 			default: '',
+			condition: conditionJetEngineData,
 		} );
 
 		const repeaterFields = {};
@@ -141,52 +188,74 @@ Vue.component( 'jet-engine-shortcode-generator', {
 			type: 'select',
 			default: '',
 			options: this.callbacks,
+			condition: conditionJetEngineData,
 		};
 
 		for ( const [ fieldName, fieldData ] of Object.entries( this.cbArgs ) ) {
 			repeaterFields[ fieldName ] = fieldData;
 		}
 
-		this.addControl( 'filter_callbacks', {
+		addControl( 'filter_callbacks', {
 			label: 'Applied Callbacks',
 			type: 'repeater',
 			title: 'filter_callback',
 			fields: repeaterFields,
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_filter': 'yes',
 			},
 		} );
 
 		this.$set( this.attrs, 'filter_callbacks', [] );
 
-		this.addControl( 'dynamic_field_custom', {
+		addControl( 'dynamic_field_custom', {
 			label: this.labels.dynamic_field_custom.label,
 			type: 'switcher',
 			default: '',
+			condition: conditionJetEngineData,
 		} );
 
-		this.addControl( 'dynamic_field_format', {
+		addControl( 'dynamic_field_format', {
 			label: this.labels.dynamic_field_format.label,
 			type: 'textarea',
 			default: '%s',
 			description: this.labels.dynamic_field_format.description,
 			condition: {
+				...conditionJetEngineData,
 				'dynamic_field_custom': 'yes',
 			},
 		} );
 
-		this.addControl( 'object_context', {
+		addControl( 'object_context', {
 			label: this.labels.object_context.label,
 			type: 'select',
 			default: 'default_object',
 			options: this.contextList,
+			condition: conditionJetEngineData,
 		} );
 
+		addControl( 'tag_type', {
+			label: this.labels.tag_type.label,
+			description: this.labels.tag_type.description,
+			type: 'select',
+			default: 'selfclosed',
+			options: this.tagType,
+			condition: {
+				'shortcode_types!': 'jet_engine_data',
+			},
+		} );
+
+		window.JetPlugins.hooks.doAction( 'jetEngine.shortcodeGenerator.controls', addControl, this );
 	},
 	computed: {
 		generatedShortcode: function() {
 
-			var result = '[jet_engine_data';
+			let isEnclosing = false;
+			let currentTag = '';
+
+			var result = '[';
+
+			const attrsToParse = [];
 
 			for ( const attr in this.attrs ) {
 
@@ -196,17 +265,43 @@ Vue.component( 'jet-engine-shortcode-generator', {
 
 				let value = this.attrs[ attr ];
 
+				if ( 'shortcode_types' === attr ) {
+					result += value;
+					currentTag = value;
+					continue;
+				}
+
+				if ( 'tag_type' === attr ) {
+
+					if ( 'enclosed' === value ) {
+						isEnclosing = true;
+					}
+
+					continue;
+				}
+
 				if ( value === this.controls[ attr ].default ) {
 					continue;
 				}
 
 				if ( value instanceof Array ) {
-					
+
 					let toString = [];
-					
+
 					for ( var i = 0; i < value.length; i++ ) {
 
-						let row = { ...value[ i ] }
+						if ( ! value[ i ]
+							|| 'object' !== typeof value[ i ]
+							|| Array.isArray( value[ i ] ) ) {
+							toString.push( value[ i ] );
+
+							if ( ! attrsToParse.includes( attr ) ) {
+								attrsToParse.push( attr );
+							}
+							continue;
+						}
+
+						let row = { ...value[ i ] };
 
 						if ( undefined !== row._id ) {
 							delete row._id;
@@ -226,17 +321,25 @@ Vue.component( 'jet-engine-shortcode-generator', {
 						row = new URLSearchParams( row );
 						toString.push( '{' + row.toString() + '}' );
 					}
-					
+
 					value = toString.join( ',' );
 				} else {
 					value = JSON.stringify( value );
 				}
- 
+
 				result += ' ' + attr + '=' + value;
 
 			}
 
+			if ( attrsToParse.length ) {
+				result += ' _parse_attrs=' + attrsToParse.join( ',' );
+			}
+
 			result += ']';
+
+			if ( isEnclosing ) {
+				result += 'Add your content here...[/' + currentTag + ']';
+			}
 
 			return result;
 
@@ -244,13 +347,13 @@ Vue.component( 'jet-engine-shortcode-generator', {
 	},
 	methods: {
 		addControl: function( name, data ) {
-			
+
 			const preparedControls = this.getPreparedControls( { [name]: data } );
 
 			for ( var i = 0; i < preparedControls.length; i++ ) {
 				this.$set( this.controls, preparedControls[ i ].name, preparedControls[ i ] );
 			}
-			
+
 		},
 		addNewItem: function( event, props, parent, control, callback ) {
 
@@ -275,7 +378,7 @@ Vue.component( 'jet-engine-shortcode-generator', {
 
 		},
 		deleteItemProp: function( id, key, parent ) {
-			
+
 			let index = this.searchByID( id, parent );
 
 			if ( false === index ) {
@@ -366,6 +469,7 @@ Vue.component( 'jet-engine-shortcode-generator', {
 				let condition   = control.condition || {};
 				let fields      = false;
 				let title       = false;
+				let multiple    = false;
 				let inputType   = 'text';
 
 				switch ( control.type ) {
@@ -399,56 +503,20 @@ Vue.component( 'jet-engine-shortcode-generator', {
 						break;
 
 					case 'select':
-
 						type = 'cx-vui-select';
 
 						if ( control.groups ) {
-
-							for ( var i = 0; i < control.groups.length; i++) {
-
-								let group = control.groups[ i ];
-								let groupOptions = [];
-
-								if ( group.options ) {
-									for ( const optionValue in group.options ) {
-										
-										if ( group.options[ optionValue ].value ) {
-											groupOptions.push( group.options[ optionValue ] );
-										} else {
-											groupOptions.push( {
-												value: optionValue,
-												label: group.options[ optionValue ],
-											} );
-										}
-										
-									}
-								} else if ( group.values ) {
-									for ( var j = 0; j < group.values.length; j++ ) {
-										groupOptions.push( group.values[ j ] );
-									}
-								}
-
-								groupsList.push( {
-									label: group.label,
-									options: groupOptions,
-								} );
-
-							}
+							groupsList = this.prepareGroupsList(control.groups);
 						} else {
-							for ( const optionValue in control.options ) {
-								if ( control.options[ optionValue ].value ) {
-									optionsList.push( {
-										value: control.options[ optionValue ].value,
-										label: control.options[ optionValue ].label,
-									} );
-								} else {
-									optionsList.push( {
-										value: optionValue,
-										label: control.options[ optionValue ],
-									} );
-								}
-							}
+							optionsList = this.prepareOptionsList(control.options);
 						}
+
+						break;
+
+					case 'select2':
+						type = 'cx-vui-f-select';
+						multiple = control.multiple;
+						optionsList = this.prepareOptionsList(control.options);
 
 						break;
 
@@ -459,16 +527,18 @@ Vue.component( 'jet-engine-shortcode-generator', {
 				}
 
 				controls.push( {
-					type: type,
+					type,
 					name: controlID,
-					label: label,
+					label,
+					description,
 					default: defaultVal,
-					optionsList: optionsList,
-					groupsList: groupsList,
-					condition: condition,
-					fields: fields,
+					optionsList,
+					multiple,
+					groupsList,
+					condition,
+					fields,
 					title: control.title,
-					inputType: inputType,
+					inputType,
 				} );
 
 			}
@@ -476,8 +546,50 @@ Vue.component( 'jet-engine-shortcode-generator', {
 			return controls;
 
 		},
+		prepareGroupsList: function(groups) {
+			const groupsList = [];
+
+			for ( var i = 0; i < groups.length; i++) {
+				let group = groups[ i ];
+				let groupOptions = [];
+
+				if ( group.options ) {
+					groupOptions = this.prepareOptionsList(group.options);
+				} else if ( group.values ) {
+					for ( var j = 0; j < group.values.length; j++ ) {
+						groupOptions.push( group.values[ j ] );
+					}
+				}
+
+				groupsList.push( {
+					label: group.label,
+					options: groupOptions,
+				} );
+			}
+
+			return groupsList;
+		},
+		prepareOptionsList: function(options) {
+			const optionsList = [];
+
+			for ( const optionValue in options ) {
+				if ( options[optionValue] && options[optionValue].value !== undefined ) {
+					optionsList.push( {
+						value: options[ optionValue ].value,
+						label: options[ optionValue ].label,
+					} );
+				} else {
+					optionsList.push( {
+						value: optionValue,
+						label: options[ optionValue ],
+					} );
+				}
+			}
+
+			return optionsList;
+		},
 		copyShortcodeToClipboard: function() {
-			
+
 			var self = this;
 
 			navigator.clipboard.writeText( this.generatedShortcode ).then( function() {
@@ -503,6 +615,10 @@ Vue.component( 'jet-engine-shortcode-generator', {
 		isRepeaterFieldVisible: function( control, item ) {
 
 			let res = false;
+
+			if ( ! control ) {
+				return false;
+			}
 
 			if ( ! control.condition ) {
 				res = true;
@@ -557,7 +673,7 @@ Vue.component( 'jet-engine-shortcode-generator', {
 						}
 					}
 				}
-				
+
 			}
 
 			return checkResult;

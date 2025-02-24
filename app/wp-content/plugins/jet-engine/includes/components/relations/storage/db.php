@@ -16,6 +16,8 @@ if ( ! defined( 'WPINC' ) ) {
 class DB extends \Jet_Engine_Base_DB {
 
 	public static $prefix = 'jet_rel_';
+	public $relations_cache = [];
+	public $table_keys = false;
 
 	/**
 	 * Insert booking
@@ -79,8 +81,23 @@ class DB extends \Jet_Engine_Base_DB {
 			}
 		}
 
-		return self::wpdb()->update( $this->table(), $new_data, $where );
+		$result = self::wpdb()->update( $this->table(), $new_data, $where );
 
+		/**
+		 * https://github.com/Crocoblock/suggestions/issues/7774
+		 */
+		$this->reset_found_items_cache();
+
+		return $result;
+	}
+
+	/**
+	 * Set table keys to create indexes with the table creation
+	 * 
+	 * @param boolean $keys [description]
+	 */
+	public function set_table_keys( $keys = false ) {
+		$this->table_keys = $keys;
 	}
 
 	/**
@@ -116,11 +133,40 @@ class DB extends \Jet_Engine_Base_DB {
 			}
 		}
 
+		$keys = $this->table_keys;
+
 		return "CREATE TABLE $table (
 			$columns_schema
-			PRIMARY KEY (_ID)
+			PRIMARY KEY ( _ID ),
+			$keys
 		) $charset_collate;";
 
+	}
+
+	/**
+	 * Get unique string cache key for given relations request
+	 * 
+	 * @param  array   $args   [description]
+	 * @param  integer $limit  [description]
+	 * @param  integer $offset [description]
+	 * @param  array   $order  [description]
+	 * @param  string  $rel    [description]
+	 * @return [type]          [description]
+	 */
+	public function get_cache_key( $args = array(), $limit = 0, $offset = 0, $order = array(), $rel = 'AND' ) {
+		return apply_filters(
+			'jet-engine/relations/db/cache-key',
+			md5( json_encode( $args ) . json_encode( $order ) . $limit . $offset . $rel ),
+			$args = array(), $limit = 0, $offset = 0, $order = array(), $rel = 'AND'
+		);
+	}
+
+	/**
+	 * Reset relations object cache
+	 * @return [type] [description]
+	 */
+	public function reset_cache() {
+		$this->relations_cache = [];
 	}
 
 	/**
@@ -130,70 +176,78 @@ class DB extends \Jet_Engine_Base_DB {
 	 */
 	public function query( $args = array(), $limit = 0, $offset = 0, $order = array(), $filter = false, $rel = 'AND' ) {
 
-		$table = $this->table();
+		$cache_key = $this->get_cache_key( $args, $limit, $offset, $order, $rel );
+		$raw       = isset( $this->relations_cache[ $cache_key ] ) ? $this->relations_cache[ $cache_key ] : false;
 
-		$query = "SELECT * FROM $table";
+		if ( false === $raw ) {
+			
+			$table = $this->table();
 
-		if ( ! $rel ) {
-			$rel = 'AND';
-		}
+			$query = "SELECT * FROM $table";
 
-		$search = ! empty( $args['_search'] ) ? $args['_search'] : false;
-
-		if ( $search ) {
-			unset( $args['_search'] );
-		}
-
-		$where  = $this->add_where_args( $args, $rel );
-		$query .= $where;
-
-		if ( $search ) {
-
-			$search_str = array();
-			$keyword    = $search['keyword'];
-			$fields     = ! empty( $search['fields'] ) ? $search['fields'] : false;
-
-			if ( ! $fields ) {
-				$fields = array_keys( $this->schema );
+			if ( ! $rel ) {
+				$rel = 'AND';
 			}
 
-			if ( $fields ) {
-				foreach ( $fields as $field ) {
-					$search_str[] = sprintf( '`%1$s` LIKE \'%%%2$s%%\'', $field, $keyword );
+			$search = ! empty( $args['_search'] ) ? $args['_search'] : false;
+
+			if ( $search ) {
+				unset( $args['_search'] );
+			}
+
+			$where  = $this->add_where_args( $args, $rel );
+			$query .= $where;
+
+			if ( $search ) {
+
+				$search_str = array();
+				$keyword    = $search['keyword'];
+				$fields     = ! empty( $search['fields'] ) ? $search['fields'] : false;
+
+				if ( ! $fields ) {
+					$fields = array_keys( $this->schema );
 				}
 
-				$search_str = implode( ' OR ', $search_str );
-			}
+				if ( $fields ) {
+					foreach ( $fields as $field ) {
+						$search_str[] = sprintf( '`%1$s` LIKE \'%%%2$s%%\'', $field, $keyword );
+					}
 
-			if ( ! empty( $search_str ) ) {
-
-				if ( $where ) {
-					$query .= ' ' . $rel;
-				} else {
-					$query .= ' WHERE';
+					$search_str = implode( ' OR ', $search_str );
 				}
 
-				$query .= ' (' . $search_str . ')';
+				if ( ! empty( $search_str ) ) {
 
+					if ( $where ) {
+						$query .= ' ' . $rel;
+					} else {
+						$query .= ' WHERE';
+					}
+
+					$query .= ' (' . $search_str . ')';
+
+				}
 			}
+
+			if ( empty( $order ) ) {
+				$order = array( array(
+					'orderby' => '_ID',
+					'order'   => 'desc',
+				) );
+			}
+
+			$query .= $this->add_order_args( $order );
+
+			if ( intval( $limit ) > 0 ) {
+				$limit  = absint( $limit );
+				$offset = absint( $offset );
+				$query .= " LIMIT $offset, $limit";
+			}
+
+			$raw = self::wpdb()->get_results( $query, $this->get_format_flag() );
+			$this->relations_cache[ $cache_key ] = $raw;
+
 		}
-
-		if ( empty( $order ) ) {
-			$order = array( array(
-				'orderby' => '_ID',
-				'order'   => 'desc',
-			) );
-		}
-
-		$query .= $this->add_order_args( $order );
-
-		if ( intval( $limit ) > 0 ) {
-			$limit  = absint( $limit );
-			$offset = absint( $offset );
-			$query .= " LIMIT $offset, $limit";
-		}
-
-		$raw = self::wpdb()->get_results( $query, $this->get_format_flag() );
 
 		if ( $filter && is_callable( $filter ) ) {
 			return array_map( $filter, $raw );

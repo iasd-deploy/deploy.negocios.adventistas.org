@@ -17,21 +17,21 @@
 			v-model="query.content_type"
 		></cx-vui-select>
 		<cx-vui-input
-				label="<?php _e( 'Number', 'jet-engine' ); ?>"
-				description="<?php _e( 'Number of items to show in the listing grid or per page if JetSmartFilters pagination is used. Query Count dynamic tag will show total number of items matched current Query', 'jet-engine' ); ?>"
-				:wrapper-css="[ 'equalwidth' ]"
-				size="fullwidth"
-				name="query_number"
-				v-model="query.number"
-			></cx-vui-input>
-			<cx-vui-input
-				label="<?php _e( 'Offset', 'jet-engine' ); ?>"
-				description="<?php _e( 'Number of items to skip', 'jet-engine' ); ?>"
-				:wrapper-css="[ 'equalwidth' ]"
-				size="fullwidth"
-				name="query_offset"
-				v-model="query.offset"
-			></cx-vui-input>
+			label="<?php _e( 'Number', 'jet-engine' ); ?>"
+			description="<?php _e( 'Number of items to show in the listing grid or per page if JetSmartFilters pagination is used. Query Count dynamic tag will show total number of items matched current Query', 'jet-engine' ); ?>"
+			:wrapper-css="[ 'equalwidth' ]"
+			size="fullwidth"
+			name="query_number"
+			v-model="query.number"
+		></cx-vui-input>
+		<cx-vui-input
+			label="<?php _e( 'Offset', 'jet-engine' ); ?>"
+			description="<?php _e( 'Number of items to skip', 'jet-engine' ); ?>"
+			:wrapper-css="[ 'equalwidth' ]"
+			size="fullwidth"
+			name="query_offset"
+			v-model="query.offset"
+		></cx-vui-input>
 		<cx-vui-select
 			label="<?php _e( 'Status', 'jet-engine' ); ?>"
 			description="<?php _e( 'Select items only with the certain status', 'jet-engine' ); ?>"
@@ -53,6 +53,14 @@
 			size="fullwidth"
 			v-model="query.status"
 		></cx-vui-select>
+		<cx-vui-input
+			label="<?php _e( 'Search Query', 'jet-engine' ); ?>"
+			description="<?php _e( 'Search string to search across all CCT fields. IF you need to search by a specific field - please use Query settings and Like compare operator.', 'jet-engine' ); ?>"
+			:wrapper-css="[ 'equalwidth', 'has-macros' ]"
+			size="fullwidth"
+			name="search_query"
+			v-model="query.search_query"
+		><jet-query-dynamic-args v-model="dynamicQuery.search_query"></jet-query-dynamic-args></cx-vui-input>
 		<cx-vui-component-wrapper
 			:wrapper-css="[ 'fullwidth-control' ]"
 			v-if="hasFields()"

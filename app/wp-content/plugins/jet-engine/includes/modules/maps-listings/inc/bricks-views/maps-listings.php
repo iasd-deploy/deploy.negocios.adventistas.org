@@ -158,18 +158,6 @@ class Maps_Listings extends Listing_Grid {
 		);
 
 		$this->register_jet_control(
-			'max_zoom',
-			[
-				'tab'      => 'content',
-				'label'    => esc_html__( 'Max zoom', 'jet-engine' ),
-				'type'     => 'number',
-				'min'      => 1,
-				'max'      => 20,
-				'required' => [ 'auto_center', '=', true ],
-			]
-		);
-
-		$this->register_jet_control(
 			'custom_center',
 			[
 				'tab'      => 'content',
@@ -192,7 +180,51 @@ class Maps_Listings extends Listing_Grid {
 			]
 		);
 
+		$this->register_jet_control(
+			'max_zoom',
+			[
+				'tab'   => 'content',
+				'label' => esc_html__( 'Max zoom', 'jet-engine' ),
+				'type'  => 'number',
+				'min'   => 1,
+				'max'   => 20,
+			]
+		);
+
+		$this->register_jet_control(
+			'min_zoom',
+			[
+				'tab'   => 'content',
+				'label' => esc_html__( 'Min zoom', 'jet-engine' ),
+				'type'  => 'number',
+				'min'   => 1,
+				'max'   => 10,
+			]
+		);
+
 		$this->add_provider_controls( 'section_general' );
+
+		$this->register_jet_control(
+			'centering_on_open',
+			[
+				'tab'     => 'content',
+				'label'   => esc_html__( 'Centering Map when click on marker', 'jet-engine' ),
+				'type'    => 'checkbox',
+				'default' => false,
+			]
+		);
+
+		$this->register_jet_control(
+			'zoom_on_open',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'Zoom Map', 'jet-engine' ),
+				'type'     => 'number',
+				'min'      => 1,
+				'max'      => 20,
+				'required' => [ 'centering_on_open', '=', true ],
+			]
+		);
 
 		$this->end_jet_control_group();
 
@@ -212,10 +244,23 @@ class Maps_Listings extends Listing_Grid {
 		$this->register_jet_control(
 			'marker_image',
 			[
-				'tab'      => 'content',
-				'label'    => esc_html__( 'Image', 'jet-engine' ),
-				'type'     => 'image',
-				'required' => [ 'marker_type', '=', 'image' ],
+				'tab'            => 'content',
+				'label'          => esc_html__( 'Image', 'jet-engine' ),
+				'type'           => 'image',
+				'hasDynamicData' => false,
+				'required'       => [ 'marker_type', '=', 'image' ],
+			]
+		);
+
+		$this->register_jet_control(
+			'marker_image_size',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Image Size', 'jet-engine' ),
+				'type'        => 'select',
+				'default'     => 'full',
+				'options'     => \Jet_Engine_Tools::get_image_sizes(),
+				'description' => __( 'Applies to the main marker if it is of image type, and to conditional image markers.', 'jet-engine' ),
 			]
 		);
 
@@ -339,7 +384,7 @@ class Maps_Listings extends Listing_Grid {
 		);
 
 		foreach ( jet_engine()->listings->get_callbacks_args() as $control_name => $control_args ) {
-			
+
 			$control_args = Options_Converter::convert( $control_args );
 
 			if ( ! empty( $control_args['required'] ) && is_array( $control_args['required'][0] ) ) {
@@ -420,9 +465,10 @@ class Maps_Listings extends Listing_Grid {
 		$markers_repeater->add_control(
 			'marker_image',
 			[
-				'label'    => esc_html__( 'Image', 'jet-engine' ),
-				'type'     => 'image',
-				'required' => [ 'marker_type', '=', 'image' ],
+				'label'          => esc_html__( 'Image', 'jet-engine' ),
+				'type'           => 'image',
+				'hasDynamicData' => false,
+				'required'       => [ 'marker_type', '=', 'image' ],
 			]
 		);
 
@@ -515,6 +561,31 @@ class Maps_Listings extends Listing_Grid {
 				'label'   => esc_html__( 'Marker clustering', 'jet-engine' ),
 				'type'    => 'checkbox',
 				'default' => true,
+			]
+		);
+
+		$this->register_jet_control(
+			'cluster_max_zoom',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Cluster Max Zoom', 'jet-engine' ),
+				'description' => esc_html__( 'Maximum zoom level that a marker can be part of a cluster', 'jet-engine' ),
+				'type'        => 'number',
+				'min'         => 1,
+				'max'         => 20,
+				'required'    => [ 'marker_clustering', '=', true ],
+			]
+		);
+
+		$this->register_jet_control(
+			'cluster_radius',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Cluster Radius', 'jet-engine' ),
+				'description' => esc_html__( 'Radius of each cluster when clustering markers in px', 'jet-engine' ),
+				'type'        => 'number',
+				'min'         => 10,
+				'required'    => [ 'marker_clustering', '=', true ],
 			]
 		);
 
@@ -788,8 +859,10 @@ class Maps_Listings extends Listing_Grid {
 			$this->settings['scrollwheel'] = false;
 		}
 
-		$this->set_attribute( '_root', 'data-is-block', 'jet-engine/' . $this->jet_element_render );
-		$this->set_attribute( '_root', 'class', 'jet-listing-grid' );
+		$this->set_attribute( '_root', 'class', 'brxe-' . $this->id );
+		$this->set_attribute( '_root', 'class', 'brxe-jet-listing' );
+		$this->set_attribute( '_root', 'data-is-block', 'jet-engine/bricks-' . $this->jet_element_render );
+		$this->set_attribute( '_root', 'data-id', $this->id );
 
 		$this->enqueue_scripts();
 
@@ -839,7 +912,7 @@ class Maps_Listings extends Listing_Grid {
 			}
 		}
 
-		return $attrs;
+		return parent::parse_jet_render_attributes( $attrs );
 	}
 
 	public function css_selector( $mod = null ) {

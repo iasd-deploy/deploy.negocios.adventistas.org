@@ -3,28 +3,25 @@
 	"version": "1.0.0",
 	"license": "GPL-2.0-or-later",
 	"main": "js/admin-controls.js",
-	"devDependencies": {
-		"@babel/plugin-proposal-object-rest-spread": "^7.5.5",
-		"babel-core": "^6.25.0",
-		"babel-loader": "^7.1.1",
-		"babel-plugin-transform-object-rest-spread": "^6.26.0",
-		"babel-plugin-transform-react-jsx": "^6.24.1",
-		"babel-plugin-transform-runtime": "^6.23.0",
-		"babel-preset-env": "^1.6.0",
-		"babel-preset-latest": "^6.24.1",
-		"cross-env": "^5.0.5",
-		"css-loader": "^1.0.0",
-		"file-loader": "^1.1.4",
-		"node-sass": "^4.7.2",
-		"sass-loader": "^6.0.6",
-		"webpack": "^3.6.0"
-	},
 	"scripts": {
-		"dev": "cross-env NODE_ENV=development webpack --progress --hide-modules -w",
-		"build": "cross-env NODE_ENV=production webpack --progress --hide-modules -w"
+		"build": "npx webpack build --mode production -w",
+		"dev": "npx webpack build --mode development -w"
+	},
+	"devDependencies": {
+		"@wordpress/babel-preset-default": "^8.3.0",
+		"@wordpress/dependency-extraction-webpack-plugin": "^5.2.0",
+		"babel-loader": "^9.1.3",
+		"webpack-cli": "^5.1.4"
 	},
 	"dependencies": {
-		"@wordpress/icons": "^4.1.0",
-		"react-select": "^5.2.1"
+		"@wordpress/api-fetch": "^7.3.0",
+		"@wordpress/components": "^28.3.0",
+		"@wordpress/data": "^10.3.0",
+		"@wordpress/element": "^6.3.0",
+		"@wordpress/hooks": "^4.3.0",
+		"@wordpress/i18n": "^5.3.0",
+		"@wordpress/icons": "^10.3.0",
+		"@wordpress/url": "^4.3.0",
+		"react-beautiful-dnd": "^13.1.1"
 	}
 }

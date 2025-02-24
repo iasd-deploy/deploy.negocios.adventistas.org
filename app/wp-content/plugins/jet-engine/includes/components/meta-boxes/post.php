@@ -347,7 +347,9 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 				if ( ! $this->hide_field_names ) {
 
 					if ( ! empty( $description ) ) {
-						$description = rtrim( $description, '.' ) . ' <br>';
+						//trim removed in https://github.com/Crocoblock/issues-tracker/issues/11919
+						//$description = rtrim( $description, '.' ) . ' <br>';
+						$description = $description . ' <br>';
 					}
 
 					$description .= sprintf(
@@ -387,12 +389,14 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 						$prepared_options = $this->prepare_select_options( $field );
 						$result[ $field['name'] ]['options'] = $prepared_options['options'];
 
-						if ( ! empty( $prepared_options['default'] ) ) {
-							$result[ $field['name'] ]['value'] = $prepared_options['default'];
+						if ( ! empty( $prepared_options['options_callback'] ) 
+							&& is_callable( $prepared_options['options_callback'] ) 
+						) {
+							$result[ $field['name'] ]['options_callback'] = $prepared_options['options_callback'];
 						}
 
-						if ( ! empty( $field['options_callback'] ) ) {
-							$result[ $field['name'] ]['options_callback'] = $field['options_callback'];
+						if ( ! empty( $prepared_options['default'] ) ) {
+							$result[ $field['name'] ]['value'] = $prepared_options['default'];
 						}
 
 						$multiple = ! empty( $field['is_multiple'] ) ? $field['is_multiple'] : false;
@@ -411,16 +415,19 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 							$field['options'] = array();
 						}
 
-						$prepared_options                    = $this->prepare_select_options( $field );
+						$prepared_options = $this->prepare_select_options( $field );
+
+						if ( ! empty( $prepared_options['options_callback'] ) 
+							&& is_callable( $prepared_options['options_callback'] ) 
+						) {
+							$result[ $field['name'] ]['options_callback'] = $prepared_options['options_callback'];
+						}
+
 						$result[ $field['name'] ]['options'] = $prepared_options['options'];
 						$result[ $field['name'] ]['add_button_label'] = esc_html__( 'Add custom value', 'jet-engine' );
 
 						if ( ! empty( $prepared_options['default'] ) ) {
 							$result[ $field['name'] ]['value'] = $prepared_options['default'];
-						}
-
-						if ( ! empty( $field['options_callback'] ) ) {
-							$result[ $field['name'] ]['options_callback'] = $field['options_callback'];
 						}
 
 						$field['is_array'] = ! empty( $field['is_array'] ) ? $field['is_array'] : false;
@@ -440,19 +447,18 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 
 					case 'radio':
 
-						if ( empty( $field['options'] ) ) {
-							$field['options'] = array();
+						$prepared_options = $this->prepare_radio_options( [], $field );
+
+						if ( ! empty( $prepared_options['options_callback'] ) 
+							&& is_callable( $prepared_options['options_callback'] ) 
+						) {
+							$result[ $field['name'] ]['options_callback'] = $prepared_options['options_callback'];
 						}
 
-						$prepared_options                    = $this->prepare_radio_options( $field['options'], $field );
 						$result[ $field['name'] ]['options'] = $prepared_options['options'];
 
 						if ( ! Jet_Engine_Tools::is_empty( $prepared_options['default'] ) ) {
 							$result[ $field['name'] ]['value'] = $prepared_options['default'];
-						}
-
-						if ( ! empty( $field['options_callback'] ) ) {
-							$result[ $field['name'] ]['options_callback'] = $field['options_callback'];
 						}
 
 						if ( ! empty( $field['allow_custom'] ) && filter_var( $field['allow_custom'], FILTER_VALIDATE_BOOLEAN ) ) {
@@ -485,11 +491,17 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 							$result[ $field['name'] ]['collapsed'] = filter_var( $field['repeater_collapsed'], FILTER_VALIDATE_BOOLEAN );
 						}
 
+						if ( ! empty( $field['repeater_save_separate'] ) ) {
+							$result[ $field['name'] ]['save_separate'] = filter_var( $field['repeater_save_separate'], FILTER_VALIDATE_BOOLEAN );
+						}
+
 						break;
 
 					case 'iconpicker':
 
-						$result[ $field['name'] ]['icon_data'] = $this->get_icon_data();
+						$icon_library = ! empty( $field['iconpicker_library'] ) ? $field['iconpicker_library'] : '';
+
+						$result[ $field['name'] ]['icon_data'] = \Jet_Engine_Icons_Manager::get_iconpicker_data( $icon_library );
 
 						break;
 
@@ -623,7 +635,8 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 						);
 
 						// Set default value
-						$result[ $field['name'] ]['value'] = false;
+						//depends on on_by_default setting https://github.com/Crocoblock/issues-tracker/issues/11488
+						$result[ $field['name'] ]['value'] = ! empty( $field['on_by_default'] ) ? true : false;
 
 						break;
 
@@ -695,6 +708,13 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 		public function is_allowed_on_current_admin_hook( $hook ) {
 
 			if ( null !== $this->is_allowed_on_admin_hook ) {
+				return $this->is_allowed_on_admin_hook;
+			}
+
+			$pre_check = apply_filters( 'jet-engine/meta-boxes/is-allowed-on-current-admin-hook', null, $hook, $this );
+
+			if ( null !== $pre_check ) {
+				$this->is_allowed_on_admin_hook = $pre_check;
 				return $this->is_allowed_on_admin_hook;
 			}
 
@@ -818,6 +838,12 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 				return;
 			}
 
+			$this->date_assets();
+
+		}
+
+		public function date_assets() {
+			
 			wp_enqueue_script( 'jquery-ui-datepicker' );
 			wp_enqueue_script( 'jquery-ui-slider' );
 
@@ -858,6 +884,7 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 						'timeText'        => esc_html__( 'Time', 'jet-engine' ),
 						'hourText'        => esc_html__( 'Hour', 'jet-engine' ),
 						'minuteText'      => esc_html__( 'Minute', 'jet-engine' ),
+						'secondText'      => esc_html__( 'Second', 'jet-engine' ),
 						'currentText'     => esc_html__( 'Now', 'jet-engine' ),
 						'closeText'       => esc_html__( 'Done', 'jet-engine' ),
 						'monthNames'      => array_values( $wp_locale->month ),
@@ -946,7 +973,9 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 
 					case 'iconpicker':
 
-						$result[ $field['name'] ]['icon_data'] = $this->get_icon_data();
+						$icon_library = ! empty( $field['iconpicker_library'] ) ? $field['iconpicker_library'] : '';
+
+						$result[ $field['name'] ]['icon_data'] = \Jet_Engine_Icons_Manager::get_iconpicker_data( $icon_library );
 
 						break;
 
@@ -1043,6 +1072,12 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 
 						$prepared_options = $this->prepare_select_options( $field );
 
+						if ( ! empty( $prepared_options['options_callback'] ) 
+							&& is_callable( $prepared_options['options_callback'] ) 
+						) {
+							$field['options_callback'] = $prepared_options['options_callback'];
+						}
+
 						$result[ $field['name'] ]['options'] = $prepared_options['options'];
 
 						if ( ! empty( $prepared_options['default'] ) ) {
@@ -1069,7 +1104,14 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 							$field['options'] = array();
 						}
 
-						$prepared_options                    = $this->prepare_select_options( $field );
+						$prepared_options = $this->prepare_select_options( $field );
+
+						if ( ! empty( $prepared_options['options_callback'] ) 
+							&& is_callable( $prepared_options['options_callback'] ) 
+						) {
+							$field['options_callback'] = $prepared_options['options_callback'];
+						}
+
 						$result[ $field['name'] ]['options'] = $prepared_options['options'];
 
 						if ( ! empty( $prepared_options['default'] ) ) {
@@ -1097,7 +1139,14 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 							$field['options'] = array();
 						}
 
-						$prepared_options                    = $this->prepare_radio_options( $field['options'], $field );
+						$prepared_options = $this->prepare_radio_options( $field['options'], $field );
+						
+						if ( ! empty( $prepared_options['options_callback'] ) 
+							&& is_callable( $prepared_options['options_callback'] ) 
+						) {
+							$field['options_callback'] = $prepared_options['options_callback'];
+						}
+
 						$result[ $field['name'] ]['options'] = $prepared_options['options'];
 
 						if ( ! Jet_Engine_Tools::is_empty( $prepared_options['default'] ) ) {
@@ -1187,6 +1236,11 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 				return $result;
 			}
 
+			if ( is_callable( $options ) ) {
+				$result['options_callback'] = $options;
+				return $result;
+			}
+
 			foreach ( $options as $index => $option ) {
 
 				if ( ! isset( $option['key'] ) || ! is_array( $option ) ) {
@@ -1237,10 +1291,14 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 				'default' => false,
 			);
 
-			$options = ! empty( $field['options'] ) ? $field['options'] : array();
-			$options = $this->filter_options_list( $options, $field );
+			$options = $this->filter_options_list( [], $field );
 
 			if ( empty( $options ) ) {
+				return $result;
+			}
+
+			if ( is_callable( $options ) ) {
+				$result['options_callback'] = $options;
 				return $result;
 			}
 
@@ -1259,7 +1317,7 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 				$result['default'] = array();
 			}
 
-			if ( ! empty( $field['type'] ) && 'select' === $field['type'] && ! empty( $field['placeholder'] ) ) {
+			if ( ! empty( $field['type'] ) && 'select' === $field['type'] && ! empty( $field['placeholder'] ) && ! $multiple ) {
 				if ( $this->is_blocks() ) {
 					$result['options'][] = array(
 						'value' => '',
@@ -1342,6 +1400,10 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 
 				$condition_field = $this->get_field_args_by_name( $condition['field'], $all_fields );
 
+				if ( empty( $condition_field['type'] ) ) {
+					continue;
+				}
+
 				switch( $condition_field['type'] ) {
 					case 'switcher':
 						$value = ! empty( $condition['value'] ) ? $condition['value'] : false;
@@ -1369,10 +1431,10 @@ if ( ! class_exists( 'Jet_Engine_CPT_Meta' ) ) {
 							$value = explode( ',', $value );
 							$value = array_map( 'trim', $value );
 						}
+				}
 
-						if ( in_array( $condition['operator'], array( 'empty', '!empty' ) ) ) {
-							$value = '';
-						}
+				if ( in_array( $condition['operator'], array( 'empty', '!empty' ) ) ) {
+					$value = '';
 				}
 
 				$is_checkbox     = ( 'checkbox' === $condition_field['type'] );

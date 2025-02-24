@@ -146,6 +146,8 @@ class Location {
 				'sub-animation'       => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-sub-animation', 'fade' ),
 				'sub-event'           => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-sub-menu-event', 'hover' ),
 				'sub-trigger'         => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-sub-menu-trigger', 'item' ),
+				'mega-width-type'     => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-mega-width-type', 'container' ),
+				'mega-width-selector' => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-mega-width-selector', '' ),
 				'breakpoint'          => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-dropdown-breakpoint', 768 ),
 				'roll-up'             => filter_var( $roll_up, FILTER_VALIDATE_BOOLEAN ),
 				'roll-up-type'        => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-roll-up-type', 'text' ),

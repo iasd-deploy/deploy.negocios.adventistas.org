@@ -182,13 +182,23 @@ if ( ! class_exists( 'Jet_Engine_DB' ) ) {
 		 * @param  [type] $table_name [description]
 		 * @return [type]             [description]
 		 */
-		public static function table_exists( $table_name ) {
+		public static function table_exists( $table_name = '' ) {
 
 			global $wpdb;
 
+			if ( ! $table_name || null === $table_name ) {
+				return false;
+			}
+
+			$found_table = $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" );
+
+			if ( ! $found_table ) {
+				return false;
+			}
+
 			try {
-				$result = ( strtolower( $table_name ) === strtolower( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) ) );
-			} catch (Exception $e) {
+				$result = ( strtolower( $table_name ) === strtolower( $found_table ) );
+			} catch ( Exception $e ) {
 				$result = false;
 			}
 

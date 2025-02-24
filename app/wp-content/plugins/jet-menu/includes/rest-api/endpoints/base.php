@@ -34,11 +34,12 @@ abstract class Base {
 
 	/**
 	 * Check user access to current end-popint
+	 * Should be rewritten in any end-point to ensure correct permissions check applied
 	 *
 	 * @return bool
 	 */
 	public function permission_callback() {
-		return true;
+		return false;
 	}
 
 	/**

@@ -3,7 +3,7 @@
  * Plugin Name: JetMenu
  * Plugin URI: https://crocoblock.com/plugins/jetmenu/
  * Description: A top-notch mega menu addon for Elementor. Use it to create a fully responsive mega menu with drop-down items, rich in content modules, and change your menu style according to your vision without any coding knowledge!
- * Version:     2.4.0
+ * Version:     2.4.8.1
  * Author:      Crocoblock
  * Author URI:  https://crocoblock.com/
  * Text Domain: jet-menu
@@ -48,7 +48,7 @@ if ( ! class_exists( 'Jet_Menu' ) ) {
 		 *
 		 * @var string
 		 */
-		private $version = '2.4.0';
+		private $version = '2.4.8.1';
 
 		/**
 		 * Plugin slug
@@ -97,6 +97,11 @@ if ( ! class_exists( 'Jet_Menu' ) ) {
 		/**
 		 * @var null
 		 */
+		public $elementor_manager = null;
+
+		/**
+		 * @var null
+		 */
 		public $post_type_manager = null;
 
 		/**
@@ -115,6 +120,11 @@ if ( ! class_exists( 'Jet_Menu' ) ) {
 		 * @var null
 		 */
 		public $public_manager = null;
+
+		/**
+		 * @var null
+		 */
+		public $render_manager = null;
 
 		/**
 		 * @var null
@@ -145,7 +155,9 @@ if ( ! class_exists( 'Jet_Menu' ) ) {
 			// Register activation and deactivation hook.
 			register_activation_hook( __FILE__, array( $this, 'activation' ) );
 			register_deactivation_hook( __FILE__, array( $this, 'deactivation' ) );
+
 		}
+
 
 		/**
 		 * Returns plugin version

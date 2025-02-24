@@ -62,6 +62,30 @@ class Manager {
 		}
 
 		$this->db_instances[ $table ] = new DB( $table, $schema );
+
+		$keys = false;
+
+		switch ( $table ) {
+			case 'default':
+				$keys = 'KEY parent_id ( rel_id, parent_object_id ), KEY child_id ( rel_id, child_object_id )';
+				break;
+
+			case 'default_meta':
+				$keys = 'KEY meta_id ( rel_id, parent_object_id, child_object_id )';
+				break;
+
+			default:
+				if ( false !== strpos( $table, '_meta' ) ) {
+					$keys = 'KEY meta_id ( parent_object_id, child_object_id )';
+				} else {
+					$keys = 'KEY parent_id ( parent_object_id ), KEY child_id ( child_object_id )';
+				}
+
+				break;
+		}
+
+		$this->db_instances[ $table ]->set_table_keys( $keys );
+
 		return $this->db_instances[ $table ];
 	}
 
@@ -72,7 +96,7 @@ class Manager {
 	 */
 	public function get_db_schema() {
 		return array(
-			'rel_id'           => 'TEXT',
+			'rel_id'           => 'VARCHAR(40)',
 			'parent_rel'       => 'INT',
 			'parent_object_id' => 'BIGINT',
 			'child_object_id'  => 'BIGINT',
@@ -86,7 +110,7 @@ class Manager {
 	 */
 	public function get_meta_db_schema() {
 		return array(
-			'rel_id'           => 'TEXT',
+			'rel_id'           => 'VARCHAR(40)',
 			'parent_object_id' => 'BIGINT',
 			'child_object_id'  => 'BIGINT',
 			'meta_key'         => 'TEXT',

@@ -43,10 +43,8 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 		return '.jet-listing-item.single-jet-engine.elementor-page-' . $this->get_main_id();
 	}
 
-	protected function register_controls() {
-
-		parent::register_controls();
-
+	public function register_jet_controls() {
+		
 		$this->start_controls_section(
 			'jet_listing_settings',
 			array(
@@ -169,6 +167,7 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 				'label_on'     => esc_html__( 'Yes', 'jet-engine' ),
 				'label_off'    => esc_html__( 'No', 'jet-engine' ),
 				'return_value' => 'yes',
+				'separator'    => 'before',
 				'default'      => '',
 			)
 		);
@@ -182,6 +181,41 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 				'type'      => Elementor\Controls_Manager::SELECT,
 				'default'   => '_permalink',
 				'groups'    => $meta_fields,
+				'condition' => array(
+					'listing_link' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'listing_link_object_prop',
+			array(
+				'label'     => __( 'Object property', 'jet-engine' ),
+				'type'      => Elementor\Controls_Manager::SELECT,
+				'default'   => '',
+				'groups'    => jet_engine()->listings->data->get_object_fields(),
+				'condition' => array(
+					'listing_link' => 'yes',
+					'listing_link_source' => 'object_prop',
+				),
+			)
+		);
+
+		$this->add_control(
+			'listing_link_custom_url',
+			array(
+				'label'   => __( 'Custom URL', 'jet-engine' ),
+				'type'    => Elementor\Controls_Manager::TEXT,
+				'default' => '',
+				'description' => __( 'Shortcodes and JetEngine macros supported. Overrides Link source.', 'jet-engine' ),
+				'dynamic' => array(
+					'active' => true,
+					'categories' => array(
+						\Jet_Engine_Dynamic_Tags_Module::TEXT_CATEGORY,
+						\Jet_Engine_Dynamic_Tags_Module::URL_CATEGORY,
+						\Jet_Engine_Dynamic_Tags_Module::JET_MACROS_CATEGORY,
+					),
+				),
 				'condition' => array(
 					'listing_link' => 'yes',
 				),
@@ -246,7 +280,7 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 		$this->add_control(
 			'listing_link_aria_label',
 			array(
-				'label'   => __( 'Aria label attr', 'jet-engine' ),
+				'label'   => __( 'Aria label attr / Link text', 'jet-engine' ),
 				'type'    => Elementor\Controls_Manager::TEXT,
 				'default' => '',
 				'dynamic' => array(
@@ -271,7 +305,65 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 			)
 		);
 
+		$this->add_control(
+			'listing_link_add_query_args',
+			array(
+				'label'        => esc_html__( 'Add Query Arguments', 'jet-engine' ),
+				'type'         => Elementor\Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'jet-engine' ),
+				'label_off'    => esc_html__( 'No', 'jet-engine' ),
+				'return_value' => 'yes',
+				'default'      => '',
+				'condition'   => array(
+					'listing_link' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'listing_link_query_args',
+			array(
+				'label'       => __( 'Query Arguments', 'jet-engine' ),
+				'label_block' => true,
+				'type'        => Elementor\Controls_Manager::TEXTAREA,
+				'default'     => '_post_id=%current_id%',
+				'description' => __( 'One argument per line. Separate key and value with "="', 'jet-engine' ),
+				'condition'   => array(
+					'listing_link'                => 'yes',
+					'listing_link_add_query_args' => 'yes',
+				),
+			)
+		);
+
+		$this->add_control(
+			'listing_link_url_anchor',
+			array(
+				'label'       => __( 'URL Anchor', 'jet-engine' ),
+				'label_block' => true,
+				'type'        => Elementor\Controls_Manager::TEXT,
+				'default'     => '',
+				'description' => __( 'Add anchor to the URL. Without #.', 'jet-engine' ),
+				'dynamic'     => array(
+					'active' => true,
+					'categories' => array(
+						\Jet_Engine_Dynamic_Tags_Module::TEXT_CATEGORY,
+						\Jet_Engine_Dynamic_Tags_Module::JET_MACROS_CATEGORY,
+					),
+				),
+				'condition'   => array(
+					'listing_link' => 'yes',
+				),
+			)
+		);
+
 		$this->end_controls_section();
+
+	}
+
+	protected function register_controls() {
+
+		parent::register_controls();
+		$this->register_jet_controls();
 
 	}
 
@@ -286,6 +378,7 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 
 	public function get_preview_as_query_args() {
 
+		/**
 		$preview_id      = (int) $this->get_settings( 'preview_id' );
 		$source          = $this->get_settings( 'listing_source' );
 		$post_type       = $this->get_settings( 'listing_post_type' );
@@ -293,17 +386,14 @@ class Jet_Listing_Item_Document extends Elementor\Core\Base\Document {
 		$repeater_source = $this->get_settings( 'repeater_source' );
 		$repeater_field  = $this->get_settings( 'repeater_field' );
 		$repeater_option = $this->get_settings( 'repeater_option' );
+		*/
 
-		$preview = new Jet_Engine_Listings_Preview( array(
-			'listing_source'    => $source,
-			'listing_post_type' => $post_type,
-			'listing_tax'       => $tax,
-			'repeater_source'   => $repeater_source,
-			'repeater_field'    => $repeater_field,
-			'repeater_option'   => $repeater_option,
-		), $this->get_main_id() );
+		$preview = new Jet_Engine_Listings_Preview( $this->get_settings(), $this->get_main_id() );
 
-		return $preview->get_preview_args();
+		return apply_filters(
+			'jet-engine/elementor-views/listing-document/preview-args',
+			$preview->get_preview_args(), $this 
+		);
 
 	}
 

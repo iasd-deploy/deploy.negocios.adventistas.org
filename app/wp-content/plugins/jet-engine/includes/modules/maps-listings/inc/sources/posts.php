@@ -26,7 +26,7 @@ class Posts extends Base {
 
 	public function update_field_value( $obj, $field, $value ) {
 		
-		$hash = md5( $field );
+		$hash = $this->get_field_prefix( $field );
 
 		update_post_meta( $obj->ID, $hash . '_hash', $value['key'] );
 		update_post_meta( $obj->ID, $hash . '_lat', $value['coord']['lat'] );

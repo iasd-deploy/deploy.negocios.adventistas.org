@@ -83,7 +83,9 @@
 
 			ajaxRequest.nonce = window.JetEnginMBAjaxConditionsSettings.nonce;
 
-			$.ajax({
+			this?.xhr?.abort();
+
+			this.xhr = $.ajax({
 				url: window.ajaxurl,
 				type: 'POST',
 				dataType: 'json',
@@ -94,34 +96,18 @@
 						$( '#' + response.data[ i ].id ).css( 'display', response.data[ i ].display );
 
 						// Prevent js error if meta box has required fields.
-						if ( 'none' === response.data[i].display ) {
-
-							$( '#' + response.data[i].id )
-								.find( '.cx-control-required' )
-								.removeClass( 'cx-control-required' )
-								.addClass( 'cx-control-not-required' );
-
-							$( '#' + response.data[i].id )
-								.find( '[required]' )
-								.removeAttr( 'required' )
-								.attr( 'data-required', 1 );
-
+						if ( 'none' == response.data[i].display ) {
+							$( '#' + response.data[i].id ).addClass( 'cx-controls-novalidate' );
 						} else {
-
-							$( '#' + response.data[i].id )
-								.find( '.cx-control-not-required' )
-								.removeClass( 'cx-control-not-required' )
-								.addClass( 'cx-control-required' );
-
-							$( '#' + response.data[i].id )
-								.find( '[data-required="1"]' )
-								.removeAttr( 'data-required' )
-								.attr( 'required', true );
-
+							$( '#' + response.data[i].id ).removeClass( 'cx-controls-novalidate' )
 						}
 					}
 				}
 			} ).fail( function( jqXHR, textStatus, errorThrown ) {
+				if ( textStatus === 'abort' ) {
+					return;
+				}
+				
 				alert( errorThrown );
 			} );
 
@@ -273,8 +259,8 @@
 				var args = arguments;
 
 				var later = () => {
-					this.timeout = null;
 					clearTimeout( this.timeout );
+					this.timeout = null;
 					callback.apply( context, args );
 				};
 
@@ -290,8 +276,37 @@
 	class GutenAjaxConditions extends AjaxConditions {
 
 		init() {
+			this.currentTerms = {};
 			wp.data.subscribe( this.debounce( this.updateData, 100 ).bind( this ) );
 			this.updateData();
+		}
+
+		updateData() {
+			if ( this.termsChanged() ) {
+				this.currentTerms = this.getTerms();
+				super.updateData();
+			}
+		}
+
+		termsChanged() {
+			const prev = this.currentTerms ?? {};
+			const current = this.getTerms() ?? {};
+			
+			if ( Object.keys( prev ).length !== Object.keys( current ).length ) {
+				return true;
+			}
+
+			for ( const tax in current ) {
+				if ( ! prev[ tax ] || prev[ tax ].length !== current[ tax ].length ) {
+					return true;
+				}
+
+				if ( ! prev[ tax ].every( ( term ) => current[ tax ].includes( term ) ) ) {
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		getTemplate() {
@@ -319,7 +334,7 @@
 
 	}
 
-	if ( window.wp && wp.data && wp.data.select && wp.data.select( 'core/editor' ) ) {
+	if ( window.wp && wp.data && wp.data.select && wp.data.select( 'core/editor' ) && $( 'body' ).hasClass( 'block-editor-page' ) ) {
 		new GutenAjaxConditions();
 	} else {
 		new AjaxConditions();

@@ -984,8 +984,7 @@ class Jet_Widget_Mobile_Menu extends Widget_Base {
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon'     => 'font-size: {{SIZE}}{{UNIT}}; min-width: {{SIZE}}{{UNIT}};',
-					'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon svg' => 'width: {{SIZE}}{{UNIT}}',
+					'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon'     => 'font-size: {{SIZE}}{{UNIT}}',
 				),
 				'condition' => array(
 					'is_item_icon' => 'yes',

@@ -8,7 +8,7 @@ $options             = $args['options'];
 $query_var           = $args['query_var'];
 $scroll_height_style = $args['scroll_height'] ? 'style="max-height:' . $args['scroll_height'] . 'px"' : false;
 $show_decorator      = isset( $args['display_options']['show_decorator'] ) ? filter_var( $args['display_options']['show_decorator'], FILTER_VALIDATE_BOOLEAN ) : false;
-$checked_icon        = apply_filters( 'jet-smart-filters/templates/check-range/checked-icon', 'fa fa-check' );
+$checked_icon        = apply_filters( 'jet-smart-filters/templates/check-range/checked-icon', jet_smart_filters()->print_template( 'svg/check.svg' ) );
 $accessibility_label = $args['accessibility_label'];
 
 if ( ! $options ) {
@@ -55,7 +55,9 @@ $current = $this->get_current_filter_value( $args );
 				>
 				<div class="jet-checkboxes-list__button">
 					<?php if ( $show_decorator ) : ?>
-						<span class="jet-checkboxes-list__decorator"><i class="jet-checkboxes-list__checked-icon <?php echo $checked_icon ?>"></i></span>
+						<span class="jet-checkboxes-list__decorator">
+							<i class="jet-checkboxes-list__checked-icon"><?php echo $checked_icon ?></i>
+						</span>
 					<?php endif; ?>
 					<span class="jet-checkboxes-list__label"><?php echo $label; ?></span>
 					<?php do_action('jet-smart-filter/templates/counter', $args ); ?>

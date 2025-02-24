@@ -59,8 +59,10 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 	public $types;
 	public $advanced_fields = array();
 	public $queries = array();
+	public $custom_query_ids_mapping = array();
 	public $listings;
 	public $editor;
+	public $frontend_editor = null;
 
 	/**
 	 * Instance.
@@ -70,7 +72,7 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 	 * @access public
 	 * @static
 	 *
-	 * @return Plugin An instance of the class.
+	 * @return static An instance of the class.
 	 */
 	public static function instance() {
 
@@ -94,9 +96,25 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 		$this->init_data();
 
 		add_action( 'jet-engine/rest-api/init-endpoints', array( $this, 'init_rest' ) );
+		add_action( 'jet-engine/meta-boxes/init-options-sources', array( $this, 'init_options_source' ) );
+
+		add_filter( 'jet-engine/listing-injections/item-meta-value', array( $this, 'get_injection_repeater_field_value' ), 10, 3 );
 
 		$this->init_admin_pages();
 
+	}
+
+	public function get_injection_repeater_field_value( $value, $post, $meta_key ) {
+		if ( ! class_exists( 'Jet_Engine_Queried_Repeater_Item' ) || ! is_a( $post, 'Jet_Engine_Queried_Repeater_Item' ) ) {
+			return $value;
+		}
+
+		return isset( $post->$meta_key ) ? array( $post->$meta_key ) : false;
+	}
+
+	public function init_options_source() {
+		require_once $this->component_path( 'meta-fields-options-source.php' );
+		new Meta_Fields_Options_Source();
 	}
 
 	/**
@@ -131,6 +149,7 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 		require_once $this->component_path( 'rest-api/get-queries.php' );
 		require_once $this->component_path( 'rest-api/search-preview.php' );
 		require_once $this->component_path( 'rest-api/update-preview.php' );
+		require_once $this->component_path( 'rest-api/search-query-field-options.php' );
 
 		$api_manager->register_endpoint( new Rest\Add_Query() );
 		$api_manager->register_endpoint( new Rest\Edit_Query() );
@@ -139,6 +158,7 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 		$api_manager->register_endpoint( new Rest\Get_Queries() );
 		$api_manager->register_endpoint( new Rest\Search_Preview() );
 		$api_manager->register_endpoint( new Rest\Update_Preview() );
+		$api_manager->register_endpoint( new Rest\Search_Query_Field_Options() );
 
 	}
 
@@ -173,9 +193,14 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 		require $this->component_path( 'query-gateway/manager.php' );
 		require $this->component_path( 'helpers/posts-per-page-manager.php' );
 		require $this->component_path( 'traits/query-count.php' );
+		require_once $this->component_path( 'frontend-editor.php' );
 
 		$this->editor   = new Query_Editor();
 		$this->listings = new Listings\Manager();
+
+		if ( is_user_logged_in() && apply_filters( 'jet-engine/query-builder/frontend-editor/is-enabled', current_user_can( 'manage_options' ) ) ) {
+			$this->frontend_editor = new Frontend_Editor();
+		}
 
 		new Query_Gateway\Manager;
 
@@ -221,7 +246,9 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 			return $args;
 		}
 
-		if ( false === strpos( $args['condition_settings']['__dynamic__']['jedv_field'], 'name="jet-query-count"' ) ) {
+		if ( false === strpos( $args['condition_settings']['__dynamic__']['jedv_field'], 'name="jet-query-count"' ) &&
+			 false === strpos( $args['condition_settings']['__dynamic__']['jedv_field'], '"macros":"query_count"' )
+		) {
 			return $args;
 		}
 
@@ -254,6 +281,9 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 
 		$queries = $this->data->get_items();
 
+		require_once $this->component_path( 'avoid-duplicates.php' );
+		$avoid_duplicates = Avoid_Duplicates::instance();
+
 		if ( empty( $queries ) ) {
 			return;
 		}
@@ -261,9 +291,26 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 		$this->include_factory();
 
 		foreach ( $queries as $query ) {
-			$factory = new Query_Factory( $query );
-			$this->queries[ $query['id'] ] = $factory->get_query();
+
+			$factory        = new Query_Factory( $query );
+			$query_instance = $factory->get_query();
+
+			if ( ! $query_instance ) {
+				continue;
+			}
+
+			$this->queries[ $query_instance->id ] = $query_instance;
+
+			if ( ! empty( $query_instance->query_id ) ) {
+				$this->custom_query_ids_mapping[ $query_instance->query_id ] = $query_instance->id;
+			}
+
+			if ( ! $avoid_duplicates->is_watching_posts() && ! empty( $query_instance->query['avoid_duplicates'] ) ) {
+				$avoid_duplicates->watch_posts();
+			}
 		}
+		
+		do_action( 'jet-engine/query-builder/after-queries-setup' );
 
 		// Enable this only if need from theme or plugin
 		// example: add_filter( 'jet-engine/query-builder/flush-object-cache-on-save', '__return_true' );
@@ -271,13 +318,16 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 			// If we have some queries created, add flush cache option to ensure queries data updated when site data is changed
 			add_action( 'save_post', 'wp_cache_flush', 9999 );
 		}
-		
 	}
 
 	public function get_query_by_id( $id = null ) {
 
 		if ( ! $id ) {
 			return false;
+		}
+
+		if ( is_string( $id ) && isset( $this->custom_query_ids_mapping[ $id ] ) ) {
+			$id = $this->custom_query_ids_mapping[ $id ];
 		}
 
 		return isset( $this->queries[ $id ] ) ? $this->queries[ $id ] : false;
@@ -550,6 +600,14 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 					array(
 						'value' => 'slug__in',
 						'label' => __( 'Match the order of the `Slug` param', 'jet-engine' ),
+					),
+					array(
+						'value' => 'meta_value',
+						'label' => __( 'Order by string meta value', 'jet-engine' ),
+					),
+					array(
+						'value' => 'meta_value_num',
+						'label' => __( 'Order by numeric meta value', 'jet-engine' ),
 					),
 					array(
 						'value' => 'meta_clause',

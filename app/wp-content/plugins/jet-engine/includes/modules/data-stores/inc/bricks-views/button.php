@@ -114,7 +114,7 @@ class Button extends Base {
 				'tab'         => 'content',
 				'label'       => esc_html__( 'Listing grid ID', 'jet-engine' ),
 				'type'        => 'text',
-				'description' => esc_html__( 'Here you need to set listing ID to reload. The same ID must be set in the Advanced settings of selected listing', 'jet-engine' ),
+				'description' => esc_html__( 'Here you need to set listing ID to reload. The same ID must be set in the Advanced settings of selected listing. Put comma-separated IDs to update multiple listings.', 'jet-engine' ),
 				'required'    => [ 'synch_grid', '=', true ],
 			]
 		);

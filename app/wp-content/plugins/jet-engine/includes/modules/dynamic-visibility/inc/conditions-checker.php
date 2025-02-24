@@ -4,6 +4,28 @@ namespace Jet_Engine\Modules\Dynamic_Visibility;
 class Condition_Checker {
 
 	/**
+	 * Prevent condition check.
+	 * By default prevent for admin, can be changed with hook.
+	 *
+	 * @return boolen
+	 */
+	public function prevent_check() {
+
+		$prevent_check = false;
+
+		if ( is_admin() && ! empty( $_GET['post'] ) ) {
+			$prevent_check = true;
+		}
+
+		/**
+		 * Allows to disbale or modify preventing of conditions check.
+		 */
+		$prevent_check = apply_filters( 'jet-engine/modules/dynamic-visibility/condition/prevent-check', $prevent_check );
+
+		return $prevent_check;
+	}
+
+	/**
 	 * Check render conditions
 	 *
 	 * @param  [type] $result  [description]
@@ -41,7 +63,7 @@ class Condition_Checker {
 
 			foreach ( $args as $arg => $default ) {
 				$key = 'jedv_' . $arg;
-				$args[ $arg ] = ! empty( $condition[ $key ] ) ? $condition[ $key ] : $default;
+				$args[ $arg ] = ! \Jet_Engine_Tools::is_empty( $condition, $key ) ? $condition[ $key ] : $default;
 			}
 
 			// Apply macros in value
@@ -53,6 +75,19 @@ class Condition_Checker {
 			$is_empty_field   = empty( $condition['jedv_field'] );
 
 			$args['field_raw'] = ( ! $is_dynamic_field && ! $is_empty_field ) ? $condition['jedv_field'] : null;
+
+			/**
+			 * ensure macros applied in Field input;
+			 * check if macros have been actually processed
+			 */
+			if ( strpos( $args['field_raw'] ?? '', '%' ) !== false ) {
+				$processed_macro = jet_engine()->listings->macros->do_macros( $args['field_raw'] );
+				
+				if ( $args['field_raw'] !== $processed_macro ) {
+					$args['field'] = $processed_macro;
+					unset( $args['field_raw'] );
+				}
+			}
 
 			if ( empty( $args['condition'] ) ) {
 				continue;

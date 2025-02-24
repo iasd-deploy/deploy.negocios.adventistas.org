@@ -40,7 +40,6 @@ class DB extends \Jet_Engine_Base_DB {
 		if ( ! empty( $_GET['jet_cct_install_tables'] ) ) {
 			add_action( 'init', array( $this, 'install_table' ) );
 		}
-
 	}
 
 	public function set_query_object( $query_object ) {
@@ -119,6 +118,10 @@ class DB extends \Jet_Engine_Base_DB {
 
 		self::wpdb()->update( $this->table(), $new_data, $where );
 
+		/**
+		 * https://github.com/Crocoblock/suggestions/issues/7774
+		 */
+		$this->reset_found_items_cache();
 	}
 
 	/**

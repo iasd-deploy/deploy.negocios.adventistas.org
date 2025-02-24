@@ -77,6 +77,7 @@ class Edit_Item_Page extends \Jet_Engine_Options_Page_Factory {
 	 */
 	public $clone_action = 'jet-cct-clone-item';
 
+	public $action            = false;
 	public $layout_now        = false;
 	public $current_component = false;
 	public $current_panel     = false;
@@ -95,7 +96,7 @@ class Edit_Item_Page extends \Jet_Engine_Options_Page_Factory {
 		$this->pages_manager    = $pages_manager;
 		$this->hide_field_names = $page['hide_field_names'];
 
-		if ( $this->is_page_now() ) {
+		if ( $this->is_page_now() && ! empty( $this->action ) ) {
 
 			$this->setup_page_fields();
 
@@ -318,6 +319,38 @@ class Edit_Item_Page extends \Jet_Engine_Options_Page_Factory {
 			)
 		);
 
+		if ( 'edit' === $this->page['action'] ) {
+			$value = $this->get( 'cct_created' );
+			$value = strtotime( $value );
+			$value = is_numeric( $value ) ? date( 'Y-m-d\TH:i:s', $value ) : '';
+
+			$time_format = \Jet_Engine_Tools::convert_date_format_php_to_js( 'H:i:s' );
+
+			$this->builder->register_control(
+				array(
+					'cct_created' => array(
+						'type'         => 'text',
+						'input_type'   => 'datetime-local',
+						'autocomplete' => 'off',
+						'parent'       => 'settings_bottom',
+						'id'           => 'cct_created',
+						'name'         => 'cct_created',
+						'label'        => __( 'Item published', 'jet-engine' ),
+						'value'        => $value,
+						'extra_attr'   => array(
+							'data-datetime-settings' => htmlspecialchars( json_encode( array(
+								'timeFormat'    => $time_format,
+								'altTimeFormat' => $time_format,
+								'altSeparator'  => ' ',
+							) ) ),
+						),
+					),
+				)
+			);
+
+			add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_date_assets' ) );
+		}
+
 		$this->builder->register_html(
 			array(
 				'save_button' => array(
@@ -350,24 +383,73 @@ class Edit_Item_Page extends \Jet_Engine_Options_Page_Factory {
 				margin: 0;
 			}
 		</style>
-		<script>
-			jQuery( document ).on( 'click', '.cct-confirm', function( event ) {
-				event.preventDefault();
-				if ( confirm( '<?php esc_html_e( 'Are you sure? All unsaved changes will be lost.', 'jet-engine' ); ?>' ) ) {
-					window.location = jQuery( this ).attr( 'href' );
-				}
-			});
-			jQuery( document ).on( 'click', '.jet-cct-delete-item', function( event ) {
-				event.preventDefault();
-				if ( confirm( '<?php esc_html_e( 'Are you sure you want to delete this item?', 'jet-engine' ); ?>' ) ) {
-					window.location = jQuery( this ).attr( 'href' );
-				}
-			});
-		</script>
 		<div class="jet-cct-edit-page-wrap">
 		<?php $this->builder->render(); ?>
 		<?php do_action( 'jet-engine/custom-content-types/after-edit-page/' . $this->pages_manager->factory->get_arg( 'slug' ), $this ); ?>
 		</div>
+		<script>
+			class JetCCTEditForm {
+
+				constructor() {
+
+					this.form = jQuery( '.cx-form' );
+					this.initialHash = false;
+					this.allowUnload = false;
+
+					window.addEventListener( "load", ( event ) => {
+						this.init();
+					} );
+				}
+
+				init() {
+
+					this.initialHash = this.getFormDataHash();
+
+					this.form.on( 'click', '.jet-cct-delete-item', ( event ) => {
+						event.preventDefault();
+						const $link = jQuery( event.target );
+						if ( confirm( '<?php esc_html_e( 'Are you sure you want to delete this item?', 'jet-engine' ); ?>' ) ) {
+							this.allowUnload = true;
+							window.location = $link.attr( 'href' );
+						}
+					});
+
+					this.form.on( 'click', 'button[type="submit"]', ( event ) => {
+						this.allowUnload = true;
+					});
+
+					window.addEventListener( "beforeunload", ( event ) => {
+						if ( ! this.formAllowedUnload() ) {
+							event.preventDefault();
+							event.returnValue = true;
+						}
+					} );
+				}
+
+				formAllowedUnload() {
+
+					if ( this.allowUnload ) {
+						this.allowUnload = false;
+						return true;
+					}
+
+					const hash = this.getFormDataHash();
+
+					if ( this.initialHash && hash && hash !== this.initialHash ) {
+						return false;
+					} else {
+						return true;
+					}
+				}
+
+				getFormDataHash() {
+					const formData = new FormData( this.form[0] );
+					return JSON.stringify( formData.entries().toArray() );
+				}
+			}
+
+			new JetCCTEditForm();
+		</script>
 		<?php
 	}
 

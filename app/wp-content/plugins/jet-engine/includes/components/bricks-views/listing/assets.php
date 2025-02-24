@@ -4,12 +4,17 @@
  */
 namespace Jet_Engine\Bricks_Views\Listing;
 
+use Bricks\Elements;
+
 /**
  * Rewrite Bricks assets class
  */
 class Assets extends \Bricks\Assets {
 
-	public static $css_cache_key = '_jet_engine_bricks_generated_listing_css';
+	public static $initial_inline_css = [];
+	public static $initial_inline_css_dynamic_data = [];
+
+	public static $css_cache_key = '_jet_engine_bricks_generated_listing_styles';
 	public static $fonts_cache_key = '_jet_engine_bricks_generated_listing_fonts';
 	public static $font_families_cache_key = '_jet_engine_bricks_generated_listing_font_families';
 	public static $icons_cache_key = '_jet_engine_bricks_generated_listing_icons';
@@ -19,7 +24,6 @@ class Assets extends \Bricks\Assets {
 	public static $fonts_stack = [];
 
 	public function __construct() {
-
 		$wp_uploads_dir = wp_upload_dir( null, false );
 
 		self::$wp_uploads_dir = $wp_uploads_dir['basedir'];
@@ -50,7 +54,43 @@ class Assets extends \Bricks\Assets {
 	 *
 	 * @return string $inline_css
 	 */
-	public static function generate_inline_css( $post_id = 0 ) {
+	public static function generate_inline_css( $post_id = 0, $force = false ) {
+
+		if ( ! $post_id ) {
+			$post_id = get_the_ID();
+		}
+
+		$inline_css = '';
+		$elements   = get_post_meta( $post_id, BRICKS_DB_PAGE_CONTENT, true );
+
+		$cached = false;
+
+		if ( ! $force ) {
+			$cached = get_post_meta( $post_id, self::$css_cache_key, true );
+		}
+
+		if ( $cached ) {
+			/**
+			 * Build Google fonts array by scanning inline CSS for Google fonts
+			 */
+			self::jet_load_webfonts( $cached, $post_id );
+			self::jet_load_extra_assets( $elements, $post_id );
+			return $cached;
+		}
+
+		if ( empty( $elements ) ) {
+			return '';
+		}
+
+		// Saves $inline_css before generating Listing grid styles
+		if ( ! empty( self::$inline_css ) ) {
+			self::$initial_inline_css = self::$inline_css;
+		}
+
+		// Saves $inline_css_dynamic_data before generating Listing grid styles
+		if ( ! empty( self::$inline_css_dynamic_data ) ) {
+			self::$initial_inline_css_dynamic_data = self::$inline_css_dynamic_data;
+		}
 
 		self::$inline_css = [
 			'color_vars'     => '',
@@ -66,27 +106,16 @@ class Assets extends \Bricks\Assets {
 		];
 
 		self::$elements = [];
-		
-		if ( ! $post_id ) {
-			$post_id = get_the_ID();
-		}
 
-		$inline_css = '';
-		$elements   = get_post_meta( $post_id, BRICKS_DB_PAGE_CONTENT, true );
-
-		$cached = get_post_meta( $post_id, self::$css_cache_key, true );
-
-		if ( $cached ) {
-			/**
-			 * Build Google fonts array by scanning inline CSS for Google fonts
-			 */
-			self::jet_load_webfonts( $cached, $post_id );
-			self::jet_load_extra_assets( $elements, $post_id );
-			return $cached;
-		}
+		self::$inline_css_dynamic_data = '';
 
 		// Clear the list of elements already styled (@since 1.5)
 		self::$css_looping_elements = [];
+
+		// Set the $post_id during Rest API request
+		if ( defined( 'REST_REQUEST' ) && ! empty( $_REQUEST['post_id'] ) ) {
+			self::$post_id = $_REQUEST['post_id'];
+		}
 
 		// STEP: Content
 		self::generate_css_from_elements( $elements, 'content' );
@@ -98,7 +127,7 @@ class Assets extends \Bricks\Assets {
 			self::generate_inline_css_global_classes();
 		}
 
-		// STEP: Concatinate styles (respecting precedences)
+		// STEP: Concatenate styles (respecting precedences)
 
 		// #1 Color palettes
 		if ( ! empty( self::$inline_css['color_vars'] ) ) {
@@ -134,6 +163,7 @@ class Assets extends \Bricks\Assets {
 
 		// #5.2 Content
 		if ( self::$inline_css['content'] ) {
+
 			$inline_css .= "\n/* CONTENT CSS */\n" . self::$inline_css['content'];
 		}
 
@@ -142,8 +172,10 @@ class Assets extends \Bricks\Assets {
 			$inline_css .= "\n/* CUSTOM FONTS CSS */\n" . self::$inline_css['custom_fonts'];
 		}
 
-		// Make CSS selector to nested listing elements builder agnostic
-		$inline_css = str_replace( '.brxe-jet-listing-el', '.jet-listing-base', $inline_css );
+		// #7 Dynamic data CSS
+		if ( ! empty( self::$inline_css_dynamic_data ) ) {
+			$inline_css .= self::$inline_css_dynamic_data;
+		}
 
 		/**
 		 * Build Google fonts array by scanning inline CSS for Google fonts
@@ -151,13 +183,28 @@ class Assets extends \Bricks\Assets {
 		self::jet_load_webfonts( $inline_css, $post_id );
 		self::jet_load_extra_assets( $elements, $post_id );
 
-		update_post_meta( $post_id, self::$css_cache_key, $inline_css );
+		if ( ! $force ) {
+			update_post_meta( $post_id, self::$css_cache_key, $inline_css );
+		}
+
+		// Returns $inline_css after generating Listing grid styles
+		if ( ! empty( self::$initial_inline_css ) ) {
+			self::$inline_css = self::$initial_inline_css;
+			self::$initial_inline_css = [];
+		}
+
+		// Returns $inline_css_dynamic_data after generating Listing grid styles
+		if ( ! empty( self::$initial_inline_css_dynamic_data ) ) {
+			self::$inline_css_dynamic_data = self::$initial_inline_css_dynamic_data;
+			self::$initial_inline_css_dynamic_data = [];
+		}
 
 		return $inline_css;
+
 	}
 
 	public static function jet_load_extra_assets( $elements, $post_id ) {
-		
+
 		$used_icons = get_post_meta( $post_id, self::$icons_cache_key, true );
 
 		if ( ! $used_icons ) {
@@ -167,10 +214,17 @@ class Assets extends \Bricks\Assets {
 
 			if ( false !== strpos( $bricks_settings_string, '"library":"fontawesome' ) ) {
 				$used_icons[] = [
-					'handle' => 'bricks-font-awesome',
-					'src' => BRICKS_URL_ASSETS . 'css/libs/font-awesome.min.css',
+					'handle' => 'bricks-font-awesome-6',
+					'src' => BRICKS_URL_ASSETS . 'css/libs/font-awesome-6.min.css',
 					'deps' => [ 'bricks-frontend' ],
-					'ver' => filemtime( BRICKS_PATH_ASSETS . 'css/libs/font-awesome.min.css' ),
+					'ver' => filemtime( BRICKS_PATH_ASSETS . 'css/libs/font-awesome-6.min.css' ),
+				];
+
+				$used_icons[] = [
+					'handle' => 'bricks-font-awesome-6-brands',
+					'src' => BRICKS_URL_ASSETS . 'css/libs/font-awesome-6-brands.min.css',
+					'deps' => [ 'bricks-frontend' ],
+					'ver' => filemtime( BRICKS_PATH_ASSETS . 'css/libs/font-awesome-6-brands.min.css' ),
 				];
 			}
 
@@ -349,34 +403,34 @@ class Assets extends \Bricks\Assets {
 			// Use wefont.min.js (and hide HTML until all webfonts are loaded)
 			if ( ! \Bricks\Helpers::google_fonts_disabled() && \Bricks\Database::get_setting( 'webfontLoading' ) === 'webfontloader' ) {
 
-				$webfonts_js = 'WebFont.load({
-					classes: false,
-					loading: function() {
-						document.documentElement.style.opacity = 0
-					},
-					active: function() {
-						document.documentElement.removeAttribute("style")
-					},
-					custom: {
-						families: ' . json_encode( $active_google_font_families ) . ',
-						urls: ' . json_encode( $active_google_font_urls, JSON_UNESCAPED_SLASHES ) . '
-					}
-				})';
+			   $webfonts_js = 'WebFont.load({
+				  classes: false,
+				  loading: function() {
+					 document.documentElement.style.opacity = 0
+				  },
+				  active: function() {
+					 document.documentElement.removeAttribute("style")
+				  },
+				  custom: {
+					 families: ' . json_encode( $active_google_font_families ) . ',
+					 urls: ' . json_encode( $active_google_font_urls, JSON_UNESCAPED_SLASHES ) . '
+				  }
+			   })';
 
-				if ( wp_script_is( 'bricks-webfont' ) ) {
-					printf( '<script>%s</script>', $webfonts_js );
-				} else {
-					wp_enqueue_script( 'bricks-webfont' );
-					wp_add_inline_script( 'bricks-webfont', $webfonts_js );
-				}
-				
+			   if ( wp_script_is( 'bricks-webfont' ) ) {
+				  printf( '<script>%s</script>', $webfonts_js );
+			   } else {
+				  wp_enqueue_script( 'bricks-webfont' );
+				  wp_add_inline_script( 'bricks-webfont', $webfonts_js );
+			   }
+
 			}
 
 			// Use font stylesheet URLs
 			else {
-				foreach ( $active_google_font_urls as $index => $active_google_font_url ) {
-					wp_enqueue_style( "bricks-google-font-jet-$index", $active_google_font_url, [], '' );
-				}
+			   foreach ( $active_google_font_urls as $index => $active_google_font_url ) {
+				  wp_enqueue_style( "bricks-google-font-jet-$index", $active_google_font_url, [], '' );
+			   }
 			}
 			*/
 		}
@@ -396,7 +450,7 @@ class Assets extends \Bricks\Assets {
 			$has_webfonts_js = false;
 
 			if ( wp_script_is( 'bricks-webfont' ) && ! empty( self::$fonts_stack ) ) {
-				
+
 				$data = wp_scripts()->get_data( 'bricks-webfont', 'after' );
 				$has_webfonts_js = true;
 
@@ -415,24 +469,24 @@ class Assets extends \Bricks\Assets {
 					}
 
 				}
-				
+
 			}
 
 			if ( ! empty( $fonts_to_load ) ) {
 
 				$webfonts_js = 'WebFont.load({
-					classes: false,
-					loading: function() {
-						document.documentElement.style.opacity = 0
-					},
-					active: function() {
-						document.documentElement.removeAttribute("style")
-					},
-					custom: {
-						families: ' . json_encode( array_keys( $fonts_to_load ) ) . ',
-						urls: ' . json_encode( array_values( $fonts_to_load ), JSON_UNESCAPED_SLASHES ) . '
-					}
-				})';
+               classes: false,
+               loading: function() {
+                  document.documentElement.style.opacity = 0
+               },
+               active: function() {
+                  document.documentElement.removeAttribute("style")
+               },
+               custom: {
+                  families: ' . json_encode( array_keys( $fonts_to_load ) ) . ',
+                  urls: ' . json_encode( array_values( $fonts_to_load ), JSON_UNESCAPED_SLASHES ) . '
+               }
+            })';
 
 				if ( $has_webfonts_js ) {
 					printf( '<script>%s</script>', $webfonts_js );
@@ -468,7 +522,7 @@ class Assets extends \Bricks\Assets {
 	}
 
 	public static function jet_print_editor_fonts() {
-	
+
 		if ( empty( self::$editor_fonts_to_load ) ) {
 			return;
 		}
@@ -478,4 +532,30 @@ class Assets extends \Bricks\Assets {
 		}
 	}
 
+	public static function get_query_args( $settings, $post_id ) {
+		// Obtain the query instance for a listing grid
+		$instance = jet_engine()->listings->get_render_instance( 'listing-grid', $settings );
+
+		// Save the current listing data and set it based on the post ID
+		$current_listing = jet_engine()->listings->data->get_listing();
+		jet_engine()->listings->data->set_listing_by_id( $post_id );
+
+		// Call the get_query method to generate the query_vars
+		$instance->get_query( $settings );
+		$query_args = ! empty( $instance->query_vars['request'] ) ? $instance->query_vars['request'] : [];
+
+		// Restore the original listing data
+		jet_engine()->listings->data->set_listing( $current_listing );
+
+		// Is that the calendar widget setting?
+		if ( isset( $settings['start_from_year'] ) ) {
+			$query_args['posts_per_page'] = -1;
+		}
+
+		if ( jet_engine()->listings->is_listing_ajax( 'listing_load_more' ) ) {
+			$query_args['paged'] = $_REQUEST['page'] ?? 1;
+		}
+
+		return $query_args;
+	}
 }

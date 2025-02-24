@@ -241,7 +241,7 @@ class Vertical_Menu_Walker extends \Walker_Nav_Menu {
 		}
 
 		if ( in_array( 'menu-item-has-children', $item->classes ) || $this->is_mega_enabled( $item->ID ) ) {
-			$arrow_icon = isset( $args->widget_settings['dropdown_icon'] ) ? $args->widget_settings['dropdown_icon'] : 'fa fa-chevron-right';
+			$arrow_icon = isset( $args->settings['dropdown_icon'] ) ? $args->settings['dropdown_icon'] : 'fa fa-chevron-right';
 
 			$title = $title . jet_menu_tools()->get_dropdown_arrow_icon_html( $arrow_icon, null );
 		}

@@ -126,7 +126,6 @@ class Type extends \Jet_Engine\Relations\Types\Base {
 
 	/**
 	 * Returns type items
-	 * @return [type] [description]
 	 */
 	public function get_type_item_title( $item_id, $object_name, $relation ) {
 
@@ -159,10 +158,6 @@ class Type extends \Jet_Engine\Relations\Types\Base {
 
 	/**
 	 * Returns item edit URL by object type data and item ID
-	 *
-	 * @param  [type] $type    [description]
-	 * @param  [type] $item_id [description]
-	 * @return [type]          [description]
 	 */
 	public function get_type_item_edit_url( $item_id, $object_name, $relation ) {
 

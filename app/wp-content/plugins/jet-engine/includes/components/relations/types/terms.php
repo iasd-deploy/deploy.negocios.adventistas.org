@@ -90,7 +90,6 @@ class Terms extends Base {
 
 	/**
 	 * Returns type items
-	 * @return [type] [description]
 	 */
 	public function get_type_item_title( $item_id, $object_name, $relation ) {
 
@@ -106,10 +105,6 @@ class Terms extends Base {
 
 	/**
 	 * Returns item edit URL by object type data and item ID
-	 *
-	 * @param  [type] $type    [description]
-	 * @param  [type] $item_id [description]
-	 * @return [type]          [description]
 	 */
 	public function get_type_item_edit_url( $item_id, $object_name, $relation ) {
 		return get_edit_term_link( $item_id, $object_name );
@@ -123,7 +118,7 @@ class Terms extends Base {
 	 * @return [type]          [description]
 	 */
 	public function get_type_item_view_url( $item_id, $object_name, $relation ) {
-		return get_term_link( $item_id, $object_name );
+		return get_term_link( intval( $item_id ), $object_name );
 	}
 
 	/**

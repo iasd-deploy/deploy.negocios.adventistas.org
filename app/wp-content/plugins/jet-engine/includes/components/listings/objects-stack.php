@@ -35,6 +35,8 @@ class Jet_Engine_Objects_Stack {
 		add_action( 'jet-engine/listings/data/set-current-object', array( $this, 'ensure_root' ) );
 		add_action( 'jet-engine/listings/frontend/setup-data', array( $this, 'increase_stack' ) );
 		add_action( 'jet-engine/listings/frontend/object-done', array( $this, 'decrease_stack' ) );
+		add_action( 'jet-engine/object-stack/increase', array( $this, 'increase_stack' ) );
+		add_action( 'jet-engine/object-stack/decrease', array( $this, 'decrease_stack' ) );
 	}
 
 	/**
@@ -97,11 +99,11 @@ class Jet_Engine_Objects_Stack {
 	 * @return [type]         [description]
 	 */
 	public function increase_stack( $object ) {
-		
+
 		if ( ! in_array( $object, $this->stack ) ) {
 			$this->stack[] = $object;
 		}
-		
+
 		$this->in_stack = true;
 	}
 
@@ -132,11 +134,14 @@ class Jet_Engine_Objects_Stack {
 			if ( $reset ) {
 				unset( $this->stack[ $i ] );
 			}
-
 		}
 
-		$this->stack = array_merge( array(), $this->stack );
-
+		/**
+		 * Since 3.6.0 wrapped into array_values() to reset array indexes,
+		 * without this in some cases for the nested elements starting from 2nd
+		 * stack was decreased icorrectly.
+		 */
+		$this->stack = array_values( array_merge( array(), $this->stack ) );
 		$this->in_stack = false;
 	}
 

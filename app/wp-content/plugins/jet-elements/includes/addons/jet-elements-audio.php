@@ -41,6 +41,10 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
 	public function get_script_depends() {
 		if ( isset( $_GET['elementor-preview'] ) && 'wp_enqueue_scripts' === current_filter() ) {
 			return array( 'mediaelement', 'mejs-speed' );
@@ -53,11 +57,11 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 
 	public function get_style_depends() {
 		if ( isset( $_GET['elementor-preview'] ) ) {
-			return array( 'mediaelement', 'mejs-speed-css', 'elementor-icons-fa-solid' );
+			return array( 'mediaelement', 'mejs-speed-css', 'elementor-icons-fa-solid', 'jet-audio' );
 		} else if ( 'yes' === $this->get_settings( 'speed' ) ){
-			return array( 'mediaelement', 'mejs-speed-css', 'elementor-icons-fa-solid' );
+			return array( 'mediaelement', 'mejs-speed-css', 'elementor-icons-fa-solid', 'jet-audio' );
 		} else {
-			return array( 'mediaelement', 'elementor-icons-fa-solid' );
+			return array( 'mediaelement', 'elementor-icons-fa-solid', 'jet-audio' );
 		}
 	}
 
@@ -410,7 +414,7 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 					),
 				),
 				'selectors' => array(
-					'{{WRAPPER}} ' . $css_scheme['play_pause_btn'] => 'font-size: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} ' . $css_scheme['play_pause_btn'] . ':before' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
 				),
 			),
 			50
@@ -431,7 +435,7 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 				'label' => esc_html__( 'Color', 'jet-elements' ),
 				'type'  => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} ' . $css_scheme['play_pause_btn'] => 'color: {{VALUE}};',
+					'{{WRAPPER}} ' . $css_scheme['play_pause_btn'] . ':before' => 'background-color: {{VALUE}};',
 				),
 			),
 			25
@@ -464,7 +468,7 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 				'label' => esc_html__( 'Color', 'jet-elements' ),
 				'type'  => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} ' . $css_scheme['play_pause_btn'] . ':hover' => 'color: {{VALUE}};',
+					'{{WRAPPER}} ' . $css_scheme['play_pause_btn'] . ':hover:before' => 'background-color: {{VALUE}};',
 				),
 			),
 			25
@@ -800,7 +804,7 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 					),
 				),
 				'selectors' => array(
-					'{{WRAPPER}} ' . $css_scheme['volume_btn'] => 'font-size: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} ' . $css_scheme['volume_btn'] . ':before' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
 				),
 				'condition' => array(
 					'volume' => 'yes',
@@ -827,7 +831,7 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 				'label' => esc_html__( 'Color', 'jet-elements' ),
 				'type'  => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} ' . $css_scheme['volume_btn'] => 'color: {{VALUE}};',
+					'{{WRAPPER}} ' . $css_scheme['volume_btn'] . ':before'=> 'background-color: {{VALUE}};',
 				),
 				'condition' => array(
 					'volume' => 'yes',
@@ -869,7 +873,7 @@ class Jet_Elements_Audio extends Jet_Elements_Base {
 				'label' => esc_html__( 'Color', 'jet-elements' ),
 				'type'  => Controls_Manager::COLOR,
 				'selectors' => array(
-					'{{WRAPPER}} ' . $css_scheme['volume_btn'] . ':hover' => 'color: {{VALUE}};',
+					'{{WRAPPER}} ' . $css_scheme['volume_btn'] . ':hover:before' => 'background-color: {{VALUE}};',
 				),
 				'condition' => array(
 					'volume' => 'yes',

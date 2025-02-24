@@ -83,7 +83,7 @@ class Button extends \Elementor\Widget_Base {
 			array(
 				'label'       => __( 'Listing grid ID', 'jet-engine' ),
 				'label_block' => true,
-				'description' => __( 'Here you need to set listing ID to reload. The same ID must be set in the Advanced settings of selected listing', 'jet-engine' ),
+				'description' => __( 'Here you need to set listing ID to reload. The same ID must be set in the Advanced settings of selected listing. Put comma-separated IDs to update multiple listings.', 'jet-engine' ),
 				'type'        => \Elementor\Controls_Manager::TEXT,
 				'default'     => '',
 				'condition'   => array(

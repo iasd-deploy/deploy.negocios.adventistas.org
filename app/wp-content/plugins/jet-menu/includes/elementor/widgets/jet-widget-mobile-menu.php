@@ -438,6 +438,18 @@ class Jet_Widget_Mobile_Menu extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'fill_svg_icon',
+			array(
+				'label'        => esc_html__( 'Fill SVG icons', 'jet-menu' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'label_on'     => esc_html__( 'Yes', 'jet-menu' ),
+				'label_off'    => esc_html__( 'No', 'jet-menu' ),
+				'return_value' => 'yes',
+				'default'      => 'yes',
+			)
+		);
+
 		$this->end_controls_section();
 
 		$css_scheme = apply_filters(
@@ -948,6 +960,27 @@ class Jet_Widget_Mobile_Menu extends Widget_Base {
 			)
 		);
 
+		$this->add_control(
+			'menu_container_box_close_button_box_transform',
+			array(
+				'label'     => esc_html__( 'Close Button', 'jet-menu' ),
+				'type'      => Controls_Manager::HEADING,
+				'separator' => 'before',
+				'condition' => array(
+					//'item_after_template!' => '',
+				),
+			)
+		);
+
+		$this->add_group_control(
+			\Jet_Menu_Group_Control_Transform_Style::get_type(),
+			[
+				'name'     => 'close_button_box_transform',
+				'label'    => esc_html__( 'Position', 'jet-menu' ),
+				'selector' => '{{WRAPPER}} ' . $css_scheme['container'] . ' .jet-mobile-menu__back',
+			]
+		);
+
 		$this->end_controls_section();
 
 		/**
@@ -987,7 +1020,7 @@ class Jet_Widget_Mobile_Menu extends Widget_Base {
 					),
 				),
 				'selectors'  => array(
-					'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon'     => 'font-size: {{SIZE}}{{UNIT}}; min-width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon img' => 'width: {{SIZE}}{{UNIT}};',
 					'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon svg' => 'width: {{SIZE}}{{UNIT}}',
 				),
 				'condition' => array(
@@ -1692,6 +1725,7 @@ class Jet_Widget_Mobile_Menu extends Widget_Base {
 			'dropdown-icon-html'        => $this->get_icon_html( $settings[ 'dropdown_icon' ] ),
 			'dropdown-opened-icon-html' => $this->get_icon_html( $settings[ 'dropdown_opened_icon' ] ),
 			'breadcrumb-icon-html'      => $this->get_icon_html( $settings[ 'breadcrumb_icon' ] ),
+			'fill-svg-icon'              => filter_var( $settings[ 'fill_svg_icon' ], FILTER_VALIDATE_BOOLEAN ),
 		) );
 
 		$render_widget_instance->render();

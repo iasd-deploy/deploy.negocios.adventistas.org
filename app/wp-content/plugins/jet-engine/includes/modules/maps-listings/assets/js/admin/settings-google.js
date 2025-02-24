@@ -77,31 +77,39 @@
 			validateKey: function() {
 
 				var self = this,
-					apiKey = false;
+					apiKey = false,
+					data = {},
+					url;
 
 				self.validating = true;
 				self.validated = false;
 
 				if ( self.settings.use_geocoding_key ) {
 					apiKey = self.settings.geocoding_key;
+					data.action = 'jet_engine_maps_validate_google_map_key';
+					data.nonce  = JetEngineMapsSettings._nonce;
+					url = window.ajaxurl;
 				} else {
 					apiKey = self.settings.api_key;
+					url = 'https://maps.googleapis.com/maps/api/geocode/json';
 				}
 
 				if ( ! apiKey ) {
 					self.validated = true;
+					self.validating = false;
 					self.$set( self.validateResult, 'success', false );
 					self.$set( self.validateResult, 'message', 'Please set API key before' );
+					return;
 				}
 
+				data.address = encodeURI( self.getRandStreet() );
+				data.key = encodeURI( apiKey );
+
 				jQuery.ajax({
-					url: 'https://maps.googleapis.com/maps/api/geocode/json',
+					url: url,
 					type: 'GET',
 					dataType: 'json',
-					data: {
-						address: encodeURI( self.getRandStreet() ),
-						key: encodeURI( apiKey )
-					},
+					data: data,
 				}).done( function( response ) {
 
 					self.validating = false;

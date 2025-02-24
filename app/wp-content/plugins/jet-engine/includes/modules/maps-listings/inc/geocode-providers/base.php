@@ -61,8 +61,8 @@ abstract class Base extends Base_Provider {
 	/**
 	 * Find coordinates in the response data and return it
 	 *
-	 * @param  array  $data [description]
-	 * @return [type]       [description]
+	 * @param  array       $data Response data from API
+	 * @return array|false       Array of [ 'lat' => float, 'lng' => float ] if location found, false otherwise
 	 */
 	public function extract_coordinates_from_response_data( $data = array() ) {
 		return false;
@@ -117,10 +117,25 @@ abstract class Base extends Base_Provider {
 	}
 
 	/**
+	 * WP esc_attr function analog, that does not escape quotes
+	 * https://github.com/Crocoblock/issues-tracker/issues/12562
+	 *
+	 * @param  string $location String to escape
+	 * @return string           Escaped string
+	 */
+	public function esc_attr( $location ) {
+		if ( ! preg_match( '/[&<>"\']/', $location ) ) {
+			return $location;
+		}
+
+		return htmlspecialchars( $location, ENT_NOQUOTES );
+	}
+
+	/**
 	 * Returns data for the given location
 	 *
-	 * @param  string $location [description]
-	 * @return [type]           [description]
+	 * @param  string      $location Location string, address
+	 * @return array|false [ 'lat' => float, 'lng' => float ] if location found, false otherwise
 	 */
 	public function get_location_data( $location = '' ) {
 
@@ -128,7 +143,7 @@ abstract class Base extends Base_Provider {
 			return false;
 		}
 
-		$url = $this->build_api_url( esc_attr( $location ) );
+		$url = $this->build_api_url( $this->esc_attr( $location ) );
 
 		if ( ! $url ) {
 			return false;

@@ -4,6 +4,7 @@ namespace Jet_Engine\Modules\Maps_Listings\Filters\Bricks;
 
 use Jet_Engine\Bricks_Views\Helpers\Options_Converter;
 use Jet_Smart_Filters\Bricks_Views\Elements\Jet_Smart_Filters_Bricks_Base;
+use Jet_Smart_Filters\Bricks_Views\Manager;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -38,6 +39,16 @@ class User_Geolocation extends Jet_Smart_Filters_Bricks_Base {
 
 		$this->start_jet_control_group( 'section_general' );
 
+		$query_builder_link = admin_url( 'admin.php?page=jet-engine-query' );
+
+		$this->register_jet_control(
+			'query_notice',
+			[
+				'content' => sprintf( __( 'This filter is compatible only with queries from <a href="%s" target="_blank">JetEngine Query Builder</a>. ALso you need to set up <a href="https://crocoblock.com/knowledge-base/jetengine/how-to-set-geo-search-based-on-user-geolocation/" target="_blank">Geo Query</a> in your query settings to make the filter work correctly.', 'jet-engine' ), $query_builder_link ),
+				'type' => 'info',
+			]
+		);
+
 		$this->register_jet_control(
 			'filter_id',
 			[
@@ -50,15 +61,7 @@ class User_Geolocation extends Jet_Smart_Filters_Bricks_Base {
 			]
 		);
 
-		if ( jet_smart_filters()->get_version() > '3.0.4' ) {
-			$provider_allowed = \Jet_Smart_Filters\Bricks_Views\Manager::get_allowed_providers();
-		} else {
-			$provider_allowed = [
-				'jet-engine'          => true,
-				'jet-engine-calendar' => true,
-				'jet-engine-maps'     => true,
-			];
-		}
+		$provider_allowed = Manager::get_allowed_providers();
 
 		$this->register_jet_control(
 			'content_provider',

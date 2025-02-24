@@ -42,6 +42,14 @@ class Jet_Elements_Animated_Box extends Jet_Elements_Base {
 	}
 
 	/**
+	 * [get_style_depends description]
+	 * @return [type] [description]
+	 */
+	public function get_style_depends() {
+		return array( 'peel-css', 'jet-animated-box', 'jet-animated-box-skin' );
+	}
+
+	/**
 	 * Retrieve the list of scripts the widget depended on.
 	 *
 	 * @return array
@@ -50,13 +58,6 @@ class Jet_Elements_Animated_Box extends Jet_Elements_Base {
 		return array( 'imagesloaded', 'html2canvas', 'oridomi', 'peel-js', 'jquery-ui-draggable', 'jquery-touch-punch' );
 	}
 
-	/**
-	 * [get_style_depends description]
-	 * @return [type] [description]
-	 */
-	public function get_style_depends() {
-		return array( 'peel-css' );
-	}
 
 	protected function register_controls() {
 
@@ -2278,7 +2279,10 @@ class Jet_Elements_Animated_Box extends Jet_Elements_Base {
 
 		$instance_settings = json_encode( $instance_settings );
 
-		return sprintf( 'data-settings=\'%1$s\'', $instance_settings );
+		// Escape the JSON string for safe use in HTML attributes
+		$data_settings_attribute = esc_attr( $instance_settings );
+
+		return sprintf( 'data-settings=\'%1$s\'', $data_settings_attribute );
 	}
 
 	/**

@@ -30,21 +30,17 @@ if ( ! class_exists( 'Jet_Smart_Filters_Pagination_Filter' ) ) {
 			$pages             = 10;
 			$page              = 4;
 			$items_enabled     = filter_var( $controls['items_enabled'], FILTER_VALIDATE_BOOLEAN );
-			$pages_mid_size    = $controls['pages_mid_size'];
-			$pages_end_size    = $controls['pages_end_size'];
+			$pages_mid_size    = ! empty( $controls['pages_mid_size'] ) ? absint( $controls['pages_mid_size'] ) : 0;
+			$pages_end_size    = ! empty( $controls['pages_end_size'] ) ? absint( $controls['pages_end_size'] ) : 0;
 			$nav_enabled       = filter_var( $controls['nav_enabled'], FILTER_VALIDATE_BOOLEAN );
 			$load_more_enabled = filter_var( $controls['load_more_enabled'], FILTER_VALIDATE_BOOLEAN );
 			$pages_show_all    = ( 0 === $pages_mid_size ) ? true : false;
 			$dots              = true;
-			$item_html         = jet_smart_filters()->utils->template_parse( 'for-js/pagination-item.php' );
-			$dots_html         = jet_smart_filters()->utils->template_parse( 'for-js/pagination-item-dots.php' );
-			$load_more_html    = jet_smart_filters()->utils->template_parse( 'for-js/pagination-load-more.php' );
 
 			echo '<div class="jet-filters-pagination">';
 				if ( $nav_enabled ) {
 					echo '<div class="jet-filters-pagination__item prev-next prev">';
-						$value = $controls['prev'];
-						eval( '?>' . $item_html . '<?php ' );
+						echo jet_smart_filters()->utils->template_replace_with_value( 'for-js/pagination/item.php', $controls['prev'] );
 					echo '</div>';
 				}
 				if ( $items_enabled ) {
@@ -55,27 +51,24 @@ if ( ! class_exists( 'Jet_Smart_Filters_Pagination_Filter' ) ) {
 						if ( !$show_dots || $pages_show_all ) {
 							$dots = true;
 							echo '<div class="jet-filters-pagination__item' . $current . '">';
-								$value = $i;
-								eval( '?>' . $item_html . '<?php ' );
+								echo jet_smart_filters()->utils->template_replace_with_value( 'for-js/pagination/item.php', $i );
 							echo '</div>';
 						} elseif ( $dots ) {
 							$dots = false;
 							echo '<div class="jet-filters-pagination__item">';
-								eval( '?>' . $dots_html . '<?php ' );
+								echo jet_smart_filters()->utils->get_template_html( 'for-js/pagination/dots.php' );
 							echo '</div>';
 						}
 					}
 				}
 				if ( $nav_enabled ) {
 					echo '<div class="jet-filters-pagination__item prev-next next">';
-						$value = $controls['next'];
-						eval( '?>' . $item_html . '<?php ' );
+						echo jet_smart_filters()->utils->template_replace_with_value( 'for-js/pagination/item.php', $controls['next'] );
 					echo '</div>';
 				}
 				if ( $load_more_enabled ) {
 					echo '<div class="jet-filters-pagination__load-more">';
-						$value = $controls['load_more_text'];
-						eval( '?>' . $load_more_html . '<?php ' );
+						echo jet_smart_filters()->utils->template_replace_with_value( 'for-js/pagination/load-more.php', $controls['load_more_text'] );
 					echo '</div>';
 				}
 			echo '</div>';

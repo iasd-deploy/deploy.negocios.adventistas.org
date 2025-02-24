@@ -74,7 +74,7 @@ class Blocks {
 
 		wp_enqueue_script(
 			'jet-engine-cct-blocks-editor',
-			Module::instance()->module_url( 'assets/js/admin/blocks/blocks.js' ),
+			Module::instance()->module_url( 'assets/js/admin/blocks/build/blocks.js' ),
 			array(),
 			jet_engine()->get_version(),
 			true

@@ -47,6 +47,14 @@ class Jet_Elements_Subscribe_Form extends Jet_Elements_Base {
 	public function get_categories() {
 		return array( 'cherry' );
 	}
+	
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-subscribe-form', 'jet-subscribe-form-skin' ); 
+	}
 
 	protected function register_controls() {
 

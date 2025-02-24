@@ -15,7 +15,11 @@
 	</div>
 	<div class="jet-profile-macros__popup" v-if="isActive">
 		<div class="jet-profile-macros__list">
-			<div class="jet-profile-macros__item" v-for="macroArgs in macrosList" @click="addMacro( macroArgs.macro )">
+			<div class="jet-profile-macros__item"
+			     v-if="isMacroAllowed( macroArgs )"
+				 v-for="macroArgs in macrosList"
+				 @click="addMacro( macroArgs.macro )"
+			>
 				<strong v-html="macroArgs.label"></strong>
 				<code>{{ macroArgs.macro }}</code>
 			</div>

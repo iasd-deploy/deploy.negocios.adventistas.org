@@ -58,6 +58,8 @@ class Elementor {
 
 		add_action( 'elementor/init', array( $this, 'init_extension_module' ), 0 );
 
+		add_action( 'elementor/controls/controls_registered', [ $this, 'add_controls' ], 10 );
+
 		add_action( 'elementor/editor/after_enqueue_styles', array( $this, 'editor_styles' ) );
 
 		add_action( 'elementor/preview/enqueue_styles', array( $this, 'editor_styles' ) );
@@ -149,6 +151,32 @@ class Elementor {
 	}
 
 	/**
+	 * Add new controls.
+	 *
+	 * @param  object $controls_manager Controls manager instance.
+	 * @return void
+	 */
+	public function add_controls( $controls_manager ) {
+
+		$grouped = [
+			'jet-menu-transform-style'       => [
+				'class' => 'Jet_Menu_Group_Control_Transform_Style',
+				'file'   => jet_menu()->plugin_path( 'includes/elementor/controls/groups/group-control-transform-style.php' ),
+			],
+		];
+
+		foreach ( $grouped as $control_id => $control_data ) {
+
+			if ( file_exists( $control_data['file'] ) ) {
+				require $control_data['file'];
+
+				$class_name = $control_data['class'];
+				$controls_manager->add_group_control( $control_id, new $class_name() );
+			}
+		}
+	}
+
+	/**
 	 * Init Extension Module
 	 */
 	public function init_extension_module() {
@@ -162,12 +190,20 @@ class Elementor {
 	 * @return void
 	 */
 	public function editor_styles() {
+
 		wp_enqueue_style(
+			'jet-menu-icons',
+			jet_menu()->plugin_url( 'assets/admin/lib/jetmenu-icons/icons.css' ),
+			array(),
+			jet_menu()->get_version() . '-icons'
+		);
+
+		/*wp_enqueue_style(
 			'jet-menu-editor',
 			jet_menu()->plugin_url( 'includes/elementor/assets/editor/css/editor.css' ),
 			array(),
 			jet_menu()->get_version()
-		);
+		);*/
 	}
 
 	/**

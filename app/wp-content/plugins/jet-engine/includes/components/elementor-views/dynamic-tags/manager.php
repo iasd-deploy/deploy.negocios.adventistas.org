@@ -19,8 +19,6 @@ if ( ! class_exists( 'Jet_Engine_Dynamic_Tags_Manager' ) ) {
 	 */
 	class Jet_Engine_Dynamic_Tags_Manager {
 
-		private $printed_css = array();
-
 		/**
 		 * Constructor for the class
 		 */
@@ -79,10 +77,10 @@ if ( ! class_exists( 'Jet_Engine_Dynamic_Tags_Manager' ) ) {
 		 *
 		 * @return \Elementor\Core\DynamicTags\Dynamic_CSS|Jet_Engine_Elementor_Dynamic_CSS
 		 */
-		public function get_dynamic_css_file( $post_id, $post_id_for_data ) {
+		public function get_dynamic_css_file( $post_id, $post_id_for_data, $unique_id = null ) {
 
 			if ( defined( 'ELEMENTOR_VERSION' ) && version_compare( ELEMENTOR_VERSION, '3.0.0-beta4', '>=' ) ) {
-				return Jet_Engine_Elementor_Dynamic_CSS::create( $post_id, $post_id_for_data );
+				return Jet_Engine_Elementor_Dynamic_CSS::create( $post_id, $post_id_for_data, $unique_id );
 			}
 
 			return Elementor\Core\DynamicTags\Dynamic_CSS::create( $post_id, $post_id_for_data );
@@ -103,8 +101,6 @@ if ( ! class_exists( 'Jet_Engine_Dynamic_Tags_Manager' ) ) {
 				return $content;
 			}
 
-			$object  = jet_engine()->listings->data->get_current_object();
-			$class   = get_class( $object );
 			$post_id = jet_engine()->listings->data->get_current_object_id();
 
 			$post_ids_for_data = array( $listing_id );
@@ -114,20 +110,25 @@ if ( ! class_exists( 'Jet_Engine_Dynamic_Tags_Manager' ) ) {
 				$post_ids_for_data = array_merge( $post_ids_for_data, $inner_templates );
 			}
 
+			/**
+			 * Unique ID required to allow refreshing dynamic CSS file with same ID.
+			 * Could be any unique string or number.
+			 * Out of the box used for the components.
+			 *
+			 * https://github.com/Crocoblock/issues-tracker/issues/10893
+			 *
+			 * @var mixed
+			 */
+			$unique_id = apply_filters( 'jet-engine/elementor-views/dynamic-tags/dynamic-css-unique-id', null );
+
 			foreach ( $post_ids_for_data as $post_id_for_data ) {
 
-				$handle = $class . '_' . $post_id . '_' . $post_id_for_data;
-
-				if ( in_array( $handle, $this->printed_css ) ) {
-					continue;
-				}
-
-				$css_file = $this->get_dynamic_css_file( $post_id, $post_id_for_data );
+				$css_file = $this->get_dynamic_css_file( $post_id, $post_id_for_data, $unique_id );
+				$css_file->set_listing_unique_selector( '.jet-listing-dynamic-post-' . $post_id );
 				$post_css = $css_file->get_content();
 
 				if ( ! empty( $post_css ) ) {
 					$css .= $post_css;
-					$this->printed_css[] = $handle;
 				}
 			}
 
@@ -135,7 +136,6 @@ if ( ! class_exists( 'Jet_Engine_Dynamic_Tags_Manager' ) ) {
 				return $content;
 			}
 
-			$css = str_replace( '.elementor-' . $post_id, '.jet-listing-dynamic-post-' . $post_id, $css );
 			$css = sprintf( '<style type="text/css">%s</style>', $css );
 
 			return $css . $content;
@@ -213,9 +213,15 @@ if ( ! class_exists( 'Jet_Engine_Dynamic_Tags_Manager' ) ) {
 				return;
 			}
 
-			$media_conditions_keys = array_map( function ( $key ) {
+			$media_conditions_url_keys = array_map( function ( $key ) {
 				return $key . '[url]!';
 			}, $media_dynamic_settings );
+
+			$media_conditions_id_keys = array_map( function ( $key ) {
+				return $key . '[id]!';
+			}, $media_dynamic_settings );
+
+			$media_conditions_keys = array_merge( $media_conditions_url_keys, $media_conditions_id_keys );
 
 			foreach ( $all_controls as $control_id => $control ) {
 				if ( empty( $control['selectors'] ) || empty( $control['condition'] ) ) {

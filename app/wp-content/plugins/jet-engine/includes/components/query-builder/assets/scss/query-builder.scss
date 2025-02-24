@@ -6,6 +6,53 @@
 	}
 }
 
+.cx-vui-component {
+	&--disabled {
+		opacity: 0.6;
+		pointer-events: none;
+	}
+}
+
+.cx-vue-list-table {
+	.cols-4 .list-table-heading__cell,
+	.cols-4 .list-table-item__cell {
+		flex: 0 0 25%;
+		&.cell--id {
+			flex: 0 0 60px;
+			width: 60px;
+			padding-right: 0;
+		}
+		&.cell--name {
+			flex: 0 0 calc(50% - 60px);
+			width: calc(50% - 60px);
+			max-width: calc(50% - 60px);
+		}
+		&.cell--actions {
+			display: flex;
+			justify-content: flex-end;
+		}
+	}
+}
+
+.jet-engine-copy-query-id {
+	display: flex;
+	justify-content: center;
+	align-items:center;
+	gap: 3px;
+	cursor: copy;
+	svg {
+		display: block;
+		visibility:hidden;
+		width: 16px;
+		height: 16px;
+	}
+	&:hover {
+		svg {
+			visibility: visible;
+		}
+	}
+}
+
 .jet-engine-query-builder-heading {
 	display: flex;
 	padding: 20px 0 20px;
@@ -25,6 +72,20 @@
 	}
 }
 
+.jet-engine-query-builder-fullscreen {
+	#adminmenumain,
+	#wpadminbar,
+	.cpt-header > .notice,
+	#wpbody-content > .notice,
+	.jet-engine-edit-page__actions-delete {
+		display: none;
+	}
+
+	#wpcontent {
+		margin-left: 0;
+	}
+}
+
 .jet-ai-query {
 	&__trigger {
 		position: absolute;
@@ -37,17 +98,18 @@
 		border-radius: 4px;
 		&-tip {
 			background: #23282D;
-			padding: 5px;
+			padding: 4px;
 			font-size: 12px;
 			line-height: 14px;
 			border-radius: 3px;
 			position: absolute;
+			text-align: center;
 			bottom: 45px;
 			color: #fff;
 			font-weight: normal;
-			width: 100px;
+			width: 104px;
 			left: 50%;
-			margin-left: -50px;
+			margin-left: -52px;
 			box-sizing: border-box;
 			visibility: hidden;
 			pointer-events: none;
@@ -343,7 +405,7 @@
 	height: 32px;
 	&__config {
 		text-align: right;
-		margin: -12px -15px 10px 0;
+		margin: -12px -10px 10px 0;
 		&-trigger {
 			color: #007cba;
 			text-decoration: underline;
@@ -402,6 +464,9 @@
 		box-sizing: border-box;
 		i {
 			cursor: pointer;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			overflow: hidden;
 		}
 		&-clear {
 			cursor: pointer;
@@ -438,7 +503,7 @@
 		left: 0;
 		top: 36px;
 		background: #fff;
-		padding: 20px 30px;
+		padding: 20px 25px;
 		margin: 0;
 		border: 1px solid #ececec;
 		box-shadow: 0 2px 6px rgba( 35,40,45,.07 );
@@ -473,6 +538,18 @@
 			}
 		}
 	}
+	&__search {
+		&[type="search"] {
+			padding: 3px 8px;
+			margin-bottom: 10px;
+		}
+	}
+	&__list {
+		margin: 0 -25px;
+		padding: 0 25px;
+		overflow-y: auto;
+		max-height: 250px;
+	}
 	&-item {
 		&__name {
 			font-size: 13px;
@@ -491,6 +568,117 @@
 			font-size: 11px;
 			line-height: 12px;
 			padding: 3px 5px 0 0;
+		}
+	}
+}
+
+.cx-vui-component--api-url {
+	.cx-vui-component__control {
+		flex: 0 0 100%;
+	}
+}
+.jet-engine-query-builder-api-url {
+	position: relative;
+	width: 100%;
+	&__copy {
+		position: absolute;
+		right: 10px;
+		top: 12px;
+		cursor: pointer;
+		opacity: .6;
+		&:hover {
+			opacity: 1;
+		}
+	}
+	pre {
+		width: 100%;
+	}
+	code {
+		display: block;
+		padding: 15px 35px 15px 15px;
+	}
+}
+.jet-engine-query-builder-api-error {
+	color: #C92C2C;
+	padding: 5px 0 0 0;
+}
+.jet-engine-query-builder-api-args {
+	&__row {
+		display: flex;
+		gap: 5px;
+		align-items: center;
+		padding: 0 0 5px;
+		&-title {
+			flex: 1 1 50%;
+			color: #7B7E81;
+			font-size: 11px;
+			text-transform: uppercase;
+			font-weight: 500;
+		}
+		&.headings-row {
+			padding: 0;
+			&:after {
+				content: "";
+				width: 24px;
+				height: 24px;
+			}
+		}
+		.cx-vui-input {
+			flex: 1 1 50%;
+		}
+		.cx-vui-button {
+			width: 24px;
+			height: 24px;
+			margin: 0;
+			display: flex;
+			align-items: center;
+			justify-content:center;
+
+			.cx-vui-button__content svg {
+				margin: 0;
+			}
+
+			.cx-vui-tooltip {
+				width: 80px;
+			}
+		}
+	}
+	&__actions {
+		.cx-vui-button {
+			font-size: 13px;
+		}
+	}
+}
+.jet-engine-real-query-id {
+	display: flex;
+	gap: 4px;
+	align-items: end;
+	color: #7B7E81;
+	padding: 5px 0 0 0;
+	&__label {
+		color: #23282D;
+	}
+	&__help {
+		padding: 2px;
+		cursor: pointer;
+		position: relative;
+		&:hover {
+			.jet-engine-real-query-id__help-text {
+				opacity: 1;
+			}
+		}
+		svg {
+			display: block;
+		}
+		&-text {
+			transition: opacity 150ms linear;
+			opacity: 0;
+			pointer-events: none;
+			width: 270px;
+			box-sizing: border-box;
+			left: 50%;
+			padding: 10px !important;
+			margin-left: -135px !important;
 		}
 	}
 }

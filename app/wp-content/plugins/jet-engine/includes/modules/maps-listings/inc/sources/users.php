@@ -26,7 +26,7 @@ class Users extends Base {
 
 	public function update_field_value( $obj, $field, $value ) {
 		
-		$hash = md5( $field );
+		$hash = $this->get_field_prefix( $field );
 
 		update_user_meta( $obj->ID, $hash . '_hash', $value['key'] );
 		update_user_meta( $obj->ID, $hash . '_lat', $value['coord']['lat'] );
@@ -45,7 +45,25 @@ class Users extends Base {
 
 			if ( 1 === count( $fields ) ) {
 				$field = str_replace( 'user::', '', $field );
-				add_action( 'jet-engine/user-meta/before-save/' . $field, array( $this, 'preload', ), 10, 3 );
+
+				add_filter( 'update_user_metadata', function( $return, $user_id, $meta_key, $meta_value ) use ( $field ) {
+
+					if ( $field === $meta_key ) {
+						$this->preload( $user_id, $meta_value, $meta_key );
+					}
+
+					return $return;
+				}, 10, 4 );
+
+				add_action( 'add_user_metadata', function( $return, $user_id, $meta_key, $meta_value ) use ( $field ) {
+
+					if ( $field === $meta_key ) {
+						$this->preload( $user_id, $meta_value, $meta_key );
+					}
+
+					return $return;
+				}, 10, 4 );
+
 			} else {
 				$this->field_groups[] = array_map( function ( $item ) {
 					return str_replace( 'user::', '', $item );
@@ -54,7 +72,7 @@ class Users extends Base {
 		}
 
 		if ( ! empty( $this->field_groups ) ) {
-			add_action( 'jet-engine/user-meta/after-save', array( $this, 'preload_groups' ) );
+			add_action( 'wp_update_user', array( $this, 'preload_groups' ), 9999 );
 		}
 	}
 

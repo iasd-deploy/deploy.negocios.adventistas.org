@@ -189,6 +189,21 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'field_fallback',
+			array(
+				'label'       => esc_html__( 'Fallback', 'jet-engine' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => '',
+				'label_block' => true,
+				'description' => __( 'Show this if field value is empty', 'jet-engine' ),
+				'dynamic'     => array( 'active' => true, ),
+				'condition'   => array(
+					'hide_if_empty' => '',
+				),
+			)
+		);
+
+		$this->add_control(
 			'object_context',
 			array(
 				'label'     => __( 'Context', 'jet-engine' ),
@@ -264,7 +279,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Size', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 10,
@@ -282,7 +297,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Gap', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 0,
@@ -394,7 +409,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Padding', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__link' ) => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -406,7 +421,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Margin', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__link' ) => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -428,7 +443,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Border Radius', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__link' ) => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -470,7 +485,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Size', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 10,
@@ -488,7 +503,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Left Gap', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 0,
@@ -506,7 +521,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Right Gap', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 0,
@@ -554,7 +569,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Gap', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 0,
@@ -603,7 +618,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Gap', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 0,
@@ -671,7 +686,7 @@ class Jet_Listing_Dynamic_Terms_Widget extends Widget_Base {
 	}
 
 	protected function render() {
-		jet_engine()->listings->render_item( 'dynamic-terms', $this->get_settings() );
+		jet_engine()->listings->render_item( 'dynamic-terms', $this->get_settings_for_display() );
 	}
 
 }

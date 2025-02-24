@@ -21,6 +21,7 @@
 			_e( 'Import new post types, taxonomies and listing items from JSON file.', 'jet-engine' );
 		?></div>
 	</div>
+	
 	<div
 		class="jet-engine-skins__content"
 		v-if="isActive"
@@ -55,6 +56,13 @@
 					</div>
 				</div>
 			</div>
+			<div class="jet-engine-new-import__btn">
+				<cx-vui-button
+					button-style="accent"
+					style="margin-top:10px;"
+					@click="newImport"
+				><span slot="label"><?php _e( 'New Import', 'jet-engine' ); ?></span></cx-vui-button>
+			</div>
 		</template>
 		<div v-else-if="error" class="jet-engine-import__log jet-engine-import__log--error">
 			<div class="jet-engine-import__log-title">
@@ -75,11 +83,111 @@
 			<div class="jet-engine-import__btn">
 				<cx-vui-button
 					button-style="accent"
-					@click="processImport"
+					@click="validateImport"
 					:loading="isLoading"
 					:disabled="!readyToImport"
 				><span slot="label"><?php _e( 'Import', 'jet-engine' ); ?></span></cx-vui-button>
 			</div>
 		</div>
 	</div>
+
+	<cx-vui-popup
+		v-model="showPopup"
+		body-width="800px;"
+		:header="true"
+		:footer="true"
+		@on-cancel="closePopup"
+		@on-ok="processImport"
+		ok-label="<?php _e( 'Import', 'jet-engine' ); ?>"
+	>
+
+	<div class="cx-vui-subtitle" slot="title">
+		<?php
+			_e( 'Some of imported items already exist', 'jet-engine' );
+		?>
+		<p>
+			<?php
+				_e( 'Choose action for each item', 'jet-engine' );
+			?>
+		</p>
+	</div>
+
+		<div slot="content" style="max-height: 60vh; overflow-y: auto;">
+			<div class="cx-vui-panel jet-engine-import-duplicate-post-types" v-if="existingPostTypes.length">
+				<h2 style="padding: 5px;"><?php
+					_e( 'Post types', 'jet-engine' );
+				?></h2>
+			
+				<div class="cx-vui-repeater-item cx-vui-panel" v-for="( item, index ) in existingPostTypes">
+					<div class="cx-vui-repeater-item__heading">
+						<div class="cx-vui-repeater-item__heading-start">
+							<div class="cx-vui-repeater-item__title">{{ item.slug }}</div>
+							<div class="cx-vui-repeater-item__subtitle">{{ item.id }}</div>
+						</div>
+					</div>
+					<div class="cx-vui-repeater-item__content">
+						<cx-vui-select
+							label="<?php _e( 'Action', 'jet-engine' ); ?>"
+							description="<?php _e( '', 'jet-engine' ); ?>"
+							:wrapper-css="[ 'equalwidth' ]"
+							size="fullwidth"
+							:options-list="[
+								{
+									value: 'copy',
+									label: '<?php _e( 'Create a copy', 'jet-engine' ); ?>'
+								},
+								{
+									value: 'replace',
+									label: '<?php _e( 'Replace with new', 'jet-engine' ); ?>'
+								},
+								{
+									value: 'skip',
+									label: '<?php _e( 'Skip import', 'jet-engine' ); ?>'
+								},
+							]"
+							:value="item.action || 'copy'"
+							@input="setAction( $event, 'existingPostTypes', index )"
+						></cx-vui-select>
+					</div>
+				</div>
+			</div>
+			<div class="cx-vui-panel jet-engine-import-duplicate-taxonomies" v-if="existingTaxonomies.length">
+				<h2 style="padding: 5px;"><?php
+					_e( 'Taxonomies', 'jet-engine' );
+				?></h2>
+				<div class="cx-vui-repeater-item cx-vui-panel" v-for="( item, index ) in existingTaxonomies">
+					<div class="cx-vui-repeater-item__heading">
+						<div class="cx-vui-repeater-item__heading-start">
+							<div class="cx-vui-repeater-item__title">{{ item.slug }}</div>
+							<div class="cx-vui-repeater-item__subtitle">{{ item.id }}</div>
+						</div>
+					</div>
+					<div class="cx-vui-repeater-item__content">
+						<cx-vui-select
+							label="<?php _e( 'Action', 'jet-engine' ); ?>"
+							description="<?php _e( '', 'jet-engine' ); ?>"
+							:wrapper-css="[ 'equalwidth' ]"
+							size="fullwidth"
+							:options-list="[
+								{
+									value: 'copy',
+									label: '<?php _e( 'Create a copy', 'jet-engine' ); ?>'
+								},
+								{
+									value: 'replace',
+									label: '<?php _e( 'Replace with new', 'jet-engine' ); ?>'
+								},
+								{
+									value: 'skip',
+									label: '<?php _e( 'Skip import', 'jet-engine' ); ?>'
+								},
+							]"
+							:value="item.action || 'copy'"
+							@input="setAction( $event, 'existingTaxonomies', index )"
+						></cx-vui-select>
+					</div>
+				</div>
+			</div>
+		</div>
+	</cx-vui-popup>
 </div>

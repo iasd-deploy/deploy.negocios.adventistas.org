@@ -41,6 +41,13 @@ class Jet_Engine_Calendar_Query {
 		$group_by = $settings['group_by'];
 		$meta_key = false;
 
+		// Ensure booleans
+		$booleans = [ 'allow_multiday', 'hide_past_events' ];
+
+		foreach ( $booleans as $bool ) {
+			$settings[ $bool ] = ! empty( $settings[ $bool ] ) ? filter_var( $settings[ $bool ], FILTER_VALIDATE_BOOLEAN ) : false;
+		}
+
 		if ( ! empty( $settings['custom_start_from'] ) ) {
 			$render->start_from = ! empty( $settings['start_from_month'] ) ? $settings['start_from_month'] : date( 'F' );
 			$render->start_from .= ' ';
@@ -48,6 +55,18 @@ class Jet_Engine_Calendar_Query {
 		}
 
 		$date_values = $render->get_date_period_for_query( $settings );
+
+		if ( 'meta_date' === $group_by ) {
+			$meta_key = esc_attr( $settings['group_by_key'] );
+			$multiday = ! empty( $settings['allow_multiday'] ) ? $settings['allow_multiday'] : false;
+			$end_key  = ! empty( $settings['end_date_key'] ) ? $settings['end_date_key'] : false;
+
+			if ( $meta_key && $multiday && ! $end_key ) {
+				$settings['end_date_key'] = Jet_Engine_Advanced_Date_Field::instance()->data->end_date_field_name(
+					$meta_key
+				);
+			}
+		}
 
 		if ( $render->query_instance ) {
 

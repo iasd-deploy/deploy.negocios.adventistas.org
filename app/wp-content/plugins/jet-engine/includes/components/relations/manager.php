@@ -37,47 +37,47 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 	/**
 	 * Active relations list
 	 *
-	 * @var array
+	 * @var Relation[]
 	 */
 	public $_active_relations = array();
 
 	/**
 	 * Legacy relations instance
-	 * @var null
+	 * @var Legacy\Manager
 	 */
 	public $legacy = null;
 
 	/**
 	 * Storage-related manager instance
-	 * @var null
+	 * @var Storage\Manager
 	 */
 	public $storage = null;
 
 	/**
 	 * Listings integration manager
 	 *
-	 * @var null
+	 * @var Listing
 	 */
 	public $listing = null;
 
 	/**
 	 * Sources manager instance
 	 *
-	 * @var null
+	 * @var Sources
 	 */
 	public $sources = null;
 
 	/**
 	 * Hierarchy manager instance
 	 *
-	 * @var null
+	 * @var Hierarchy
 	 */
 	public $hierachy = null;
 
 	/**
 	 * Types helper instance
 	 *
-	 * @var null
+	 * @var Types_Helper
 	 */
 	public $types_helper = null;
 
@@ -359,6 +359,7 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 		// Initialize 3rd party compatibility classes only when at least 1 relation exists
 		$this->init_3rd_party();
 
+		require_once $this->component_path( 'storage/ordering.php' );
 		require_once $this->component_path( 'relation.php' );
 
 		$has_hierarchy = false;
@@ -405,6 +406,19 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 			$this->register_legacy_relations( $legacy_relations );
 		}
 
+		add_action( 'jet-engine/relation/update/after', array( $this, 'flush_cache' ), 10, 0 );
+		add_action( 'jet-engine/relation/delete/after', array( $this, 'flush_cache' ), 10, 0 );
+		add_action( 'jet-engine/relation/update-all-meta/after', array( $this, 'flush_cache' ), 10, 0 );
+
+	}
+
+	/**
+	 * Flush cache after relation(meta) update / delete
+	 *
+	 * @return void
+	 */
+	public function flush_cache() {
+		wp_cache_flush();
 	}
 
 	/**
@@ -452,6 +466,31 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 			'Jet_Engine_Relations_Page_List' => $base_path . 'list.php',
 			'Jet_Engine_Relations_Page_Edit' => $base_path . 'edit.php',
 		);
+	}
+
+	/**
+	 * Enqueue reindex script and vraibles for it
+	 * @return [type] [description]
+	 */
+	public function enqueue_reindex( $id = false ) {
+
+		wp_enqueue_script(
+			'jet-engine-relations-reindex',
+			jet_engine()->plugin_url( 'includes/components/relations/assets/js/reindex.js' ),
+			array( 'jquery' ),
+			jet_engine()->get_version(),
+			true
+		);
+
+		wp_localize_script( 'jet-engine-relations-reindex', 'JetEngineRelationsReindex', array(
+			'action'      => 'jet_engine_relations_reindex',
+			'relation_id' => $id,
+			'_nonce'      => wp_create_nonce( 'jet-engine-relations-control' ),
+			'label'       => $id ? __( 'Reindex Relation Table', 'jet-engine' ) : __( 'Reindex All Relations Tables', 'jet-engine' ),
+			'processing'  => __( 'Processing...', 'jet-engine' ),
+			'done'        => __( 'Done!', 'jet-engine' ),
+		) );
+
 	}
 
 	/**

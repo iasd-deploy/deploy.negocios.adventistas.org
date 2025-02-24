@@ -42,6 +42,14 @@ class Jet_Elements_Headline extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-headline', 'jet-headline-skin' ); 
+	}
+	
 	protected function register_controls() {
 
 		$css_scheme = apply_filters(
@@ -1940,7 +1948,7 @@ class Jet_Elements_Headline extends Jet_Elements_Base {
 			if ( method_exists( $this, 'add_link_attributes' ) ) {
 				$this->add_link_attributes( 'url', $settings['link'] );
 			} else {
-				$this->add_render_attribute( 'url', 'href', $settings['link']['url'] );
+				$this->add_render_attribute( 'url', 'href', esc_url( $settings['link']['url'] ) );
 
 				if ( $settings['link']['is_external'] ) {
 					$this->add_render_attribute( 'url', 'target', '_blank' );

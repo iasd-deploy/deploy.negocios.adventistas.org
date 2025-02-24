@@ -58,16 +58,16 @@
 		v-model="pageOptions['use-template-cache']['value']">
 	</cx-vui-switcher>
 
-    <cx-vui-switcher
+    <!--<cx-vui-switcher
         name="plugin-nextgen-edition"
-        label="<?php _e( 'Revamp Menu', 'jet-menu' ); ?>"
-        description="<?php _e( 'Once this option is enabled you start building from scratch. To get back to the old menu switch this toggle off', 'jet-menu' ); ?>"
+        label="<?php /*_e( 'Revamp Menu', 'jet-menu' ); */?>"
+        description="<?php /*_e( 'Once this option is enabled you start building from scratch. To get back to the old menu switch this toggle off', 'jet-menu' ); */?>"
         :wrapper-css="[ 'equalwidth' ]"
         return-true="true"
         return-false="false"
         v-model="pageOptions['plugin-nextgen-edition']['value']"
         v-on:input="nextgenEditionTrigger">
-    </cx-vui-switcher>
+    </cx-vui-switcher>-->
 
 	<?php
 

@@ -89,11 +89,12 @@ if ( ! class_exists( 'Jet_Engine_Dashboard' ) ) {
 			$ui          = new CX_Vue_UI( $module_data );
 
 			$ui->enqueue_assets();
+			jet_engine()->register_jet_plugins_js();
 
 			wp_register_script(
 				'jet-engine-shortcode-generator',
 				jet_engine()->plugin_url( 'assets/js/admin/dashboard/shortcode-generator.js' ),
-				array( 'cx-vue-ui' ),
+				array( 'cx-vue-ui', 'jet-plugins' ),
 				jet_engine()->get_version(),
 				true
 			);
@@ -125,7 +126,12 @@ if ( ! class_exists( 'Jet_Engine_Dashboard' ) ) {
 			wp_enqueue_script(
 				'jet-engine-dashboard',
 				jet_engine()->plugin_url( 'assets/js/admin/dashboard/main.js' ),
-				array( 'cx-vue-ui', 'jet-engine-dashboard-skins', 'jet-engine-shortcode-generator', 'jet-engine-macros-generator' ),
+				array(
+					'cx-vue-ui',
+					'jet-engine-dashboard-skins',
+					'jet-engine-shortcode-generator',
+					'jet-engine-macros-generator'
+				),
 				jet_engine()->get_version(),
 				true
 			);
@@ -158,6 +164,7 @@ if ( ! class_exists( 'Jet_Engine_Dashboard' ) ) {
 						'shortode_generator' => jet_engine()->shortcodes->get_generator_config(),
 						'macros_generator'   => jet_engine()->listings->macros->get_macros_for_js(),
 						'_nonce'             => wp_create_nonce( $this->nonce_action ),
+						'has_bricks'         => $this->has_bricks(),
 					)
 				)
 			);
@@ -207,11 +214,18 @@ if ( ! class_exists( 'Jet_Engine_Dashboard' ) ) {
 		 * Returns dashboard page URL
 		 * @return [type] [description]
 		 */
-		public function dashboard_url() {
-			return add_query_arg(
+		public function dashboard_url( $tab = '' ) {
+			
+			$url = add_query_arg(
 				array( 'page' => jet_engine()->admin_page ),
 				esc_url( admin_url( 'admin.php' ) )
 			);
+
+			if ( $tab ) {
+				$url .= '#' . esc_attr( $tab );
+			}
+
+			return $url;
 		}
 
 		/**
@@ -230,6 +244,10 @@ if ( ! class_exists( 'Jet_Engine_Dashboard' ) ) {
 		 */
 		public function get_setting( $setting = null, $default = false ) {
 
+		}
+
+		public function has_bricks() {
+			return ( defined( 'BRICKS_VERSION' ) && \Jet_Engine\Modules\Performance\Module::instance()->is_tweak_active( 'enable_bricks_views' ) );
 		}
 
 	}

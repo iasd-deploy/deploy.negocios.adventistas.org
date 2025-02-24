@@ -30,6 +30,14 @@ class Str_To_Time extends \Jet_Engine_Base_Macros {
 				'type'    => 'text',
 				'default' => '',
 			),
+			'adjust' => array(
+				'label'   => __( 'Adjust', 'jet-engine' ),
+				'type'    => 'select',
+				'options' => array(
+					'no'     => __( 'No', 'jet-engine' ),
+					'server' => __( 'Adjust to server timezone', 'jet-engine' ),
+				),
+			),
 		);
 	}
 
@@ -38,8 +46,17 @@ class Str_To_Time extends \Jet_Engine_Base_Macros {
 	 */
 	public function macros_callback( $args = array() ) {
 
-		$string = ! empty( $args['str'] ) ? $args['str'] : false;
+		$string  = ! empty( $args['str'] ) ? $args['str'] : false;
+		$adjust = ! empty( $args['adjust'] ) ? $args['adjust'] : 'no';
 
-		return strtotime( $string );
+		switch ( $adjust ) {
+			case 'server':
+				$offset = ( float ) get_option( 'gmt_offset', 0 ) * 3600;
+				break;
+			default:
+				$offset = 0;
+		}
+
+		return strtotime( $string, strtotime( 'now' ) + $offset );
 	}
 }

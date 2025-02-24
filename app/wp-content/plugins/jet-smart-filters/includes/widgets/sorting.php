@@ -3,7 +3,7 @@
 namespace Elementor;
 
 use Elementor\Group_Control_Border;
-use Elementor\Core\Schemes\Typography as Scheme_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography as Global_Typography;
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
@@ -95,10 +95,7 @@ class Jet_Smart_Filters_Sorting_Widget extends Widget_Base {
 				'options'   => array(
 					'value'  => __( 'Value change', 'jet-smart-filters' ),
 					'submit' => __( 'Click on apply button', 'jet-smart-filters' ),
-				),
-				'condition' => array(
-					'apply_type' => array( 'ajax', 'mixed' ),
-				),
+				)
 			)
 		);
 
@@ -111,7 +108,10 @@ class Jet_Smart_Filters_Sorting_Widget extends Widget_Base {
 				'label_on'     => esc_html__( 'Yes', 'jet-smart-filters' ),
 				'label_off'    => esc_html__( 'No', 'jet-smart-filters' ),
 				'return_value' => 'yes',
-				'default'      => ''
+				'default'      => '',
+				'condition'    => array(
+					'apply_on' => 'submit'
+				)
 			)
 		);
 
@@ -122,8 +122,9 @@ class Jet_Smart_Filters_Sorting_Widget extends Widget_Base {
 				'type'      => Controls_Manager::TEXT,
 				'default'   => __( 'Apply filter', 'jet-smart-filters' ),
 				'condition' => array(
+					'apply_on'     => 'submit',
 					'apply_button' => 'yes'
-				),
+				)
 			)
 		);
 
@@ -566,7 +567,9 @@ class Jet_Smart_Filters_Sorting_Widget extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'filter_apply_button_typography',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_1,
+				'global'   => array(
+					'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+				),
 				'selector' => '{{WRAPPER}} ' . $css_scheme['apply-button'],
 			)
 		);
@@ -756,8 +759,9 @@ class Jet_Smart_Filters_Sorting_Widget extends Widget_Base {
 		printf( '<div class="%1$s jet-filter">', $base_class );
 
 		include jet_smart_filters()->get_template( 'filters/sorting.php' );
-		include jet_smart_filters()->get_template( 'common/apply-filters.php' );
 
 		echo '</div>';
+
+		include jet_smart_filters()->get_template( 'common/apply-filters.php' );
 	}
 }

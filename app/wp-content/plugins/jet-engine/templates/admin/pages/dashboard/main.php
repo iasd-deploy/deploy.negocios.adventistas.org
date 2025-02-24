@@ -23,10 +23,10 @@
 						description="<?php _e( 'Enable/disable additional built-in features', 'jet-engine' ); ?>"
 						:wrapper-css="[ 'vertical-fullwidth' ]"
 					>
-						<div class="cx-vui-inner-panel">
+						<div class="cx-vui-inner-panel" style="padding: 10px 10px 20px 10px;">
 							<div tabindex="0" class="cx-vui-repeater">
 								<div class="cx-vui-repeater__items jet-engine-modules">
-									<div class="cx-vui-repeater-item cx-vui-panel cx-vui-repeater-item--is-collpased" v-for="module in internalModules">
+									<div class="cx-vui-repeater-item cx-vui-panel cx-vui-repeater-item--is-collpased" v-for="module in internalModules" style="align-content: center;">
 										<div class="cx-vui-repeater-item__heading cx-vui-repeater-item__heading--is-collpased">
 											<div class="cx-vui-repeater-item__heading-start">
 												<cx-vui-switcher
@@ -34,7 +34,6 @@
 													:value="isActive( module.value )"
 													@input="switchActive( $event, module )"
 												></cx-vui-switcher>
-												&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 												<div class="cx-vui-repeater-item__title je-module-heading" @click="switchActive( $event, module )">
 													{{ module.label }}
 												</div>
@@ -90,6 +89,15 @@
 																<?php _e( 'Blocks views not supported', 'jet-engine' ); ?>
 															</div>
 														</div>
+														<div :class="{ 'jet-module-icon': true, 'jet-module-icon--bricks': true, 'jet-module-icon--inactive': ! module.isBricks }">
+															<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64"><rect width="64" height="64" x="0" y="0" rx="0" ry="0" fill="#ffd64f"/><path xmlns="http://www.w3.org/2000/svg" d="M25.1875,11.34375 L25.9375,11.8125 L25.9375,24.84375 C28.5833466,23.0937413 31.5104006,22.21875 34.71875,22.21875 C39.3437731,22.21875 43.1770681,23.8333172 46.21875,27.0625 C49.218765,30.2916828 50.71875,34.2708097 50.71875,39 C50.71875,43.7500237 49.2083484,47.7291506 46.1875,50.9375 C43.1458181,54.1666828 39.3229397,55.78125 34.71875,55.78125 C30.6978966,55.78125 27.2604309,54.3437644 24.40625,51.46875 L24.40625,55 L16.03125,55 L16.03125,12.375 L25.1875,11.34375 Z M33.125,30.6875 C30.9166556,30.6875 29.0729241,31.4374925 27.59375,32.9375 C26.1145759,34.4791744 25.375,36.4999875 25.375,39 C25.375,41.5000125 26.1145759,43.5104091 27.59375,45.03125 C29.0520906,46.5520909 30.8958222,47.3125 33.125,47.3125 C35.4791784,47.3125 37.3854094,46.5208413 38.84375,44.9375 C40.2812572,43.3749922 41,41.3958453 41,39 C41,36.6041547 40.2708406,34.6145913 38.8125,33.03125 C37.3541594,31.4687422 35.458345,30.6875 33.125,30.6875 Z" fill="#101010"/></svg>&nbsp;&nbsp;&nbsp;
+															<div class="jet-module-label" v-if="module.isBricks">
+																<?php _e( 'Bricks views supported', 'jet-engine' ); ?>
+															</div>
+															<div class="jet-module-label" v-else>
+																<?php _e( 'Bricks views not supported', 'jet-engine' ); ?>
+															</div>
+														</div>
 													</div>
 												</div>
 											</div>
@@ -128,10 +136,10 @@
 						description="<?php _e( 'Activate/deactivate external features. These features will be installed as separate plugins.', 'jet-engine' ); ?>"
 						:wrapper-css="[ 'vertical-fullwidth' ]"
 					>
-						<div class="cx-vui-inner-panel">
+						<div class="cx-vui-inner-panel" style="padding: 10px 10px 20px 10px;">
 							<div tabindex="0" class="cx-vui-repeater">
 								<div class="cx-vui-repeater__items jet-engine-modules">
-									<div class="cx-vui-repeater-item cx-vui-panel cx-vui-repeater-item--is-collpased" v-for="module in externalModules">
+									<div class="cx-vui-repeater-item cx-vui-panel cx-vui-repeater-item--is-collpased" v-for="module in externalModules" style="align-content:center;">
 										<div class="cx-vui-repeater-item__heading cx-vui-repeater-item__heading--is-collpased">
 											<div class="cx-vui-repeater-item__heading-start">
 												<cx-vui-switcher
@@ -139,7 +147,6 @@
 													:value="isExternalActive( module )"
 													@input="switchExternalActive( $event, module )"
 												></cx-vui-switcher>
-												&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 												<div class="cx-vui-repeater-item__title je-module-heading" @click="switchActive( $event, module )">
 													{{ module.label }}
 												</div>
@@ -209,6 +216,15 @@
 															</div>
 															<div class="jet-module-label" v-else>
 																<?php _e( 'Blocks views not supported', 'jet-engine' ); ?>
+															</div>
+														</div>
+														<div :class="{ 'jet-module-icon': true, 'jet-module-icon--bricks': true, 'jet-module-icon--inactive': ! module.isBricks }">
+															<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 64 64"><rect width="64" height="64" x="0" y="0" rx="0" ry="0" fill="#ffd64f"/><path xmlns="http://www.w3.org/2000/svg" d="M25.1875,11.34375 L25.9375,11.8125 L25.9375,24.84375 C28.5833466,23.0937413 31.5104006,22.21875 34.71875,22.21875 C39.3437731,22.21875 43.1770681,23.8333172 46.21875,27.0625 C49.218765,30.2916828 50.71875,34.2708097 50.71875,39 C50.71875,43.7500237 49.2083484,47.7291506 46.1875,50.9375 C43.1458181,54.1666828 39.3229397,55.78125 34.71875,55.78125 C30.6978966,55.78125 27.2604309,54.3437644 24.40625,51.46875 L24.40625,55 L16.03125,55 L16.03125,12.375 L25.1875,11.34375 Z M33.125,30.6875 C30.9166556,30.6875 29.0729241,31.4374925 27.59375,32.9375 C26.1145759,34.4791744 25.375,36.4999875 25.375,39 C25.375,41.5000125 26.1145759,43.5104091 27.59375,45.03125 C29.0520906,46.5520909 30.8958222,47.3125 33.125,47.3125 C35.4791784,47.3125 37.3854094,46.5208413 38.84375,44.9375 C40.2812572,43.3749922 41,41.3958453 41,39 C41,36.6041547 40.2708406,34.6145913 38.8125,33.03125 C37.3541594,31.4687422 35.458345,30.6875 33.125,30.6875 Z" fill="#101010"/></svg>&nbsp;&nbsp;&nbsp;
+															<div class="jet-module-label" v-if="module.isBricks">
+																<?php _e( 'Bricks views supported', 'jet-engine' ); ?>
+															</div>
+															<div class="jet-module-label" v-else>
+																<?php _e( 'Bricks views not supported', 'jet-engine' ); ?>
 															</div>
 														</div>
 													</div>

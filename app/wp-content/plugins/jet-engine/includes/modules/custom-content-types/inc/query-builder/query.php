@@ -30,6 +30,7 @@ class CCT_Query extends \Jet_Engine\Query_Builder\Queries\Base_Query {
 
 		$order  = ! empty( $this->final_query['order'] ) ? $this->final_query['order'] : array();
 		$args   = ! empty( $this->final_query['args'] ) ? $this->final_query['args'] : array();
+		$search = ! empty( $this->final_query['search_query'] ) ? $this->final_query['search_query'] : array();
 		$offset = ! empty( $this->final_query['offset'] ) ? absint( $this->final_query['offset'] ) : 0;
 		$status = ! empty( $this->final_query['status'] ) ? $this->final_query['status'] : '';
 		$limit  = ! empty( $this->final_query['number'] ) ? absint( $this->final_query['number'] ) : 0;
@@ -47,11 +48,63 @@ class CCT_Query extends \Jet_Engine\Query_Builder\Queries\Base_Query {
 
 		$content_type->db->set_query_object( $this );
 
-		$args   = $content_type->prepare_query_args( $args );
+		$args = $content_type->prepare_query_args( $args );
+
+		if ( ! empty( $order ) ) {
+			foreach( $order as $i => $order_item ) {
+				if ( 'preserve_ids' === $order_item['orderby'] ) {
+
+					$order_by = $this->get_preserve_ids_order_by( $args );
+
+					if ( $order_by ) {
+						$order[ $i ]['orderby'] = $order_by;
+					} else {
+						unset( $order[ $i ] );
+					}
+				}
+			}
+		}
+
+		if ( ! empty( $search ) ) {
+			$args['_cct_search'] = array(
+				'keyword' => esc_sql( $search ),
+			);
+		}
+
 		$result = $content_type->db->query( $args, $limit, $offset, $order );
 
 		return $result;
 
+	}
+
+	/**
+	 * Get preserve IDs order by clause for IDs provided in args
+	 *
+	 * @param  [type] $args [description]
+	 * @return [type]       [description]
+	 */
+	public function get_preserve_ids_order_by( $args = [] ) {
+
+		$ids = [];
+
+		foreach ( $args as $arg ) {
+			if ( '_ID' === $arg['field']
+				&& 'IN' === $arg['operator']
+				&& ! empty( $arg['value'] )
+			) {
+				$ids = $arg['value'];
+			}
+		}
+
+		if ( empty( $ids ) ) {
+			return false;
+		}
+
+		if ( is_array( $ids ) ) {
+			$ids = implode( ',', $ids );
+		}
+
+		return "FIELD(_ID,{$ids})";
 	}
 
 	/**
@@ -91,12 +144,13 @@ class CCT_Query extends \Jet_Engine\Query_Builder\Queries\Base_Query {
 	 */
 	public function get_items_total_count() {
 
-		
 		$cached = $this->get_cached_data( 'count' );
 
 		if ( false !== $cached ) {
 			return $cached;
 		}
+
+		$this->setup_query();
 
 		$result = 0;
 		$type = ! empty( $this->final_query['content_type'] ) ? $this->final_query['content_type'] : false;
@@ -131,7 +185,6 @@ class CCT_Query extends \Jet_Engine\Query_Builder\Queries\Base_Query {
 		$this->update_query_cache( $result, 'count' );
 
 		return $result;
-
 	}
 
 	/**
@@ -219,7 +272,7 @@ class CCT_Query extends \Jet_Engine\Query_Builder\Queries\Base_Query {
 
 				if ( 'orderby' === $prop ) {
 					$key = 'type';
-					$value = ( 'meta_key' === $value ) ? 'CHAR' : 'DECIMAL';
+					$value = ( 'meta_value' === $value ) ? 'CHAR' : 'DECIMAL';
 				} elseif ( 'meta_key' === $prop ) {
 					$key = 'orderby';
 				}

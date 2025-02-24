@@ -129,6 +129,21 @@ if ( ! class_exists( 'Jet_Engine_Render_Dynamic_Image' ) ) {
 
 		}
 
+		public function get_caption( $settings ) {
+
+			$caption = $settings['image_caption'] ?? '';
+
+			if ( ! $caption ) {
+				return '';
+			}
+
+			$attr = array(
+				'class' => $this->get_image_caption_css_class(),
+			);
+
+			return sprintf( '<figcaption %1$s>%2$s</figcaption>', \Jet_Engine_Tools::get_attr_string( $attr ), $caption );
+		}
+
 		/**
 		 * Process image fallback if set or hide widget
 		 *
@@ -165,16 +180,22 @@ if ( ! class_exists( 'Jet_Engine_Render_Dynamic_Image' ) ) {
 				$this
 			);
 
+			$image = apply_filters( 'jet-engine/listings/dynamic-image/image-data', false, $this->get_settings() );
+
+			// If image output is not totally rewritten,
+			// but we already get image tag with the data - use it as custom output
+			if ( ! $custom_output && is_array( $image ) && ! empty( $image['image_tag'] ) ) {
+				$custom_output = $image['image_tag'];
+			}
+
 			if ( $custom_output ) {
 				echo $custom_output;
 				return;
 			}
 
-			$image = false;
-
 			$object_context = isset( $settings['object_context'] ) ? $settings['object_context'] : false;
 
-			if ( jet_engine()->relations->legacy->is_relation_key( $field ) ) {
+			if ( ! $image && jet_engine()->relations->legacy->is_relation_key( $field ) ) {
 				$related_post = get_post_meta( get_the_ID(), $field, false );
 				if ( ! empty( $related_post ) ) {
 					$related_post = $related_post[0];
@@ -182,8 +203,12 @@ if ( ! class_exists( 'Jet_Engine_Render_Dynamic_Image' ) ) {
 						$image = get_post_thumbnail_id( $related_post );
 					}
 				}
-			} else {
+			} elseif ( ! $image ) {
 				$image = jet_engine()->listings->data->get_meta_by_context( $field, $object_context );
+			}
+
+			if ( ! empty( $image ) ) {
+				$image = maybe_unserialize( $image );
 			}
 
 			if ( is_array( $image ) && isset( $image['url'] ) ) {
@@ -256,6 +281,10 @@ if ( ! class_exists( 'Jet_Engine_Render_Dynamic_Image' ) ) {
 
 		public function get_image_css_class() {
 			return apply_filters( 'jet-engine/listings/dynamic-image/css-class', 'jet-listing-dynamic-image__img' );
+		}
+
+		public function get_image_caption_css_class() {
+			return apply_filters( 'jet-engine/listings/dynamic-image/caption-css-class', 'jet-listing-dynamic-image__caption' );
 		}
 
 		public function get_image_size( $settings = array() ) {
@@ -405,9 +434,38 @@ if ( ! class_exists( 'Jet_Engine_Render_Dynamic_Image' ) ) {
 
 			$this->render_image( $settings );
 
+			$rendered_image = ob_get_clean();
+
 			$this->remove_image_hooks();
 
-			return ob_get_clean();
+			if ( empty( $rendered_image ) ) {
+				return $rendered_image;
+			}
+
+			$add_caption = $settings['add_image_caption'] ?? false;
+			$add_caption = filter_var( $add_caption, FILTER_VALIDATE_BOOLEAN ) && ! empty( $settings['image_caption'] );
+
+			if ( ! $add_caption ) {
+				return $rendered_image;
+			}
+
+			$caption = $this->get_caption( $settings );
+
+			if ( empty( $caption ) ) {
+				return $rendered_image;
+			}
+
+			$figure = '';
+
+			$caption_position = $settings['image_caption_position'] ?? 'after';
+
+			if ( $caption_position === 'before' ) {
+				$figure = sprintf( '<figure class="jet-listing-dynamic-image__figure">%s%s</figure>', $caption, $rendered_image );
+			} else {
+				$figure = sprintf( '<figure class="jet-listing-dynamic-image__figure">%s%s</figure>', $rendered_image, $caption );
+			}
+
+			return $figure;
 		}
 
 		public function add_image_hooks() {

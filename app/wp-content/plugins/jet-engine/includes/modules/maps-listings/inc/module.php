@@ -46,6 +46,19 @@ class Module {
 		add_action( 'jet-engine/init', array( $this, 'init' ), 20 );
 		add_action( 'jet-engine/rest-api/init-endpoints', array( $this, 'init_rest' ) );
 		add_action( 'jet-engine/listings/renderers/registered', array( $this, 'register_render_class' ) );
+
+		add_filter( 'jet-engine/maps-listings/content', array( $this, 'add_frontend_query_editor' ), 1000, 2 );
+	}
+
+	public function add_frontend_query_editor( $html, $render ) {
+		if ( ! isset( \Jet_Engine\Query_Builder\Manager::instance()->frontend_editor ) ) {
+			return $html;
+		}
+
+		ob_start();
+		\Jet_Engine\Query_Builder\Manager::instance()->frontend_editor->render_edit_buttons( $render );
+		$append = ob_get_clean();
+		return $append . $html;
 	}
 
 	/**
@@ -64,6 +77,7 @@ class Module {
 		require jet_engine()->modules->modules_path( 'maps-listings/inc/sources.php' );
 		require jet_engine()->modules->modules_path( 'maps-listings/inc/geosearch/manager.php' );
 		require jet_engine()->modules->modules_path( 'maps-listings/inc/map-field.php' );
+		require jet_engine()->modules->modules_path( 'maps-listings/inc/map-field-storage.php' );
 		require jet_engine()->modules->modules_path( 'maps-listings/inc/listing-link-actions.php' );
 
 		// Bricks Integration
@@ -78,16 +92,17 @@ class Module {
 		new Elementor_Integration();
 		new Blocks_Integration();
 		new Bricks_Views\Manager();
-		new Map_Field();
 		new Listing_Link_Actions();
+
+		$map_field = new Map_Field();
+		new Map_Field_Storage( $map_field );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_scripts' ) );
 
 		// Init compatibility classes
 		if ( defined( 'BORLABS_COOKIE_VERSION' ) ) {
-			require jet_engine()->modules->modules_path( 'maps-listings/inc/compatibility/borlabs-cookie.php' );
-
-			new Compatibility\Borlabs_Cookie();
+			require jet_engine()->modules->modules_path( 'maps-listings/inc/compatibility/borlabs-cookie-v3.php' );
+			new Compatibility\Borlabs_Cookie_v3();
 		}
 
 		if ( function_exists( 'jet_form_builder' ) ) {

@@ -6,7 +6,6 @@ use ElementorPro\Core\Admin\Admin;
 use ElementorPro\Core\App\App;
 use ElementorPro\Core\Connect;
 use ElementorPro\Core\Compatibility\Compatibility;
-use Elementor\Core\Responsive\Files\Frontend as FrontendFile;
 use Elementor\Utils;
 use ElementorPro\Core\Editor\Editor;
 use ElementorPro\Core\Integrations\Integrations_Manager;
@@ -16,6 +15,9 @@ use ElementorPro\Core\Preview\Preview;
 use ElementorPro\Core\Upgrade\Manager as UpgradeManager;
 use ElementorPro\License\API;
 use ElementorPro\License\Updater;
+use ElementorPro\Core\Container\Container;
+use ElementorProDeps\DI\Container as DIContainer;
+use Exception;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -93,6 +95,14 @@ class Plugin {
 	public $php_api;
 
 	/**
+	 * Container instance for managing dependencies.
+	 *
+	 * @since 3.25.0
+	 * @var DIContainer
+	 */
+	private static $container;
+
+	/**
 	 * Throw error on object clone
 	 *
 	 * The whole idea of the singleton design pattern is that there is a single
@@ -133,13 +143,26 @@ class Plugin {
 
 	/**
 	 * @return Plugin
+	 * @throws Exception
 	 */
-	public static function instance() {
+	public static function instance(): Plugin {
 		if ( is_null( self::$_instance ) ) {
 			self::$_instance = new self();
+			self::$container = Container::get_instance();
 		}
 
 		return self::$_instance;
+	}
+
+	/**
+	 * Get the Elementor Pro container or resolve a dependency.
+	 */
+	public function get_elementor_pro_container( $abstract = null ): DIContainer {
+		if ( is_null( $abstract ) ) {
+			return self::$container;
+		}
+
+		return self::$container->make( $abstract );
 	}
 
 	public function autoload( $class ) {
@@ -177,19 +200,6 @@ class Plugin {
 		}
 	}
 
-	public function enqueue_styles() {
-		$min_suffix = $this->get_assets_suffix();
-		$direction_suffix = is_rtl() ? '-rtl' : '';
-		$has_custom_file = self::elementor()->breakpoints->has_custom_breakpoints();
-
-		wp_enqueue_style(
-			'elementor-pro',
-			$this->get_frontend_file_url( "frontend{$direction_suffix}{$min_suffix}.css", $has_custom_file ),
-			[],
-			$has_custom_file ? null : ELEMENTOR_PRO_VERSION
-		);
-	}
-
 	public static function get_frontend_file_url( $frontend_file_name, $custom_file ) {
 		if ( $custom_file ) {
 			$frontend_file = self::get_frontend_file( $frontend_file_name );
@@ -213,6 +223,12 @@ class Plugin {
 
 		return $frontend_file_path;
 	}
+
+	/**
+	 * @deprecated 3.26.0
+	 * @return void
+	 */
+	public function enqueue_styles(): void {}
 
 	public function enqueue_frontend_scripts() {
 		$suffix = $this->get_assets_suffix();
@@ -277,6 +293,31 @@ class Plugin {
 		);
 	}
 
+	public function register_frontend_styles() {
+		$suffix = $this->get_assets_suffix();
+
+		wp_register_style(
+			'e-motion-fx',
+			ELEMENTOR_PRO_URL . 'assets/css/modules/motion-fx' . $suffix . '.css',
+			[],
+			ELEMENTOR_PRO_VERSION
+		);
+
+		wp_register_style(
+			'e-sticky',
+			ELEMENTOR_PRO_URL . 'assets/css/modules/sticky' . $suffix . '.css',
+			[],
+			ELEMENTOR_PRO_VERSION
+		);
+
+		wp_register_style(
+			'e-popup',
+			ELEMENTOR_PRO_URL . 'assets/css/conditionals/popup' . $suffix . '.css',
+			[],
+			ELEMENTOR_PRO_VERSION
+		);
+	}
+
 	public function register_frontend_scripts() {
 		$suffix = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
@@ -338,6 +379,12 @@ class Plugin {
 			ELEMENTOR_PRO_VERSION,
 			true
 		);
+	}
+
+	public function enqueue_preview_styles() {
+		wp_enqueue_style( 'e-motion-fx' );
+		wp_enqueue_style( 'e-sticky' );
+		wp_enqueue_style( 'e-popup' );
 	}
 
 	public function get_responsive_stylesheet_templates( $templates ) {
@@ -412,11 +459,13 @@ class Plugin {
 	private function setup_hooks() {
 		add_action( 'elementor/init', [ $this, 'on_elementor_init' ] );
 
+		add_action( 'elementor/frontend/after_register_styles', [ $this, 'register_frontend_styles' ] );
+		add_action( 'elementor/preview/enqueue_styles', [ $this, 'enqueue_preview_styles' ] );
+
 		add_action( 'elementor/frontend/before_register_scripts', [ $this, 'register_frontend_scripts' ] );
 		add_action( 'elementor/preview/enqueue_scripts', [ $this, 'register_preview_scripts' ] );
 
 		add_action( 'elementor/frontend/before_enqueue_scripts', [ $this, 'enqueue_frontend_scripts' ] );
-		add_action( 'elementor/frontend/after_enqueue_styles', [ $this, 'enqueue_styles' ] );
 
 		add_filter( 'elementor/core/breakpoints/get_stylesheet_template', [ $this, 'get_responsive_stylesheet_templates' ] );
 		add_action( 'elementor/document/save_version', [ $this, 'on_document_save_version' ] );
@@ -460,6 +509,7 @@ class Plugin {
 
 	/**
 	 * Plugin constructor.
+	 * @throws Exception
 	 */
 	private function __construct() {
 		spl_autoload_register( [ $this, 'autoload' ] );

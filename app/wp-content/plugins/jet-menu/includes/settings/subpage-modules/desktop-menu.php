@@ -64,7 +64,7 @@ class Desktop_Menu extends Page_Module_Base {
 		wp_enqueue_script(
 			'jet-menu-settings-page-vue-components',
 			jet_menu()->plugin_url( 'assets/admin/js/vue-components.js' ),
-			array( 'cx-vue-ui' ),
+			array( 'cx-vue-ui', 'wp-api-fetch' ),
 			jet_menu()->get_version(),
 			true
 		);

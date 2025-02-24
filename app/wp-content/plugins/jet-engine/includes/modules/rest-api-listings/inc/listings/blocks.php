@@ -106,7 +106,7 @@ class Blocks {
 	public function editor_js() {
 		wp_enqueue_script(
 			'jet-engine-rest-api-blocks-editor',
-			Module::instance()->module_url( 'assets/js/admin/blocks/blocks.js' ),
+			Module::instance()->module_url( 'assets/js/admin/blocks/build/blocks.js' ),
 			array(),
 			jet_engine()->get_version(),
 			true

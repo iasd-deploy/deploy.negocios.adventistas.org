@@ -4,8 +4,9 @@
 >
 	<div
 		class="jet-mobile-menu__toggle"
+		role="button"
 		ref="toggle"
-		tabindex="1"
+		tabindex="0"
 		aria-label="Open/Close Menu"
         aria-expanded="false"
 		v-on:click="menuToggle"
@@ -98,8 +99,9 @@
 					</div>
 					<div
 						class="jet-mobile-menu__back"
+						role="button"
 						ref="back"
-						tabindex="1"
+						tabindex="0"
 						aria-label="Close Menu"
                         aria-expanded="false"
 						v-if="!isBack && isClose"
@@ -109,8 +111,9 @@
 					></div>
 					<div
 						class="jet-mobile-menu__back"
+						role="button"
 						ref="back"
-						tabindex="1"
+						tabindex="0"
 						aria-label="Back to Prev Items"
                         aria-expanded="false"
 						v-if="isBack"

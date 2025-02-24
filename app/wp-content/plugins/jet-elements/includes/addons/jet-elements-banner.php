@@ -42,6 +42,14 @@ class Jet_Elements_Banner extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-banner' ); 
+	}
+	
 	protected function register_controls() {
 
 		$this->start_controls_section(

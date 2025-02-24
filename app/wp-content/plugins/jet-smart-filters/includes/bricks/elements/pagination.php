@@ -2,6 +2,8 @@
 
 namespace Jet_Smart_Filters\Bricks_Views\Elements;
 
+use Bricks\Database;
+use Bricks\Helpers;
 use Jet_Engine\Bricks_Views\Helpers\Options_Converter;
 
 // If this file is called directly, abort.
@@ -78,6 +80,23 @@ class Jet_Smart_Filters_Pagination_Widget extends \Jet_Engine\Bricks_Views\Eleme
 		);
 
 		$this->start_jet_control_group( 'section_general' );
+
+		$this->register_jet_control(
+			'notice_cache_query_loop',
+			[
+				'tab'         => 'content',
+				'type'        => 'info',
+				'content'     => esc_html__( 'You have enabled the "Cache query loop" option.', 'jet-smart-filters' ),
+				'description' => sprintf(
+					esc_html__( 'This option will break the filters functionality. You can disable this option or use "JetEngine Query Builder" query type. Go to: %s > Cache query loop', 'jet-smart-filters' ),
+					'<a href="' . Helpers::settings_url( '#tab-performance' ) . '" target="_blank">Bricks > ' . esc_html__( 'Settings', 'jet-smart-filters' ) . ' > Performance</a>'
+				),
+				'required'    => [
+					[ 'content_provider', '=', 'bricks-query-loop' ],
+					[ 'cacheQueryLoops', '=', true, 'globalSettings' ],
+				],
+			]
+		);
 
 		$provider_allowed = \Jet_Smart_Filters\Bricks_Views\Manager::get_allowed_providers();
 
@@ -199,6 +218,17 @@ class Jet_Smart_Filters_Pagination_Widget extends \Jet_Engine\Bricks_Views\Eleme
 				'label'    => esc_html__( 'Next text', 'jet-smart-filters' ),
 				'type'     => 'text',
 				'default'  => esc_html__( 'Next', 'jet-smart-filters' ),
+				'required' => [ 'enable_prev_next', '=', true ],
+			]
+		);
+
+		$this->register_jet_control(
+			'hide_inactive_prev_next',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'Hide inactive', 'jet-smart-filters' ),
+				'type'     => 'checkbox',
+				'default'  => true,
 				'required' => [ 'enable_prev_next', '=', true ],
 			]
 		);
@@ -547,9 +577,12 @@ class Jet_Smart_Filters_Pagination_Widget extends \Jet_Engine\Bricks_Views\Eleme
 		}
 
 		if ( true === $nav_enabled ) {
-			$controls['nav_enabled'] = true;
-			$controls['prev']        = $settings['prev_text'];
-			$controls['next']        = $settings['next_text'];
+			$controls['nav_enabled']       = true;
+			$controls['prev']              = $settings['prev_text'];
+			$controls['next']              = $settings['next_text'];
+			$controls['hide_inactive_nav'] = isset( $settings['hide_inactive_prev_next'] )
+				? filter_var( $settings['hide_inactive_prev_next'], FILTER_VALIDATE_BOOLEAN )
+				: false;
 		} else {
 			$controls['nav_enabled'] = false;
 		}

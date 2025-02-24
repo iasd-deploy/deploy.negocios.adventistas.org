@@ -576,6 +576,20 @@ class Element_Section extends Element_Base {
 							],
 						],
 					],
+					'scripts' => [
+						[
+							'name' => 'swiper',
+							'conditions' => [
+								'terms' => [
+									[
+										'name' => 'background_background',
+										'operator' => '===',
+										'value' => 'slideshow',
+									],
+								],
+							],
+						],
+					],
 				],
 			]
 		);
@@ -916,7 +930,7 @@ class Element_Section extends Element_Base {
 							'value' => '',
 						],
 						[
-							'name' => 'border_border',
+							'name' => 'border_hover_border',
 							'operator' => '!==',
 							'value' => '',
 						],
@@ -1434,7 +1448,7 @@ class Element_Section extends Element_Base {
 		#>
 			<div {{{ view.getRenderAttributeString( 'background-video-container' ) }}}>
 				<div class="elementor-background-video-embed"></div>
-				<video class="elementor-background-video-hosted elementor-html5-video" {{ videoAttributes }}></video>
+				<video class="elementor-background-video-hosted" {{ videoAttributes }}></video>
 			</div>
 		<# } #>
 		<div class="elementor-background-overlay"></div>
@@ -1467,7 +1481,7 @@ class Element_Section extends Element_Base {
 					$this->add_render_attribute( 'background-video-container', 'class', 'elementor-background-video-container' );
 
 					if ( ! $settings['background_play_on_mobile'] ) {
-						$this->add_render_attribute( 'background-video-container', 'class', 'elementor-hidden-phone' );
+						$this->add_render_attribute( 'background-video-container', 'class', 'elementor-hidden-mobile' );
 					}
 					?>
 					<div <?php $this->print_render_attribute_string( 'background-video-container' ); ?>>
@@ -1480,7 +1494,7 @@ class Element_Section extends Element_Base {
 								$video_tag_attributes .= ' loop';
 							endif;
 							?>
-							<video class="elementor-background-video-hosted elementor-html5-video" <?php
+							<video class="elementor-background-video-hosted" <?php
 								// PHPCS - the variable $video_tag_attributes is a plain string.
 								echo $video_tag_attributes; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 							?>></video>

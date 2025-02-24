@@ -160,6 +160,9 @@ class Edit extends \Jet_Engine_CPT_Page_Base {
 			$redirect     = $this->manager->get_edit_item_link( '%id%' );
 		}
 
+		$permalink_structure = get_option( 'permalink_structure' );
+		$permalink_structure = empty( $permalink_structure ) ? 'plain' : 'custom';
+
 		wp_localize_script(
 			'jet-engine-query-edit',
 			'JetEngineQueryConfig',
@@ -169,7 +172,9 @@ class Edit extends \Jet_Engine_CPT_Page_Base {
 				'api_path_update_preview' => jet_engine()->api->get_route( 'update-query-preview' ),
 				'item_id'                 => $id,
 				'edit_button_label'       => $button_label,
+				'permalinks_type'         => $permalink_structure,
 				'redirect'                => $redirect,
+				'rest_url'                => get_rest_url( null, '/' ),
 				'post_types'              => \Jet_Engine_Tools::get_post_types_for_js(),
 				'operators_list'          => \Jet_Engine_Tools::operators_list(),
 				'data_types'              => \Jet_Engine_Tools::data_types_list(),

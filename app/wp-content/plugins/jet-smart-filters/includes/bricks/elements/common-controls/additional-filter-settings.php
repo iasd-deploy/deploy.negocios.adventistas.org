@@ -136,7 +136,7 @@ if ( $this->jet_element_render !== 'radio' ) {
 			'tab'         => 'content',
 			'label'       => esc_html__( 'Generic text', 'jet-smart-filters' ),
 			'type'        => 'text',
-			'description' => esc_html__( 'Use a {number} macro to display the number of other itemse' ),
+			'description' => esc_html__( 'Use a {number} macro to display the number of other items', 'jet-smart-filters' ),
 			'placeholder' => esc_html__( 'and {number} others', 'jet-smart-filters' ),
 			'required' => [
 				[ 'dropdown_enabled', '=', true ],
@@ -145,6 +145,31 @@ if ( $this->jet_element_render !== 'radio' ) {
 		]
 	);
 }
+
+$this->register_jet_control(
+	'dropdown_apply_button',
+	[
+		'tab'      => 'content',
+		'label'    => esc_html__( 'Add apply button', 'jet-smart-filters' ),
+		'type'     => 'checkbox',
+		'default'  => false,
+		'required' => [ 'dropdown_enabled', '=', true ],
+	]
+);
+
+$this->register_jet_control(
+	'dropdown_apply_button_text',
+	[
+		'tab'         => 'content',
+		'label'       => esc_html__( 'Apply button text', 'jet-smart-filters' ),
+		'type'        => 'text',
+		'placeholder' => esc_html__( 'Apply', 'jet-smart-filters' ),
+		'required'    => [
+			[ 'dropdown_enabled', '=', true ],
+			[ 'dropdown_apply_button', '=', true ]
+		]
+	]
+);
 
 /**
  * Scroll controls

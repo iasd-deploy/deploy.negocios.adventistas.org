@@ -141,9 +141,9 @@ class Data extends \Jet_Engine_Base_Data {
 		}
 
 		$regular_args = array(
-			'name'                      => '',
-			'slug'                      => '',
-			'position'                  => null,
+			'name'                      => $name,
+			'slug'                      => $slug,
+			'position'                  => '-1',
 			'icon'                      => 'dashicons-list-view',
 			'capability'                => 'manage_options',
 			'related_post_type'         => '',
@@ -170,7 +170,7 @@ class Data extends \Jet_Engine_Base_Data {
 		$result['args']        = $args;
 		$result['meta_fields'] = $meta_fields;
 
-		return $result;
+		return apply_filters( 'jet-engine/custom-content-types/data/sanitized-request', $result, $request, $this );
 
 	}
 
@@ -270,7 +270,7 @@ class Data extends \Jet_Engine_Base_Data {
 
 		}
 
-		return $meta_fields;
+		return parent::sanitize_meta_fields( $meta_fields );
 	}
 
 	public function get_item_by_id( $id ) {
@@ -332,6 +332,7 @@ class Data extends \Jet_Engine_Base_Data {
 			$meta_fields = jet_engine()->meta_boxes->data->sanitize_repeater_fields( $meta_fields );
 		}
 
+		$item['name']        = ( ! empty( $args['name'] ) ) ? $args['name'] : '';
 		$item['args']        = $args;
 		$item['meta_fields'] = $meta_fields;
 
@@ -351,7 +352,6 @@ class Data extends \Jet_Engine_Base_Data {
 			return $result;
 		}
 
-		$has_date             = false;
 		$skip_types           = array( 'html' );
 		$allowed_object_types = array( 'field', 'service_field' );
 
@@ -382,13 +382,7 @@ class Data extends \Jet_Engine_Base_Data {
 
 				case 'sql-date':
 
-					if ( ! $has_date ) {
-						$result[ $field['name'] ] = 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP';
-						$has_date = true;
-					} else {
-						$result[ $field['name'] ] = 'TIMESTAMP';
-					}
-
+					$result[ $field['name'] ] = 'DATETIME';
 					break;
 
 				case 'number':
@@ -451,7 +445,9 @@ class Data extends \Jet_Engine_Base_Data {
 	}
 
 	public function before_item_update( $item ) {
-		$this->prev_item = $this->get_item_for_edit( $item['id'] );
+		if ( ! empty( $item ) && ! empty( $item['id'] ) ) {
+			$this->prev_item = $this->get_item_for_edit( $item['id'] );
+		}
 	}
 
 	/**

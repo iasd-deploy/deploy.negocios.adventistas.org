@@ -245,44 +245,45 @@ let jetMenuSettinsMixin = {
 
 			self.savingStatus = true;
 
-			self.ajaxSaveHandler = jQuery.ajax( {
-				type: 'POST',
-				url: window.JetMenuOptionsPageConfig.optionsApiUrl,
-				dataType: 'json',
-				data: self.preparedOptions,
-				beforeSend: function( jqXHR, ajaxSettings ) {
+			wp.apiFetch( {
+				method: 'post',
+				path: window.JetMenuOptionsPageConfig.optionsApiUrl,
+				data: self.preparedOptions
+			} ).then( function( response ) {
 
-					if ( null !== self.ajaxSaveHandler ) {
-						self.ajaxSaveHandler.abort();
-					}
-				},
-				success: function( responce, textStatus, jqXHR ) {
-					self.savingStatus = false;
+				self.savingStatus = false;
 
-					if ( 'success' === responce.status ) {
+				if ( 'success' === response.status ) {
 
-						if ( self.savingSuccessReload ) {
-							window.location.reload( false );
-						}
-
-						self.savingSuccessReload = false;
-
-						self.$CXNotice.add( {
-							message: responce.message,
-							type: 'success',
-							duration: 3000,
-						} );
+					if ( self.savingSuccessReload ) {
+						window.location.reload( false );
 					}
 
-					if ( 'error' === responce.status ) {
-						self.$CXNotice.add( {
-							message: responce.message,
-							type: 'error',
-							duration: 3000,
-						} );
-					}
+					self.savingSuccessReload = false;
+
+					self.$CXNotice.add( {
+						message: response.message,
+						type: 'success',
+						duration: 3000,
+					} );
 				}
+
+				if ( 'error' === response.status ) {
+					self.$CXNotice.add( {
+						message: response.message,
+						type: 'error',
+						duration: 3000,
+					} );
+				}
+				
+			} ).catch( function( response ) {
+				self.$CXNotice.add( {
+					message: response.message,
+					type: 'error',
+					duration: 3000,
+				} );
 			} );
+
 		},
 
 		importOptions: function() {

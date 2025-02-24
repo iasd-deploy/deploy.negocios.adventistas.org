@@ -1,6 +1,8 @@
 <?php
 namespace Jet_Engine\Query_Builder\Queries;
 
+use Jet_Engine\Query_Builder\Manager;
+
 abstract class Base_Query {
 
 	public $id            = false;
@@ -11,6 +13,11 @@ abstract class Base_Query {
 	public $query_type    = null;
 	public $query_id      = null;
 	public $preview       = array();
+	public $cache_query   = true;
+	public $cache_expires = 0;
+	public $cache_group   = 'jet-engine';
+
+	public $api_settings = [];
 
 	public $parsed_macros = array();
 
@@ -23,8 +30,54 @@ abstract class Base_Query {
 		$this->query         = ! empty( $args['query'] ) ? $args['query'] : false;
 		$this->dynamic_query = ! empty( $args['dynamic_query'] ) ? $args['dynamic_query'] : false;
 		$this->preview       = ! empty( $args['preview'] ) ? $args['preview'] : $this->preview;
+		$this->cache_query   = isset( $args['cache_query'] ) ? filter_var( $args['cache_query'], FILTER_VALIDATE_BOOLEAN ) : true;
+		$this->cache_expires = isset( $args['cache_expires'] ) ? absint( $args['cache_expires'] ) : 0;
+
+		$this->api_settings = [
+			'api_endpoint' => ! empty( $args['api_endpoint'] ) ? $args['api_endpoint'] : false,
+			'api_namespace' => ! empty( $args['api_namespace'] ) ? $args['api_namespace'] : false,
+			'api_path' => ! empty( $args['api_path'] ) ? $args['api_path'] : false,
+			'api_access' => ! empty( $args['api_access'] ) ? $args['api_access'] : false,
+			'api_access_cap' => ! empty( $args['api_access_cap'] ) ? $args['api_access_cap'] : false,
+			'api_access_role' => ! empty( $args['api_access_role'] ) ? $args['api_access_role'] : false,
+			'api_schema' => ! empty( $args['api_schema'] ) ? $args['api_schema'] : false,
+		];
 
 		$this->maybe_add_instance_fields_to_ui();
+
+	}
+
+	/**
+	 * Returns query type for 3rd party integrations. For any internal usage take property directly
+	 * 
+	 * @return string
+	 */
+	public function get_query_type() {
+		return $this->query_type;
+	}
+
+	/**
+	 * Register Rest API endpoint for this query if enbaled.
+	 * 
+	 * @return void
+	 */
+	public function maybe_register_rest_api_endpoint() {
+
+		if ( empty( $this->api_settings['api_endpoint'] ) ) {
+			return;
+		}
+
+		if ( empty( $this->api_settings['api_namespace'] ) || empty( $this->api_settings['api_path'] ) ) {
+			return;
+		}
+
+		if ( ! class_exists( '\Jet_Engine\Query_Builder\Rest\Query_Endpoint' ) ) {
+			require_once Manager::instance()->component_path( 'rest-api/query-endpoint.php' );
+		}
+
+		new \Jet_Engine\Query_Builder\Rest\Query_Endpoint( array_merge( $this->api_settings, [
+			'id' => $this->id
+		] ) );
 
 	}
 
@@ -33,7 +86,7 @@ abstract class Base_Query {
 	 * Each query which allows pagintaion should implement own method to gettings items per page.
 	 *
 	 * @param  integer $default [description]
-	 * @return [type]           [description]
+	 * @return integer
 	 */
 	public function get_items_per_page() {
 		return 0;
@@ -42,8 +95,8 @@ abstract class Base_Query {
 	/**
 	 * Returns query cache
 	 *
-	 * @param  [type] $key [description]
-	 * @return [type]      [description]
+	 * @param  string $key [description]
+	 * @return string
 	 */
 	public function get_query_hash( $key = null ) {
 
@@ -62,7 +115,7 @@ abstract class Base_Query {
 	/**
 	 * Allows to return any query specific data that may be used by abstract 3rd parties
 	 *
-	 * @return [type] [description]
+	 * @return array
 	 */
 	public function get_query_meta() {
 		return array();
@@ -72,10 +125,10 @@ abstract class Base_Query {
 	 * Get cached data
 	 *
 	 * @param  [type] $key [description]
-	 * @return [type]      [description]
+	 * @return mixed
 	 */
 	public function get_cached_data( $key = null ) {
-		return wp_cache_get( $this->get_query_hash( $key ) );
+		return $this->cache_query ? wp_cache_get( $this->get_query_hash( $key ), $this->cache_group ) : false;
 	}
 
 	/**
@@ -83,10 +136,19 @@ abstract class Base_Query {
 	 *
 	 * @param  [type] $data [description]
 	 * @param  [type] $key  [description]
-	 * @return [type]       [description]
+	 * @return bool
 	 */
 	public function update_query_cache( $data = null, $key = null ) {
-		return wp_cache_set( $this->get_query_hash( $key ), $data );
+		return $this->cache_query ? wp_cache_set( $this->get_query_hash( $key ), $data, $this->cache_group, $this->get_cache_expiration() ) : false;
+	}
+
+	/**
+	 * Get cache expiration period for query results
+	 *
+	 * @return integer
+	 */
+	public function get_cache_expiration() {
+		return $this->cache_expires;
 	}
 
 	/**
@@ -479,6 +541,12 @@ abstract class Base_Query {
 	}
 
 	public function before_preview_body() {}
+
+	public function debug_info() {
+		return apply_filters( 'jet-engine/query-builder/query/debug-info', $this->_debug_info(), $this );
+	}
+
+	public function _debug_info() {}
 
 	public function get_start_item_index_on_page() {
 

@@ -2,6 +2,8 @@
 
 namespace Jet_Smart_Filters\Bricks_Views\Elements;
 
+use Bricks\Database;
+use Bricks\Helpers;
 use Jet_Engine\Bricks_Views\Helpers\Options_Converter;
 
 // If this file is called directly, abort.
@@ -33,7 +35,6 @@ class Jet_Smart_Filters_Bricks_Apply_Button extends \Jet_Engine\Bricks_Views\Ele
 
 	// Set builder controls
 	public function set_controls() {
-
 		$this->register_general_controls();
 		$this->register_filter_button_controls();
 	}
@@ -52,6 +53,23 @@ class Jet_Smart_Filters_Bricks_Apply_Button extends \Jet_Engine\Bricks_Views\Ele
 	public function register_general_controls() {
 
 		$this->start_jet_control_group( 'section_general' );
+
+		$this->register_jet_control(
+			'notice_cache_query_loop',
+			[
+				'tab'         => 'content',
+				'type'        => 'info',
+				'content'     => esc_html__( 'You have enabled the "Cache query loop" option.', 'jet-smart-filters' ),
+				'description' => sprintf(
+					esc_html__( 'This option will break the filters functionality. You can disable this option or use "JetEngine Query Builder" query type. Go to: %s > Cache query loop', 'jet-smart-filters' ),
+					'<a href="' . Helpers::settings_url( '#tab-performance' ) . '" target="_blank">Bricks > ' . esc_html__( 'Settings', 'jet-smart-filters' ) . ' > Performance</a>'
+				),
+				'required'    => [
+					[ 'content_provider', '=', 'bricks-query-loop' ],
+					[ 'cacheQueryLoops', '=', true, 'globalSettings' ],
+				],
+			]
+		);
 
 		$provider_allowed = \Jet_Smart_Filters\Bricks_Views\Manager::get_allowed_providers();
 
@@ -88,6 +106,36 @@ class Jet_Smart_Filters_Bricks_Apply_Button extends \Jet_Engine\Bricks_Views\Ele
 				'type'           => 'text',
 				'hasDynamicData' => false,
 				'default'        => esc_html__( 'Apply filters', 'jet-smart-filters' ),
+			]
+		);
+
+		$this->register_jet_control(
+			'active_state',
+			[
+				'tab'     => 'content',
+				'label'   => esc_html__( 'Active button state', 'jet-smart-filters' ),
+				'type'    => 'select',
+				'options' => [
+					'always' => esc_html__( 'Always', 'jet-smart-filters' ),
+					'any'    => esc_html__( 'Any filter selected', 'jet-smart-filters' ),
+					'all'    => esc_html__( 'All filters selected', 'jet-smart-filters' )
+				],
+				'default' => 'always'
+			]
+		);
+
+		$this->register_jet_control(
+			'if_inactive',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'If button inactive', 'jet-smart-filters' ),
+				'type'     => 'select',
+				'options'  => [
+					'disable' => esc_html__( 'Disable', 'jet-smart-filters' ),
+					'hide'    => esc_html__( 'Hide', 'jet-smart-filters' )
+				],
+				'default'  => 'disable',
+				'required' => [ 'active_state', '!=', 'always' ]
 			]
 		);
 
@@ -232,6 +280,7 @@ class Jet_Smart_Filters_Bricks_Apply_Button extends \Jet_Engine\Bricks_Views\Ele
 
 		$data_atts = $this->container_data_atts($settings, $provider);
 		$settings['apply_button'] = 'yes';
+		$settings['apply_on']     = 'submit';
 
 		if ( empty( $settings['apply_button_text'] ) ) {
 			$settings['apply_button_text'] = '';

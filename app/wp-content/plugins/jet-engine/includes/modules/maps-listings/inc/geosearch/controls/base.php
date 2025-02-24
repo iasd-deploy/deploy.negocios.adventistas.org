@@ -31,6 +31,7 @@ class Base {
 		?>
 		<jet-engine-query-builder-geosearch-control
 			v-model="query.geosearch_location"
+			:dynamic-query="dynamicQuery"
 		/>
 		<cx-vui-input
 			label="<?php _e( 'Address Field', 'jet-engine' ); ?>"

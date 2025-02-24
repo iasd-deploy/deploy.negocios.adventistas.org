@@ -325,7 +325,7 @@
 							let $element           = $( element ),
 							    $elementPosition = $element.data( 'position' ),
 							    elementOffset      = $element.offset(),
-							    elementDeltaOffset = 'default' === $elementPosition ? ( instanceOffset.left - elementOffset.left ) : 0;
+							    elementDeltaOffset = 'default' === $elementPosition ? Math.ceil( instanceOffset.left - elementOffset.left ) : 0;
 
 							$element.css( {
 								'--jmm-submenu-width': `${ instanceWidth }px`,
@@ -339,17 +339,19 @@
 
 						if ( $customSelector[0] ) {
 							let selectorWidth = $customSelector.width(),
-							    selectorOffset = $customSelector.offset();
+							    selectorOffset = Math.round( $customSelector.offset().left );
 
-							$megaMenuList.each( ( index, element ) => {
-								let $element           = $( element ),
-								    $elementPosition   = $element.data( 'position' ),
-								    elementOffset      = $element.offset(),
-								    elementDeltaOffset = 'default' === $elementPosition ? ( selectorOffset.left - elementOffset.left ) : 0;
+							document.fonts.ready.then( () => {
+								$megaMenuList.each( ( index, element ) => {
+									let $element           = $( element ),
+										$elementPosition   = $element.data( 'position' ),
+										elementOffset      = Math.round( $element.offset().left ),
+										elementDeltaOffset = 'default' === $elementPosition ? Math.round( selectorOffset - elementOffset ) : 0;
 
-								$element.css( {
-									'--jmm-submenu-width': `${ selectorWidth }px`,
-									'--jmm-submenu-delta-x-offset': `${ elementDeltaOffset }px`
+									$element.css( {
+										'--jmm-submenu-width': `${ selectorWidth }px`,
+										'--jmm-submenu-delta-x-offset': `${ elementDeltaOffset }px`
+									} );
 								} );
 							} );
 
@@ -367,7 +369,7 @@
 							let $element           = $( element ),
 							    $elementPosition   = $element.data( 'position' ),
 							    elementOffset      = $element.offset(),
-							    elementDeltaOffset = 'default' === $elementPosition ? ( instanceOffset.left - elementOffset.left ) : 0;
+							    elementDeltaOffset = 'default' === $elementPosition ? Math.ceil( instanceOffset.left - elementOffset.left ) : 0;
 
 							$element.css( {
 								'--jmm-submenu-width': `${ itemsWidth }px`,
@@ -596,6 +598,11 @@
 				this.mobileVueComponents();
 				this.initMobileRender();
 				this.megaContentHandler(event, payload);
+
+				if ( window.elementorFrontend ) {
+					const elementorLazyLoad = new CustomEvent( "elementor/lazyload/observe" );
+					document.dispatchEvent( elementorLazyLoad );
+				}
 			} );
 
 			wp.hooks.addAction( 'jet-plugins.frontend.element-ready.jet-menu.mega-menu', 'jet-popup', ( $popupContainer, contentType ) => {
@@ -751,7 +758,16 @@
 							itemClasses = itemClasses.concat( customClasses );
 						}
 
-						if ( window.location.href === this.itemDataObject.url ) {
+						const { href } = window.location;
+						let pageURL = null;
+
+						if ( href.includes('?') ) {
+							pageURL = href.substring(0, href.indexOf('?'));
+						} else {
+							pageURL = href;
+						}
+
+						if ( pageURL === this.itemDataObject.url ) {
 							itemClasses.push( 'jet-mobile-menu__item--active' );
 						}
 
@@ -824,6 +840,12 @@
 						let badgeVisible = this.$root.menuOptions.itemBadgeVisible;
 
 						return false === badgeVisible || '' === this.itemDataObject.badgeContent || ! this.itemDataObject.badgeContent ? false : true;
+					},
+
+					isLabelVisible: function() {
+						let labelVisible = ! this.itemDataObject.hideItemText;
+
+						return false === labelVisible || '' === this.itemDataObject.name || ! this.itemDataObject.name ? false : true;
 					},
 
 					isDescVisible: function() {
@@ -1236,11 +1258,13 @@
 
 				computed: {
 					instanceClass: function() {
+						console.log(this.$root.menuOptions)
 						let classes = [
 							'jet-mobile-menu__instance',
 							'jet-mobile-menu__instance--' + this.$root.menuOptions.menuLayout + '-layout',
 							this.$root.menuOptions.menuPosition + '-container-position',
 							( this.$root.menuOptions.togglePosition || 'default' ) + '-toggle-position',
+							this.$root.menuOptions.fillSvgIcon ? 'fill-svg-icon' : '',
 						];
 
 						return classes;

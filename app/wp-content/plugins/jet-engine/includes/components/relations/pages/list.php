@@ -96,6 +96,8 @@ if ( ! class_exists( 'Jet_Engine_Relations_Page_List' ) ) {
 				)
 			);
 
+			$this->manager->enqueue_reindex();
+
 			wp_enqueue_script(
 				'jet-engine-cpt-list',
 				jet_engine()->plugin_url( 'includes/components/relations/assets/js/list.js' ),

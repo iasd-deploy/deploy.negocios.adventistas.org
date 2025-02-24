@@ -23,6 +23,16 @@ if ( ! class_exists( 'Jet_Engine_Elementor_Views' ) ) {
 		public $frontend = null;
 
 		/**
+		 * @var \ElementorPro\Modules\AssetsManager\AssetTypes\Icons_Manager
+		 */
+		private $icons_manager = null;
+
+		/**
+		 * Array of controls which has their assets ensured
+		 */
+		private $ensured_assets = array();
+
+		/**
 		 * Constructor for the class
 		 */
 		function __construct() {
@@ -35,6 +45,8 @@ if ( ! class_exists( 'Jet_Engine_Elementor_Views' ) ) {
 			if ( ! jet_engine()->components->is_component_active( 'listings' ) ) {
 				return;
 			}
+
+			add_filter( 'get_post_metadata', [ $this, 'ensure_listing_doct_type' ], 10, 3 );
 
 			add_filter( 'jet-engine/templates/listing-views', array( $this, 'add_elementor_listing_view' ) );
 
@@ -68,6 +80,9 @@ if ( ! class_exists( 'Jet_Engine_Elementor_Views' ) ) {
 			jet_engine()->dynamic_tags = new Jet_Engine_Dynamic_Tags_Manager();
 			$this->frontend            = new Jet_Engine_Elementor_Frontend();
 
+			require jet_engine()->plugin_path( 'includes/components/elementor-views/icons.php' );
+			new Jet_Engine_Elementor_Icons();
+
 			// Fix listing while widgets config set up
 			add_action( 'elementor/ajax/register_actions', array( $this, 'set_listing_on_ajax' ), -1 );
 
@@ -86,6 +101,91 @@ if ( ! class_exists( 'Jet_Engine_Elementor_Views' ) ) {
 			add_filter( 'jet-engine/listings/dynamic-image/link-attr', array( $this, 'add_lightbox_attr' ), 10, 2 );
 
 			add_filter( 'jet-engine/gallery/lightbox-attr', array( $this, 'add_lightbox_attr_for_gallery' ), 10, 3 );
+
+			require jet_engine()->plugin_path( 'includes/components/elementor-views/components/register.php' );
+			require jet_engine()->plugin_path( 'includes/components/elementor-views/content-setter.php' );
+
+			new \Jet_Engine\Elementor_Views\Components\Register();
+			new \Jet_Engine\Elementor_Views\Content_Setter();
+
+			//https://github.com/Crocoblock/issues-tracker/issues/12135
+			add_action( 'elementor_pro/icons_manager_loaded', array( $this, 'save_icons_manager' ) );
+			add_action( 'cx-interface-builder/control/construct', array( $this, 'ensure_control_assets' ) );
+		}
+
+		/**
+		 * @param \ElementorPro\Modules\AssetsManager\AssetTypes\Icons_Manager $manager
+		 */
+		public function save_icons_manager( $manager ) {
+			$this->icons_manager = $manager;
+		}
+
+		/**
+		 * Ensure that needed assets loaded for controls
+		 * 
+		 * @param \CX_Controls_Base Control instance
+		 */
+		public function ensure_control_assets( $control ) {
+			$settings = $control->get_settings();
+			$type     = $settings['type'] ?? false;
+
+			if ( ! $type || ! empty( $this->ensured_assets[ $type ] ) ) {
+				return;
+			}
+
+			switch ( $type ) {
+				case 'iconpicker':
+					$this->ensure_iconpicker_assets();
+					break;
+			}
+
+			$this->ensured_assets[ $type ] = true;
+		}
+
+		/**
+		 * Ensure that Elementor Font Awesome custom kit script is loaded
+		 */
+		public function ensure_iconpicker_assets() {
+			if ( ! is_object( $this->icons_manager ) || ! method_exists( $this->icons_manager, 'get_icon_type_object' ) ) {
+				return;
+			}
+			
+			$font_awesome_pro = $this->icons_manager->get_icon_type_object( 'font-awesome-pro' );
+			
+			if ( $font_awesome_pro ) {
+				$font_awesome_pro->enqueue_kit_js();
+			}
+		}
+
+		/**
+		 * Ensure listing document type is always set.
+		 * In some cases Elementor\Core\Base\Document::TYPE_META_KEY was empty for listing, 
+		 * this caused conflicts between Listing Items and Components
+		 * 
+		 * Fix for https://github.com/Crocoblock/issues-tracker/issues/10125
+		 * 
+		 * @param  [type] $result   [description]
+		 * @param  [type] $post_id  [description]
+		 * @param  [type] $meta_key [description]
+		 * @return [type]           [description]
+		 */
+		public function ensure_listing_doct_type( $result, $post_id, $meta_key ) {
+
+			if ( \Elementor\Core\Base\Document::TYPE_META_KEY !== $meta_key ) {
+				return $result;
+			}
+
+			if ( jet_engine()->post_type->slug() !== get_post_type( $post_id ) ) {
+				return $result;
+			}
+
+			if ( jet_engine()->listings->components->is_component( $post_id ) ) {
+				$result = jet_engine()->listings->components->get_component_base_name();
+			} else {
+				$result = jet_engine()->listings->get_id();
+			}
+
+			return $result;
 
 		}
 
@@ -252,7 +352,7 @@ if ( ! class_exists( 'Jet_Engine_Elementor_Views' ) ) {
 				'jet-engine-icons',
 				jet_engine()->plugin_url( 'assets/lib/jetengine-icons/icons.css' ),
 				array(),
-				jet_engine()->get_version()
+				jet_engine()->get_version() . '-icons'
 			);
 
 		}
@@ -408,6 +508,8 @@ if ( ! class_exists( 'Jet_Engine_Elementor_Views' ) ) {
 				'jet-engine-not-supported',
 				'Jet_Engine_Not_Supported'
 			);
+
+			do_action( 'jet-engine/elementor-views/documents-registered', $documents_manager );
 
 		}
 
@@ -573,7 +675,7 @@ if ( ! class_exists( 'Jet_Engine_Elementor_Views' ) ) {
 
 		public function add_custom_size_unit( $units ) {
 
-			if ( version_compare( ELEMENTOR_VERSION, '3.10.0', '>=' ) ) {
+			if ( version_compare( ELEMENTOR_VERSION, '3.10.0', '>=' ) && ! in_array( 'custom', $units ) ) {
 				$units[] = 'custom';
 			}
 

@@ -25,6 +25,7 @@ class App extends Component {
 			relatedID: null,
 			relatedItems: [],
 			allowedOptions: [],
+			isBusy: false,
 		};
 
 		this.fetchItems();
@@ -49,6 +50,46 @@ class App extends Component {
 					this.setState( { relatedItems: [ ...response ] } );
 				},
 				error: ( response, errorCode, errorText ) => {
+
+					if ( response ) {
+						alert( response );
+					} else {
+						alert( errorText );
+					}
+
+				}
+			}
+		);
+	}
+
+	reorderItems( newItems, reorderedCB ) {
+
+		this.setState( { isBusy: true } );
+
+		window.wp.ajax.send(
+			'jet_engine_relations_reorder_relation_items',
+			{
+				type: 'POST',
+				data: {
+					_nonce: window.JetEngineRelationsCommon._nonce,
+					relID: this.props.relID,
+					itemsOrder: newItems,
+					relatedObjectID: -1,
+					relatedObjectType: this.props.controlObjectType,
+					relatedObjectName: this.props.controlObjectName,
+					isParentProcessed: this.props.isParentProcessed,
+					currentObjectID: this.props.currentObjectID,
+				},
+				success: ( response ) => {
+					this.setState( { isBusy: false } );
+					this.setState( { relatedItems: [ ...response ] } );
+					if ( reorderedCB ) {
+						reorderedCB();
+					}
+				},
+				error: ( response, errorCode, errorText ) => {
+
+					this.setState( { isBusy: false } );
 
 					if ( response ) {
 						alert( response );
@@ -102,11 +143,25 @@ class App extends Component {
 		return this.props.createFields && 0 < this.props.createFields.length;
 	}
 
+	getBusyStyles() {
+		const style = {};
+
+		if ( this.state.isBusy ) {
+			style.pointerEvents = 'none';
+			style.opacity = '0.6';
+		}
+
+		return style;
+	}
+
 	render() {
 
 		const buttonStyle = { margin: '0 10px 0 0' };
 
-		return ( <div className="jet-engine-rels">
+		return ( <div
+				className="jet-engine-rels"
+				style={ this.getBusyStyles() }
+			>
 			{ ( this.state.connectNew || this.state.createNew ) && <RelatedItemModal
 				{ ...this.props }
 				title={ this.modalTitle() }
@@ -161,6 +216,9 @@ class App extends Component {
 				isParentProcessed={ this.props.isParentProcessed }
 				onUpdate={ ( relatedItems ) => {
 					this.setState( { relatedItems: [ ...relatedItems ] } );
+				} }
+				onReorder={ ( newItems, reorderedCB ) => {
+					this.reorderItems( newItems, reorderedCB );
 				} }
 			/>
 		</div> );

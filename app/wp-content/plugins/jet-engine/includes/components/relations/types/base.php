@@ -32,18 +32,26 @@ abstract class Base {
 	 */
 	abstract public function get_items( $object_name, $relation );
 
-	/**
-	 * Returns type items
-	 * @return [type] [description]
-	 */
-	abstract public function get_type_item_title( $item_id, $object_name, $relation );
+ /**
+  * Retrieves the title of a specific type item.
+  *
+  * @param string                         $item_id     Item ID.
+  * @param string                         $object_name Object name (post/user/etc.).
+  * @param \Jet_Engine\Relations\Relation $relation    Relation instance.
+  * 
+  * @return string The title of the specified item.
+  */
+ abstract public function get_type_item_title( $item_id, $object_name, $relation );
 
 	/**
 	 * Returns item edit URL by object type data and item ID
 	 *
-	 * @param  [type] $type    [description]
-	 * @param  [type] $item_id [description]
-	 * @return [type]          [description]
+	 * @param string   $item_id     Item ID.
+	 * @param string   $object_name Object name (post/user/etc.).
+	 * 
+	 * @param \Jet_Engine\Relations\Relation $relation Relation instance.
+	 * 
+	 * @return string Item edit link.
 	 */
 	abstract public function get_type_item_edit_url( $item_id, $object_name, $relation );
 

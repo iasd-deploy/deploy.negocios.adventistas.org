@@ -3,7 +3,7 @@
  * Plugin Name: JetEngine
  * Plugin URI:  https://crocoblock.com/plugins/jetengine/
  * Description: The ultimate solution for managing custom post types, taxonomies and meta boxes.
- * Version:     3.2.4
+ * Version:     3.6.4.1
  * Author:      Crocoblock
  * Author URI:  https://crocoblock.com/
  * Text Domain: jet-engine
@@ -21,7 +21,8 @@ if ( ! defined( 'WPINC' ) ) {
 if ( ! class_exists( 'Jet_Engine' ) ) {
 
 	/**
-	 * @property Jet_Engine_Booking_Forms $forms
+	 * @property Jet_Engine_Booking_Forms        $forms
+	 * @property  \Jet_Engine\Glossaries\Manager $glossaries
 	 *
 	 * Sets up and initializes the plugin.
 	 */
@@ -60,7 +61,7 @@ if ( ! class_exists( 'Jet_Engine' ) ) {
 		 *
 		 * @var string
 		 */
-		private $version = '3.2.4';
+		private $version = '3.6.4.1';
 
 		/**
 		 * Holder for base plugin path
@@ -108,6 +109,9 @@ if ( ! class_exists( 'Jet_Engine' ) ) {
 		 * @var Jet_Engine_Meta_Boxes
 		 */
 		public $meta_boxes;
+		/**
+		 * @var Jet_Engine\Relations\Manager
+		 */
 		public $relations;
 		/**
 		 * @var Jet_Engine_Listings
@@ -222,6 +226,9 @@ if ( ! class_exists( 'Jet_Engine' ) ) {
 					$this->plugin_path( 'framework/db-updater/cherry-x-db-updater.php' ),
 					$this->plugin_path( 'framework/admin-bar/jet-admin-bar.php' ),
 					$this->plugin_path( 'framework/knowledge-base-search/knowledge-base-search.php' ),
+					$this->plugin_path( 'framework/workflows/workflows.php' ),
+					$this->plugin_path( 'framework/macros/macros-handler.php' ),
+					$this->plugin_path( 'framework/macros/base-macros.php' ),
 				)
 			);
 
@@ -280,6 +287,7 @@ if ( ! class_exists( 'Jet_Engine' ) ) {
 		public function init() {
 
 			require $this->plugin_path( 'includes/classes/tools.php' );
+			require $this->plugin_path( 'includes/classes/icons.php' );
 			require $this->plugin_path( 'includes/base/base-db.php' );
 
 			$this->admin_init();
@@ -329,9 +337,9 @@ if ( ! class_exists( 'Jet_Engine' ) ) {
 		 *
 		 * @return void
 		 */
-		public function jet_dashboard_init() {
+		public function jet_dashboard_init( $force = false ) {
 
-			if ( is_admin() ) {
+			if ( is_admin() || $force ) {
 
 				$jet_dashboard_module_data = $this->framework->get_included_module_data( 'jet-dashboard.php' );
 
@@ -389,6 +397,28 @@ if ( ! class_exists( 'Jet_Engine' ) ) {
 						),
 					),
 				) );
+
+				// Init Workflows together with dashboard
+				$workflows_module_data = $this->framework->get_included_module_data( 'workflows.php' );
+				$workflows = new \Croblock\Workflows\Manager( [
+					'namespace' => 'jet-engine',
+					'label' => 'JetEngine',
+					'path' => $workflows_module_data['path'],
+					'url' => $workflows_module_data['url'],
+					'parent_page' => $jet_dashboard->dashboard_slug
+				] );
+
+				$workflows->run();
+
+				add_filter( 'plugin_action_links_' . $this->plugin_name, function( $actions ) use ( $workflows ) {
+
+					$actions[] = sprintf(
+						'<a href="%1$s"><b>%2$s</b></a>',
+						$workflows->get_page_url(), __( 'Interactive Tutorials', 'jet-engine' )
+					);
+
+					return $actions;
+				} );
 			}
 		}
 

@@ -13,6 +13,10 @@ class Factory {
 	private $count_posts_key = 'jet_engine_store_count_';
 	private $args = array();
 
+	/**
+	 * @param array      $args
+	 * @param Base_Store $type
+	 */
 	public function __construct( $args = array(), $type = false ) {
 
 		if ( ! $type ) {
@@ -60,6 +64,10 @@ class Factory {
 
 	public function get_type() {
 		return $this->type;
+	}
+
+	public function get_count_posts_key() {
+		return $this->count_posts_key;
 	}
 
 	public function is_user_store() {
@@ -146,7 +154,9 @@ class Factory {
 			}
 		}
 
-		$count     = $this->get_type()->add_to_store( $store, $post_id );
+		//allow filter the ID of the item that will be actually added to store
+		$filtered_id = apply_filters( 'jet-engine/data-stores/filtered-id', $post_id, $store, $this, 'add' );
+		$count     = $this->get_type()->add_to_store( $store, $filtered_id );
 		$fragments = array();
 
 		if ( $this->can_count_posts() ) {
@@ -187,7 +197,10 @@ class Factory {
 		$store = esc_attr( $_REQUEST['store'] );
 
 		$old_count = $this->get_count();
-		$count = $this->get_type()->remove( $store, $post_id );
+
+		//allow filter the ID of the item that will be actually removed from store
+		$filtered_id = apply_filters( 'jet-engine/data-stores/filtered-id', $post_id, $store, $this, 'remove' );
+		$count = $this->get_type()->remove( $store, $filtered_id );
 		$fragments = array();
 
 		/**

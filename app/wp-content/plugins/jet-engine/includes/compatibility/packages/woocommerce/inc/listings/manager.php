@@ -39,6 +39,13 @@ class Manager {
 			[ $this, 'add_link_source_fields' ]
 		);
 
+		// Works the same as prev, but placed only where only plain URL allowed to return
+		add_filter(
+			'jet-engine/listings/dynamic-link/fields/common',
+			[ $this, 'add_link_source_fields' ],
+			10, 3
+		);
+
 		add_filter(
 			'jet-engine/listings/dynamic-image/fields',
 			[ $this, 'add_image_source_fields' ],
@@ -144,6 +151,43 @@ class Manager {
 			10, 4
 		);
 
+		add_filter(
+			'jet-engine/listings/dynamic-link/custom-url',
+			[ $this, 'maybe_set_custom_url' ],
+			10, 2
+		);
+
+		add_filter(
+			'jet-engine/listings/frontend/custom-listing-url',
+			[ $this, 'set_custom_listing_url' ],
+			10, 2
+		);
+
+		add_filter(
+			'jet-engine/twig-views/functions/dynamic-url/controls',
+			function( $controls ) {
+				$controls['size']['condition']['source'][] = 'get_product_image_url';
+				return $controls;
+			}
+		);
+
+		add_filter(
+			'acf/pre_load_post_id',
+			[ $this, 'set_wc_queried_product_id' ],
+			10, 2
+		);
+
+		add_filter(
+			'jet-engine/listing/container-classes',
+			[ $this, 'set_listing_woo_class' ],
+			10, 3
+		);
+
+		add_filter(
+			'body_class',
+			[ $this, 'set_woo_class_to_listing_doc' ]
+		);
+
 	}
 
 	/**
@@ -209,6 +253,96 @@ class Manager {
 	}
 
 	/**
+	 * Return only URL of add to cart link or WC product image, not whole HTMl
+	 *
+	 * This callback used where we need only plain URL, for example Twig templates
+	 * 
+	 * @param  bool|string $result   [description]
+	 * @param  array  $settings [description]
+	 * @return bool|string
+	 */
+	public function maybe_set_custom_url( $result = false, $settings = [] ) {
+
+		$source = ! empty( $settings['dynamic_link_source'] ) ? $settings['dynamic_link_source'] : '_permalink';
+
+		if ( ! in_array( $source, [ 'add_to_cart', 'get_product_image_url' ] ) ) {
+			return $result;
+		}
+
+		global $product;
+
+		if ( is_null( $product ) ) {
+			$product = jet_engine()->listings->data->get_current_object();
+		}
+
+		// If product is not found - abort early
+		if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+			return $result;
+		}
+
+		switch ( $source ) {
+			case 'add_to_cart':
+				return esc_url( $product->add_to_cart_url() );
+			
+			case 'get_product_image_url':
+
+				$image_url = '';
+				$size      = ! empty( $settings['size'] ) ? $settings['size'] : 'full';
+
+				if ( $product->get_image_id() ) {
+					$image_url = wp_get_attachment_image_url( $product->get_image_id(), $size );
+				} elseif ( $product->get_parent_id() ) {
+					$parent_product = wc_get_product( $product->get_parent_id() );
+					if ( $parent_product && $parent_product->get_image_id() ) {
+						$image_url = wp_get_attachment_image_url( $parent_product->get_image_id(), $size );
+					}
+				}
+
+				if ( ! $image_url ) {
+					$image_url = wc_placeholder_img_src( $size );
+				}
+				
+				return $image_url;
+		}
+
+		// Just in case
+		return $result;
+
+	}
+
+	/**
+	 * Set custom listing URL for clickable listing item.
+	 *
+	 * @since 3.4.2
+	 *
+	 * @param string $url      Listing url.
+	 * @param array  $settings List of listing settings.
+	 *
+	 * @return string
+	 */
+	public function set_custom_listing_url( $url, $settings ) {
+
+		$source = ! empty( $settings['listing_link_source'] ) ? $settings['listing_link_source'] : '_permalink';
+
+		if ( 'add_to_cart' !== $source ) {
+			return $url;
+		}
+
+		global $product;
+
+		if ( is_null( $product ) ) {
+			$product = jet_engine()->listings->data->get_current_object();
+		}
+
+		if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+			return $url;
+		}
+
+		return esc_url( $product->add_to_cart_url() );
+
+	}
+
+	/**
 	 * Add to cart link.
 	 *
 	 * Returns dynamic link with WooCommerce add to cart functionality.
@@ -226,10 +360,17 @@ class Manager {
 	 */
 	public function add_to_cart_link( $result, $settings, $base_class, $render ) {
 
-		global $product;
+		$current_object = jet_engine()->listings->data->get_current_object();
 
-		if ( is_null( $product ) ) {
-			$product = jet_engine()->listings->data->get_current_object();
+		if ( ! isset( $current_object ) ) {
+			return false;
+		}
+
+		$product = $this->maybe_convert_object_to_wc_product( $current_object );
+
+		if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+			$object_context = ! empty( $settings['object_context'] ) ? $settings['object_context'] : false;
+			$product        = wc_get_product( jet_engine()->listings->data->get_object_by_context( $object_context ) );
 		}
 
 		if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
@@ -488,13 +629,19 @@ class Manager {
 	 *
 	 * @return mixed
 	 */
-	public function add_link_source_fields( $groups ) {
+	public function add_link_source_fields( $groups, $for = 'plain', $is_common = false ) {
+
+		$options = [
+			'get_permalink' => __( 'Permalink', 'jet-engine' ),
+		];
+
+		if ( $is_common ) {
+			$options['get_product_image_url'] = __( 'Product Image URL', 'jet-engine' );
+		}
 
 		$groups[] = [
 			'label'   => __( 'WooCommerce', 'jet-engine' ),
-			'options' => apply_filters( 'jet-engine/listings/dynamic-link/woocommerce-options', [
-				'get_permalink' => __( 'Permalink', 'jet-engine' ),
-			] ),
+			'options' => apply_filters( 'jet-engine/listings/dynamic-link/woocommerce-options', $options ),
 		];
 
 		return $groups;
@@ -667,6 +814,11 @@ class Manager {
 
 		$_product = $this->maybe_convert_object_to_wc_product( $current_object );
 
+		if ( ! $_product || ! is_a( $_product, 'WC_Product' ) ) {
+			$object_context = ! empty( $settings['object_context'] ) ? $settings['object_context'] : false;
+			$_product       = wc_get_product( jet_engine()->listings->data->get_object_by_context( $object_context ) );
+		}
+
 		if ( is_callable( [ $_product, $link ] ) ) {
 			$result = call_user_func( [ $_product, $link ] );
 		}
@@ -685,7 +837,7 @@ class Manager {
 	 */
 	public function set_wc_queried_product_id( $id, $object ) {
 
-		if ( $object && is_a( $object, 'WC_Product' ) ) {
+		if ( $object && is_object( $object ) && is_a( $object, 'WC_Product' ) ) {
 			$id = $object->get_id();
 		}
 
@@ -773,7 +925,7 @@ class Manager {
 
 		$_product = $this->maybe_convert_object_to_wc_product( $object );
 
-		if ( is_callable( [ $_product, $property ] ) ) {
+		if ( is_a( $_product, 'WC_Product' ) && is_callable( [ $_product, $property ] ) ) {
 			return call_user_func( [ $_product, $property ] );
 		} else {
 			$result = $this->get_wc_product_method_with_param( null, $property, $_product );
@@ -813,6 +965,102 @@ class Manager {
 
 		return $object;
 
+	}
+
+	/**
+	 * Added `woocommerce` css class for product listing to fix styling issues with woo widgets by Elementor Pro.
+	 * See: https://github.com/Crocoblock/issues-tracker/issues/7660
+	 *
+	 * @param array $classes
+	 * @param array $settings
+	 * @param null  $render
+	 *
+	 * @return array
+	 */
+	public function set_listing_woo_class( $classes = [], $settings = [], $render = null ) {
+
+		$add_woo_class = false;
+
+		if ( $render->listing_query_id ) {
+			$query = \Jet_Engine\Query_Builder\Manager::instance()->get_query_by_id( $render->listing_query_id );
+
+			if ( $query && 'wc-product-query' === $query->query_type ) {
+				$add_woo_class = true;
+			}
+		}
+
+		if ( $render->posts_query ) {
+
+			$post_types = $render->posts_query->get( 'post_type' );
+
+			if ( ! empty( $post_types ) ) {
+
+				if ( ! is_array( $post_types ) ) {
+					$post_types = array( $post_types );
+				}
+
+				if ( in_array( 'product', $post_types ) ) {
+					$add_woo_class = true;
+				}
+			}
+		}
+
+		if ( $add_woo_class ) {
+			$classes[] = 'woocommerce';
+		}
+
+		return $classes;
+	}
+
+	public function set_woo_class_to_listing_doc( $classes = [] ) {
+
+		if ( ! class_exists( 'Elementor\Plugin' ) ) {
+			return $classes;
+		}
+
+		if ( ! \Elementor\Plugin::$instance->preview->is_preview() ) {
+			return $classes;
+		}
+
+		$doc = \Elementor\Plugin::$instance->documents->get( get_the_ID() );
+
+		if ( ! $doc || jet_engine()->listings->get_id() !== $doc->get_name() ) {
+			return $classes;
+		}
+
+		$add_woo_class = false;
+
+		$source = $doc->get_settings( 'listing_source' );
+
+		switch ( $source ) {
+			case 'posts':
+				$post_type = $doc->get_settings( 'listing_post_type' );
+
+				if ( 'product' === $post_type ) {
+					$add_woo_class = true;
+				}
+
+				break;
+
+			case 'query':
+				$query_id = $doc->get_settings( '_query_id' );
+
+				if ( ! empty( $query_id ) ) {
+					$query = \Jet_Engine\Query_Builder\Manager::instance()->get_query_by_id( $query_id );
+
+					if ( $query && 'wc-product-query' === $query->query_type ) {
+						$add_woo_class = true;
+					}
+				}
+
+				break;
+		}
+
+		if ( $add_woo_class ) {
+			$classes[] = 'woocommerce';
+		}
+
+		return $classes;
 	}
 
 	/**

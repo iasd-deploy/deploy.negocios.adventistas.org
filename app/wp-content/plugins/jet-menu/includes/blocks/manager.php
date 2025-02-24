@@ -98,7 +98,7 @@ class Manager {
 		wp_enqueue_script(
 			'jet-menu-blocks',
 			jet_menu()->plugin_url( 'assets/admin/js/blocks.js' ),
-			[ 'wp-blocks', 'wp-editor', 'wp-components', 'wp-element', 'wp-i18n', 'jet-menu-public-scripts' ],
+			[ 'wp-blocks', 'wp-editor', 'wp-components', 'wp-element', 'wp-i18n', 'lodash', 'jet-menu-public-scripts' ],
 			jet_menu()->get_version(),
 			true
 		);

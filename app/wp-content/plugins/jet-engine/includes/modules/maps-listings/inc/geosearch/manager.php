@@ -28,10 +28,12 @@ class Manager {
 		require jet_engine()->modules->modules_path( 'maps-listings/inc/geosearch/query/posts.php' );
 		require jet_engine()->modules->modules_path( 'maps-listings/inc/geosearch/query/users.php' );
 		require jet_engine()->modules->modules_path( 'maps-listings/inc/geosearch/query/terms.php' );
+		require jet_engine()->modules->modules_path( 'maps-listings/inc/geosearch/query/posts-custom-storage.php' );
 
 		new Query\Posts();
 		new Query\Users();
 		new Query\Terms();
+		new Query\Posts_Custom_Storage();
 
 		do_action( 'jet-engine/maps-listing/geosearch/init' );
 
@@ -52,11 +54,19 @@ class Manager {
 			true
 		);
 
+		wp_enqueue_style(
+			'jet-engine-map-geosearch-component',
+			jet_engine()->plugin_url( 'includes/modules/maps-listings/assets/css/geosearch-component.css' ),
+			array(),
+			jet_engine()->get_version()
+		);
+
 		wp_localize_script( 'jet-engine-geosearch-map', 'JetEngineGeoSearch', array(
 			'api' => jet_engine()->api->get_route( 'get-map-point-data' ),
 			'label' => __( 'Select location', 'jet-engine' ),
 			'description' => __( 'Select point on the map to get values around', 'jet-engine' ),
-			'help' =>  __( '* You need to pick a point on the map to search around', 'jet-engine' ),
+			'help' =>  __( '* You need to pick a point on the map to search around or set coordinates manually/via a macro', 'jet-engine' ),
+			'helpMacro' => __( '* Map is currently disabled because macro is selected as a point coordinates source', 'jet-engine' ),
 		) );
 	}
 

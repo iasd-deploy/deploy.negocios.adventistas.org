@@ -19,6 +19,8 @@ class Module {
 	 */
 	public $conditions = null;
 
+	private $condition_controls = null;
+
 	/**
 	 * Constructor for the class
 	 */
@@ -37,15 +39,23 @@ class Module {
 		require jet_engine()->modules->modules_path( 'dynamic-visibility/inc/conditions-checker.php' );
 		require jet_engine()->modules->modules_path( 'dynamic-visibility/inc/elementor-integration.php' );
 		require jet_engine()->modules->modules_path( 'dynamic-visibility/inc/blocks-integration.php' );
+		require jet_engine()->modules->modules_path( 'dynamic-visibility/inc/shortcode.php' );
+		require jet_engine()->modules->modules_path( 'dynamic-visibility/inc/bricks-views/conditions.php' );
 
 		new Elementor_Integration();
 		new Blocks_Integration();
+		new Shortcode();
+		new Bricks_Views\Conditions();
 
 		$this->conditions = new Conditions\Manager();
 
 	}
 
 	public function get_condition_controls() {
+
+		if ( null !== $this->condition_controls ) {
+			return $this->condition_controls;
+		}
 
 		$data = array();
 
@@ -165,6 +175,8 @@ class Module {
 				'jedv_condition' => Module::instance()->conditions->get_conditions_with_type_detect(),
 			),
 		);
+
+		$this->condition_controls = $data;
 
 		return $data;
 

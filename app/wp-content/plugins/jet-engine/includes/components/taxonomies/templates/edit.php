@@ -137,11 +137,18 @@
 				<cx-vui-input
 					:name="'query_var'"
 					:label="'<?php _e( 'Register Query Var', 'jet-engine' ); ?>'"
-					:description="'<?php _e( 'Sets the query_var key for this taxonomy', 'jet-engine' ); ?>'"
+					:description="'<?php _e( 'Sets the query_var key for this taxonomy. You may leave it empty to disable query_var, or set to taxonomy slug or any other value you need', 'jet-engine' ); ?>'"
 					:wrapper-css="[ 'equalwidth' ]"
 					:size="'fullwidth'"
 					v-model="advancedSettings.query_var"
-				></cx-vui-input>
+				>
+					<a
+						href="#"
+						style="text-decoration-style: dashed;"
+						@click.prevent="setDefaultQueryVar"
+					><?php _e( 'Set to taxonomy slug', 'jet-engine' ); ?></a>
+				</cx-vui-input>
+				
 				<cx-vui-switcher
 					:name="'rewrite'"
 					:label="'<?php _e( 'Rewrite', 'jet-engine' ); ?>'"
@@ -285,6 +292,18 @@
 							:key="'notice_' + index"
 						>{{ notice }}</div>
 					</div>
+				</div>
+			</div>
+			<div class="jet-engine-edit-page__actions-extra-settings cx-vui-panel">
+				<div class="jet-engine-reverse-switcher cx-vui-component">
+					<div class="cx-vui-component__control">
+						<cx-vui-switcher
+							:prevent-wrap="true"
+							v-model="generalSettings.delete_metadata"
+						></cx-vui-switcher>
+						<div class="cx-vui-component__label"><?php _e( 'Delete metadata', 'jet-engine' ); ?></div>
+					</div>
+					<div class="cx-vui-component__desc"><?php _e( 'Toggle this option to delete metadata from the database for the deleted meta fields.', 'jet-engine' ); ?></div>
 				</div>
 			</div>
 			<div class="cx-vui-hr"></div>

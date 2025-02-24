@@ -41,6 +41,10 @@ class Jet_Elements_Animated_Text extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	public function get_style_depends() { 
+		return array( 'jet-animated-text', 'jet-animated-text-skin' ); 
+	}
+
 	public function get_script_depends() {
 		return array( 'jet-anime-js' );
 	}
@@ -529,7 +533,10 @@ class Jet_Elements_Animated_Text extends Jet_Elements_Base {
 
 		$settings = json_encode( $settings );
 
-		return sprintf( 'data-settings=\'%1$s\'', $settings );
+		// Escape the JSON string for safe use in HTML attributes
+		$data_settings_attribute = esc_attr( $settings );
+
+		return sprintf( 'data-settings=\'%1$s\'', $data_settings_attribute );
 	}
 
 	protected function render() {

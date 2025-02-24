@@ -43,6 +43,8 @@ class Factory {
 
 		add_action( 'rest_api_init', array( $this, 'register_endpoints' ) );
 
+		new Single_Item_Factory( $this );
+
 	}
 
 	public function init_pages() {
@@ -113,7 +115,14 @@ class Factory {
 		foreach ( $args as $key => $arg ) {
 
 			if ( ! empty( $arg['relation'] ) ) {
-				$prepared[ $key ] = $arg;
+				$sub_rel = $arg['relation'];
+				unset( $arg['relation'] );
+
+				$prepared[ $key ] = array_merge(
+					array( 'relation' => $sub_rel ),
+					$this->prepare_query_args( $arg )
+				);
+				//$prepared[ $key ] = $arg;
 				continue;
 			}
 
@@ -158,16 +167,18 @@ class Factory {
 				$operator = ! empty( $arg['operator'] ) ? $arg['operator'] : '=';
 				$value    = ! empty( $arg['value'] ) ? $arg['value'] : '';
 
-				if ( ! is_array( $value ) ) {
+				$array_operators = array( 'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN' );
+
+				if ( ! is_array( $value ) && in_array( $operator, $array_operators ) ) {
 					$value = preg_split( '/(?<=[^,]),[\s]?/', $value );
-				}
 
-				array_walk( $value, function( &$item ) {
-					$item = str_replace( ',,', ',', $item );
-				});
+					array_walk( $value, function( &$item ) {
+						$item = str_replace( ',,', ',', $item );
+					});
 
-				if ( 1 === count( $value ) ) {
-					$value = $value[0];
+					if ( 1 === count( $value ) ) {
+						$value = $value[0];
+					}
 				}
 
 				$arg['value'] = $value;
@@ -554,7 +565,19 @@ class Factory {
 
 		if ( null === $this->_quick_edit_columns ) {
 
-			$this->_quick_edit_columns = array();
+			$this->_quick_edit_columns = array(
+				// default service fields
+				'cct_status' => array(
+					'type'        => 'select',
+					'name'        => 'cct_status',
+					'object_type' => 'service_field',
+				),
+				'cct_created' => array(
+					'type'        => 'sql-date',
+					'name'        => 'cct_created',
+					'object_type' => 'service_field',
+				),
+			);
 
 			foreach ( $this->fields as $field ) {
 				if ( ! empty( $field['quick_editable'] ) ) {
@@ -565,6 +588,7 @@ class Factory {
 
 					if ( 'checkbox' === $field['type'] ) {
 						$field['type'] = 'checkbox-raw';
+						$field['is_required'] = false;
 					}
 
 					$this->_quick_edit_columns[ $field['name'] ] = $field;
@@ -841,48 +865,6 @@ class Factory {
 	 */
 	public function get_date( $format, $time ) {
 		return apply_filters( 'jet-engine/custom-content-types/date', date( $format, $time ), $time, $format );
-	}
-
-	public function maybe_save_custom_check_radio_values( $fields ) {
-
-		$query_args = array_merge(
-			Module::instance()->manager->data->query_args,
-			array( 'id' => $this->type_id )
-		);
-
-		$item = Module::instance()->manager->data->db->query(
-			Module::instance()->manager->data->table,
-			$query_args
-		);
-
-		if ( empty( $item ) ) {
-			return;
-		}
-
-		$item        = $item[0];
-		$meta_fields = maybe_unserialize( $item['meta_fields'] );
-		$update      = false;
-
-		foreach ( $fields as $field => $field_args ) {
-
-			if ( ! isset( $_POST[ $field ] ) || '' === $_POST[ $field ] ) {
-				continue;
-			}
-
-			do_action( 'jet-engine/meta-boxes/save-custom-value', $field, $field_args );
-
-			$_meta_fields = jet_engine()->meta_boxes->maybe_add_custom_values_to_options( $meta_fields, $field, $field_args );
-
-			if ( $_meta_fields ) {
-				$meta_fields = $_meta_fields;
-				$update      = true;
-			}
-		}
-
-		if ( $update ) {
-			$item['meta_fields'] = maybe_serialize( $meta_fields );
-			Module::instance()->manager->data->update_item_in_db( $item );
-		}
 	}
 
 }

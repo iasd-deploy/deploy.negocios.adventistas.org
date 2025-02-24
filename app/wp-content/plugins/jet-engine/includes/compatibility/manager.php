@@ -59,10 +59,10 @@ if ( ! class_exists( 'Jet_Engine_Compatibility' ) ) {
 					'args' => 'ELEMENTOR_PRO_VERSION',
 				),
 				'jet-theme-core.php' => array(
-					'cb'   => 'class_exists',
-					'args' => 'Jet_Theme_Core',
+					'cb'   => 'function_exists',
+					'args' => 'jet_theme_core',
 				),
-				'wpml.php' => array(
+				'wpml/wpml.php' => array(
 					'cb'   => 'defined',
 					'args' => 'ICL_SITEPRESS_VERSION',
 				),

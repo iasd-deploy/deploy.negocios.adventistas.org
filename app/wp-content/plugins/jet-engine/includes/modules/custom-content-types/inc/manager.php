@@ -112,6 +112,7 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 			return;
 		}
 
+		require Module::instance()->module_path( 'single-item-factory.php' );
 		require Module::instance()->module_path( 'factory.php' );
 		require Module::instance()->module_path( 'type-pages.php' );
 
@@ -126,6 +127,14 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 			$type_id  = $type['id'];
 			$instance = new Factory( $args, $fields, $type_id );
 
+			\Jet_Engine_Meta_Boxes_Option_Sources::instance()->find_meta_fields_with_save_custom( 
+				'cct',
+				$args['slug'],
+				$fields,
+				$type_id,
+				$this->data
+			);
+
 			jet_engine()->add_instance( 'custom-content-type', array(
 				'id'   => $type_id,
 				'args' => $type['args'],
@@ -137,10 +146,49 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 				$this->_post_types_map[ $instance->get_arg( 'related_post_type' ) ] = $instance->get_arg( 'slug' );
 			}
 
+			// Initialize JetSearch compatibility
+			add_action( 'jet-search/sources/register', function( $source_manager ) use ( $instance ) {
+
+				if ( ! class_exists( '\Jet_Engine\Modules\Custom_Content_Types\Jet_Search\Source' ) ) {
+					require Module::instance()->module_path( 'jet-search/source.php' );
+				}
+
+				$source = new Jet_Search\Source();
+				$source->set_cct_instance( $instance );
+
+				$source_manager->register_source( $source );
+
+			} );
+
 		}
 
 		do_action( 'jet-engine/custom-content-types/after-register-instances', $this );
 
+		/**
+		 * Attach handler to save new custom values added into checkbox and radio feilds
+		 * to add custom values to field settings (if allowed)
+		 */
+		add_action( 
+			'jet-engine/meta-boxes/hook-save-custom/cct', 
+			array( $this, 'attach_handler_to_save_custom' ), 
+			10, 2 
+		);
+
+	}
+
+	/**
+	 * Handle custom options saving for check and radio fields where it is enabled
+	 * @param  [type] $fields_data     [description]
+	 * @param  [type] $options_manager [description]
+	 * @return [type]                  [description]
+	 */
+	public function attach_handler_to_save_custom( $fields_data, $options_manager ) {
+		foreach ( $fields_data as $cct => $fields ) {
+			$hook_name = 'jet-engine/custom-content-types/updated-item/' . $cct;
+			add_action( $hook_name, function( $item ) use ( $options_manager, $cct ) {
+				$options_manager->save_custom_values( $item, $this->data, 'cct', $cct );
+			} );
+		}
 	}
 
 	/**
@@ -210,9 +258,9 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 	}
 
 	/**
-	 * Retuns registered content types list
+	 * Get registered content types list or single instance by slug
 	 *
-	 * @return [type] [description]
+	 * @return Factory|Factory[]|false Registered CCT instance or all instances if passed empty value for slug; false if not found
 	 */
 	public function get_content_types( $type = null ) {
 		if ( ! $type ) {
@@ -223,15 +271,15 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 	}
 
 	/**
-	 * Retuns registered content types list
+	 * Get registered content type by ID
 	 *
-	 * @return [type] [description]
+	 * @return Factory|false Registered CCT instance or false if not found
 	 */
 	public function get_content_type_by_id( $type_id = null ) {
 
 		if ( $type_id ) {
 			foreach ( $this->_registered_instances as $instance ) {
-				if ( $instance->type_id === $type_id ) {
+				if ( absint( $instance->type_id ) === absint( $type_id ) ) {
 					return $instance;
 				}
 			}
@@ -365,6 +413,7 @@ class Manager extends \Jet_Engine_Base_WP_Intance {
 		$result  = array();
 		$options = array(
 			'random_order' => __( 'Random order', 'jet-engine' ),
+			'preserve_ids' => __( 'Preserve item ID order given in the query arguments', 'jet-engine' ),
 		);
 
 		if ( $for_js ) {

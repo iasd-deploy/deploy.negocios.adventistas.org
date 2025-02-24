@@ -83,5 +83,25 @@ if ( ! class_exists( 'Jet_Smart_Filters_Filter_Base' ) ) {
 
 			return $label;
 		}
+
+		/**
+		 * Get default filter value
+		 */
+		public function get_predefined_value( $filter_id ) {
+
+			if ( ! filter_var( get_post_meta( $filter_id, '_is_default_filter_value', true ), FILTER_VALIDATE_BOOLEAN ) ) {
+				return false;
+			}
+
+			$predefined_value = apply_filters( 'jet-smart-filters/filters/predefined-value',
+				get_post_meta( $filter_id, '_default_filter_value', true ),
+				$filter_id,
+				$this->get_id()
+			);
+
+			return $predefined_value == ''
+				? false
+				: $predefined_value;
+		}
 	}
 }

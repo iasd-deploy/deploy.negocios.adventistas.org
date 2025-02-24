@@ -34,6 +34,10 @@ class My_Account extends Base_Widget {
 		return [ 'woocommerce-elements' ];
 	}
 
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::elementor()->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	/**
 	 * Get style dependencies.
 	 *
@@ -45,7 +49,7 @@ class My_Account extends Base_Widget {
 	 * @return array Widget style dependencies.
 	 */
 	public function get_style_depends(): array {
-		return [ 'widget-woocommerce' ];
+		return [ 'widget-woocommerce-my-account' ];
 	}
 
 	protected function register_controls() {
@@ -1378,7 +1382,7 @@ class My_Account extends Base_Widget {
 			'tables_titles',
 			[
 				'type' => Controls_Manager::HEADING,
-				'label' => esc_html__( 'Titles &amp; Totals', 'elementor-pro' ),
+				'label' => esc_html__( 'Titles & Totals', 'elementor-pro' ),
 			]
 		);
 

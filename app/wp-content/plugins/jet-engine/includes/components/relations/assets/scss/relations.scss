@@ -76,6 +76,27 @@
 		overflow: auto;
 		max-height: 356px;
 		border: 1px solid #c3c4c7;
+		position: relative;
+	}
+	&__was-reordered {
+		position: absolute;
+		right: 0;
+		top: 0;
+		display: flex;
+		gap: 5px;
+		z-index: 99;
+		padding: 5px 10px 0 0;
+		a {
+			padding: 2px 5px;
+			text-decoration: none;
+			border: 1px solid transparent;
+			&:hover {
+				border-color: currentColor;
+			}
+			&.jet-engine-rels__was-reordered-cancel {
+				color: #cc1818;
+			}
+		}
 	}
 	&__table {
 		border: none !important;
@@ -102,6 +123,9 @@
 				background: #fff;
 			}
 		}
+	}
+	&__dragging-row {
+		display: table;
 	}
 	&__create-item {
 		margin-top: 15px;

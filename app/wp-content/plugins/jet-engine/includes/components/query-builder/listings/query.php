@@ -39,6 +39,8 @@ class Query {
 
 		add_action( 'jet-engine/query-builder/query/after-query-setup', array( $this, 'maybe_setup_load_more_prop' ) );
 
+		add_filter( 'jet-engine/listing/grid/nav-widget-settings', array( $this, 'update_listing_nav_post_num' ), 10, 3 );
+
 	}
 
 	public function query_items( $items, $settings, $widget ) {
@@ -145,31 +147,29 @@ class Query {
 		$use_load_more = ! empty( $settings['use_load_more'] ) ? $settings['use_load_more'] : false;
 		$use_load_more = filter_var( $use_load_more, FILTER_VALIDATE_BOOLEAN );
 
-		// Add `orderby` args to the request if use random order
-		if ( $use_load_more && ! empty( $query->current_wp_query ) ) {
-
-			$orderby = $query->current_wp_query->get( 'orderby' );
-
-			if ( ! empty( $orderby ) && is_array( $orderby ) ) {
-
-				$has_random_orderby = false;
-
-				foreach ( $orderby as $key => $order ) {
-
-					if ( false === strpos( $key, 'RAND' ) ) {
-						continue;
-					}
-
-					$has_random_orderby = true;
-				}
-
-				if ( $has_random_orderby ) {
-					$request['filtered_query']['orderby'] = $orderby;
-				}
-			}
+		// Add `orderby random seed` to the request if use random order
+		if ( $use_load_more && ! empty( $query->final_query['_random_seed'] ) ) {
+			$request['filtered_query']['_random_seed'] = $query->final_query['_random_seed'];
 		}
 
 		return $request;
+	}
+
+	public function update_listing_nav_post_num( $result, $settings, $render ) {
+
+		if ( empty( $render->listing_query_id ) ) {
+			return $result;
+		}
+
+		$query = Query_Manager::instance()->get_query_by_id( $render->listing_query_id );
+
+		if ( ! $query ) {
+			return $result;
+		}
+
+		$result['posts_num'] = $query->get_items_per_page();
+
+		return $result;
 	}
 
 }

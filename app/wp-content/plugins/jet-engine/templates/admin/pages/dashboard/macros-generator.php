@@ -13,7 +13,9 @@
 			:is="control.type"
 			:key="controlKey( control )"
 			:options-list="control.optionsList"
+			:description="control.description"
 			:groups-list="control.groupsList"
+			:default="control.default"
 			:label="control.label"
 			:wrapper-css="[ 'equalwidth' ]"
 			size="fullwidth"
@@ -35,6 +37,13 @@
 			size="fullwidth"
 			v-model="result.advancedSettings.fallback"
 		></cx-vui-input>
+		<cx-vui-switcher
+			label="<?php _e( 'Bricks Dynamic Macro', 'jet-engine' ); ?>"
+			description="<?php _e( 'I will use this macro in Bricks builder dynamic tag.', 'jet-engine' ); ?>"
+			:wrapper-css="[ 'equalwidth' ]"
+			v-if="isBricksMacroVisible"
+			v-model="isBricksMacroEnabled"
+		></cx-vui-switcher>
 	</div>
 	<div class="jet-shortocde-generator__result">
 		{{ generatedMacros }}
@@ -53,4 +62,9 @@
 			</div>
 		</div>
 	</div>
+	<cx-vui-component-wrapper
+		label="<?php _e( 'Warning:', 'jet-engine' ); ?>"
+		description="<?php _e( "Please note: don't use these symbols in macro arguments: &quot;, :, {, }. Bricks builder can't correctly parse these symbols in dynamic tags.", 'jet-engine' ); ?>"
+		v-if="isBricksMacroEnabled"
+	></cx-vui-component-wrapper>
 </div>

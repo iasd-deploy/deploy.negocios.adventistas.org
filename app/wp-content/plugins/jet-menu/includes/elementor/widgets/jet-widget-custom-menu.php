@@ -1,8 +1,8 @@
 <?php
 namespace Elementor;
 
-use Elementor\Core\Schemes\Typography as Scheme_Typography;
-use Elementor\Core\Schemes\Color as Scheme_Color;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Colors;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -152,6 +152,35 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 				'options' => array(
 					'right-side' => esc_html__( 'Right Side', 'jet-menu' ),
 					'left-side'  => esc_html__( 'Left Side', 'jet-menu' ),
+				),
+			)
+		);
+
+		$this->add_control(
+			'submenu_trigger',
+			array(
+				'label'   => esc_html__( 'Sub Menu Trigger', 'jet-menu' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'hover',
+				'options' => array(
+					'hover' => esc_html__( 'Hover', 'jet-menu' ),
+					'click' => esc_html__( 'Click', 'jet-menu' ),
+				),
+			)
+		);
+
+		$this->add_control(
+			'submenu_target',
+			array(
+				'label'   => esc_html__( 'Sub Menu Target', 'jet-menu' ),
+				'type'    => Controls_Manager::SELECT,
+				'default' => 'item',
+				'options' => array(
+					'item'      => esc_html__( 'Item', 'jet-menu' ),
+					'sub_icon'  => esc_html__( 'Sub Icon', 'jet-menu' ),
+				),
+				'condition' => array(
+					'submenu_trigger' => 'click',
 				),
 			)
 		);
@@ -565,9 +594,8 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 						'default' => 'classic',
 					),
 					'color' => array(
-						'scheme' => array(
-							'type'  => Scheme_Color::get_type(),
-							'value' => Scheme_Color::COLOR_3,
+						'global' => array(
+							'default' => Global_Colors::COLOR_TEXT,
 						),
 					),
 				),
@@ -597,7 +625,9 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'main_items_typography',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_4,
+				'global' => array(
+					'default' => Global_Typography::TYPOGRAPHY_ACCENT,
+				),
 				'selector' => '{{WRAPPER}}  ' . $css_scheme['main_items_link'] . ' .jet-custom-item-label.top-level-label',
 			)
 		);
@@ -626,7 +656,9 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'main_items_desc_typography',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_4,
+				'global' => array(
+					'default' => Global_Typography::TYPOGRAPHY_ACCENT,
+				),
 				'selector' => '{{WRAPPER}}  ' . $css_scheme['main_items_link'] . ' .jet-custom-item-desc.top-level-desc',
 			)
 		);
@@ -1341,9 +1373,8 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 						'default' => 'classic',
 					),
 					'color' => array(
-						'scheme' => array(
-							'type'  => Scheme_Color::get_type(),
-							'value' => Scheme_Color::COLOR_2,
+						'global' => array(
+							'default' => Global_Colors::COLOR_SECONDARY,
 						),
 					),
 				),
@@ -1373,7 +1404,9 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'sub_items_typography',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_1,
+				'global' => array(
+					'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+				),
 				'selector' => '{{WRAPPER}}  ' . $css_scheme['sub_items_link'] . ' .jet-menu-link-text',
 			)
 		);
@@ -1402,7 +1435,9 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'sub_items_desc_typography',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_4,
+				'global' => array(
+					'default' => Global_Typography::TYPOGRAPHY_ACCENT,
+				),
 				'selector' => '{{WRAPPER}}  ' . $css_scheme['sub_items_link'] . ' .jet-custom-item-desc.sub-level-desc',
 			)
 		);
@@ -1830,9 +1865,8 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			array(
 				'label' => esc_html__( 'Icon Color', 'jet-menu' ),
 				'type' => Controls_Manager::COLOR,
-				'scheme' => array(
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global' => array(
+					'default' => Global_Colors::COLOR_TEXT,
 				),
 				'selectors' => array(
 					'{{WRAPPER}} ' . $css_scheme['icon'] => 'color: {{VALUE}}',
@@ -1870,9 +1904,8 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			array(
 				'label' => esc_html__( 'Icon Color', 'jet-menu' ),
 				'type' => Controls_Manager::COLOR,
-				'scheme' => array(
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global' => array(
+					'default' => Global_Colors::COLOR_TEXT,
 				),
 				'selectors' => array(
 					'{{WRAPPER}} ' . $css_scheme['icon_hover'] => 'color: {{VALUE}}',
@@ -2079,9 +2112,8 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			array(
 				'label'  => esc_html__( 'Color', 'jet-menu' ),
 				'type'   => Controls_Manager::COLOR,
-				'scheme' => array(
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global' => array(
+					'default' => Global_Colors::COLOR_TEXT,
 				),
 				'selectors' => array(
 					'{{WRAPPER}} ' . $css_scheme['badge'] . ' .jet-menu-badge__inner' => 'color: {{VALUE}}',
@@ -2102,7 +2134,9 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'badge_typography',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_3,
+				'global' => array(
+					'default' => Global_Typography::TYPOGRAPHY_TEXT,
+				),
 				'selector' => '{{WRAPPER}} ' . $css_scheme['badge'] . ' .jet-menu-badge__inner' . ', {{WRAPPER}} ' . $css_scheme['badge_sub'] . ' .jet-menu-badge__inner',
 			)
 		);
@@ -2197,7 +2231,7 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			)
 		);
 
-		$this->add_control(
+		/*$this->add_control(
 			'dropdown_icon',
 			array(
 				'label'       => esc_html__( 'Icon', 'jet-menu' ),
@@ -2206,6 +2240,17 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 				'file'        => '',
 				'default'     => 'fa fa-chevron-right',
 			)
+		);*/
+
+		$this->__add_advanced_icon_control(
+			'dropdown_icon',
+			[
+				'label'       => esc_html__( 'Icon', 'jet-menu' ),
+				'type'        => Controls_Manager::ICON,
+				'label_block' => true,
+				'file'        => '',
+				'default'     => 'fa fa-chevron-right',
+			]
 		);
 
 		$this->add_responsive_control(
@@ -2253,11 +2298,12 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			array(
 				'label' => esc_html__( 'Icon Color', 'jet-menu' ),
 				'type' => Controls_Manager::COLOR,
-				'scheme' => array(
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global' => array(
+					'default' => Global_Colors::COLOR_TEXT,
 				),
 				'selectors' => array(
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon'] => 'color: {{VALUE}}',
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub'] => 'color: {{VALUE}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon'] . ':before' => 'color: {{VALUE}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub'] . ':before' => 'color: {{VALUE}}',
 				),
@@ -2290,11 +2336,12 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			array(
 				'label' => esc_html__( 'Icon Color', 'jet-menu' ),
 				'type' => Controls_Manager::COLOR,
-				'scheme' => array(
-					'type'  => Scheme_Color::get_type(),
-					'value' => Scheme_Color::COLOR_3,
+				'global' => array(
+					'default' => Global_Colors::COLOR_TEXT,
 				),
 				'selectors' => array(
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_hover'] => 'color: {{VALUE}}',
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub_hover'] => 'color: {{VALUE}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_hover'] . ':before' => 'color: {{VALUE}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub_hover'] . ':before' => 'color: {{VALUE}}',
 				),
@@ -2328,6 +2375,8 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 				'label' => esc_html__( 'Icon Color', 'jet-menu' ),
 				'type' => Controls_Manager::COLOR,
 				'selectors' => array(
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_active'] => 'color: {{VALUE}}',
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub_active'] => 'color: {{VALUE}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_active'] . ':before' => 'color: {{VALUE}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub_active'] . ':before' => 'color: {{VALUE}}',
 				),
@@ -2365,6 +2414,8 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 					),
 				),
 				'selectors'  => array(
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon'] . ' svg' => 'width: {{SIZE}}{{UNIT}}',
+					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub'] . ' svg' => 'width: {{SIZE}}{{UNIT}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon'] . ':before' => 'font-size: {{SIZE}}{{UNIT}}',
 					'{{WRAPPER}} ' . $css_scheme['dropdown_icon_sub'] . ':before' => 'font-size: {{SIZE}}{{UNIT}}',
 				),
@@ -2497,20 +2548,25 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 			$this->add_render_attribute( 'nav-wrapper', 'class', sprintf( 'jet-custom-nav--animation-%s', $settings['animation_type'] ) );
 		}
 
+		$this->add_render_attribute( 'nav-wrapper', 'data-trigger', $settings['submenu_trigger'] );
+
+		if ( 'click' === $settings['submenu_trigger'] ) {
+			$this->add_render_attribute( 'nav-wrapper', 'data-target', $settings['submenu_target'] );
+		}
+
 		$args = array(
 			'menu'            => $settings['menu'],
 			'fallback_cb'     => '',
 			'items_wrap'      => '<div ' . $this->get_render_attribute_string( 'nav-wrapper' ) . '>%3$s</div>',
 			'walker'          => new \Jet_Menu\Render\Vertical_Menu_Walker,
 			'settings' => array(
-				'dropdown_icon' => $settings['dropdown_icon'],
+				'dropdown_icon' => $this->get_icon_html( $settings['selected_dropdown_icon'], ['aria-hidden' => 'true'], jet_menu()->svg_manager->get_svg_html( 'arrow-right' ) ),
 			),
 		);
 
 		wp_nav_menu( $args );
 
 		if ( $this->is_css_required() ) {
-
 			add_filter( 'cx_dynamic_css/collector/localize_object', array( $this, 'fix_preview_css' ) );
 			jet_menu()->dynamic_css_manager->collector->print_style();
 			remove_filter( 'cx_dynamic_css/collector/localize_object', array( $this, 'fix_preview_css' ) );
@@ -2545,6 +2601,70 @@ class Jet_Widget_Custom_Menu extends Widget_Base {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * [get_icon_html description]
+	 * @param  boolean $icon_setting [description]
+	 * @return [type]                [description]
+	 */
+	public function get_icon_html( $icon_setting = false, $attr = array(), $default = false ) {
+
+		if ( ! $icon_setting ) {
+			return $default;
+		}
+
+		if ( is_string( $icon_setting ) ) {
+			$icon_setting = [
+				'value'   => $icon_setting,
+				'library' => 'fa-solid',
+			];
+		}
+
+		if ( empty( $icon_setting['value'] ) ) {
+			return $default;
+		}
+
+		ob_start();
+		Icons_Manager::render_icon( $icon_setting, $attr );
+		return ob_get_clean();
+	}
+
+	/**
+	 * Add icon control
+	 *
+	 * @param string $id
+	 * @param array  $args
+	 * @param object $instance
+	 */
+	public function __add_advanced_icon_control( $id, array $args = array(), $instance = null ) {
+
+		if ( defined( 'ELEMENTOR_VERSION' ) && version_compare( ELEMENTOR_VERSION, '2.6.0', '>=' ) ) {
+
+			$_id = $id; // old control id
+			$id  = 'selected_' . $id;
+
+			$args['type'] = Controls_Manager::ICONS;
+			//$args['fa4compatibility'] = $_id;
+
+			unset( $args['file'] );
+			unset( $args['default'] );
+
+			if ( isset( $args['fa5_default'] ) ) {
+				$args['default'] = $args['fa5_default'];
+
+				unset( $args['fa5_default'] );
+			}
+		} else {
+			$args['type'] = Controls_Manager::ICON;
+			unset( $args['fa5_default'] );
+		}
+
+		if ( null !== $instance ) {
+			$instance->add_control( $id, $args );
+		} else {
+			$this->add_control( $id, $args );
+		}
 	}
 
 }

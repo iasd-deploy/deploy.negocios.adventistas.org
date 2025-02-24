@@ -10,6 +10,8 @@
 		clusterersData: {},
 		mapProvider: mapProvider,
 
+		preventPanToMarker: false,
+
 		init: function() {
 
 			var widgets = {
@@ -17,7 +19,7 @@
 			};
 
 			$.each( widgets, function( widget, callback ) {
-				window.elementorFrontend.hooks.addAction( 'frontend/element_ready/' + widget, callback );
+				window.elementorFrontend?.hooks?.addAction( 'frontend/element_ready/' + widget, callback );
 			});
 
 		},
@@ -39,7 +41,12 @@
 
 			$scope = $scope || $( 'body' );
 
-			JetEngineMaps.initBlocks( $scope );
+			window.JetPlugins.init( $scope, [
+				{
+					block: 'jet-engine/bricks-maps-listing',
+					callback: JetEngineMaps.bricksWidgetMap
+				}
+			] );
 
 		},
 
@@ -50,6 +57,16 @@
 			} else {
 				JetEngineMaps.registerUrlAction();
 			}
+		},
+
+		bricksWidgetMap: function( $scope ) {
+
+			if (JetEngineMaps.isBricksHiddenWrap($scope)) {
+				JetEngineMaps.initMapAfterDisplayingWidgets($scope[0]);
+				return;
+			}
+
+			JetEngineMaps.widgetMap($scope);
 		},
 
 		widgetMap: function( $scope ) {
@@ -117,10 +134,18 @@
 				} );
 
 				mapProvider.closePopup( infowindow, function() {
+					if ( activeInfoWindow?.map ) {
+						activeInfoWindow.map.isInternalInteraction = false;
+					}
+
 					activeInfoWindow = false;
 				}, map );
 
-				mapProvider.openPopup( marker, function() {
+				mapProvider.openPopup( marker, function( event ) {
+					// Prevent clicking on a point of interest under listing marker
+					if ( event && event.stopPropagation ) {
+						event.stopPropagation();
+					}
 
 					if ( infowindow.contentIsSet() ) {
 
@@ -139,6 +164,8 @@
 						JetEngineMaps.initHandlers( $container.find( '.jet-map-box' ) );
 
 						activeInfoWindow = infowindow;
+
+						setCenterByMarker( marker );
 
 						return;
 
@@ -159,7 +186,42 @@
 					}
 
 					var querySeparator = general.querySeparator || '?';
-					var api = general.api + querySeparator + 'listing_id=' + general.listingID + '&post_id=' + markerData.id + '&source=' + general.source;
+					var api = general.api +
+					          querySeparator +
+							  'listing_id=' + general.listingID +
+							  '&post_id=' +
+							  markerData.id +
+							  '&source=' + general.source +
+							  '&geo_query_distance=' + markerData.geo_query_distance;
+					var queriedID = $container.data( 'queried-id' );
+
+					if ( queriedID ) {
+						api += '&queried_id=' + queriedID;
+					}
+
+					if ( mapID ) {
+						api += '&element_id=' + mapID;
+					}
+
+					if ( window.JetSmartFilters?.filterGroups ) {
+						const filterGroups = window.JetSmartFilters.filterGroups;
+
+						for ( const groupName in filterGroups ) {
+							if ( ! groupName.includes( 'jet-engine-maps/' ) ) {
+								continue;
+							}
+
+							if ( filterGroups[ groupName ]?.$provider?.[0] === $container[0] ) {
+								const filtersUrl = filterGroups[ groupName ].getUrl( true );
+
+								if ( filtersUrl ) {
+									api += '&jsf=' + filtersUrl.replace( '?jsf=', '' );
+								}
+
+								break;
+							}
+						}
+					}
 
 					jQuery.ajax({
 						url: api,
@@ -186,6 +248,12 @@
 
 						activeInfoWindow = infowindow;
 
+						if ( window.bricksIsFrontend ) {
+							document.dispatchEvent(
+								new CustomEvent("bricks/ajax/query_result/displayed")
+							);
+						}
+
 					}).fail( function( error ) {
 
 						if ( activeInfoWindow ) {
@@ -199,8 +267,29 @@
 
 					});
 
+					setCenterByMarker( marker );
+
 				}, infowindow, map, popupOpenOn );
 
+			};
+
+			var setCenterByMarker = function( marker ) {
+
+				if ( JetEngineMaps.preventPanToMarker ) {
+					return;
+				}
+
+				if ( ! general.centeringOnOpen ) {
+					return;
+				}
+
+				mapProvider.panTo( {
+					map: map,
+					position: mapProvider.getMarkerPosition( marker ),
+					zoom: general.zoomOnOpen ? +general.zoomOnOpen : false,
+				} );
+
+				map.isInternalInteraction = false;
 			};
 
 			var setAutoCenter = function() {
@@ -248,6 +337,10 @@
 				mapSettings.maxZoom = general.maxZoom;
 			}
 
+			if ( general.minZoom ) {
+				mapSettings.minZoom = general.minZoom;
+			}
+
 			if ( general.styles ) {
 				mapSettings.styles = general.styles;
 			}
@@ -267,9 +360,12 @@
 			}
 
 			map    = mapProvider.initMap( $container[0], mapSettings );
+			
 			bounds = mapProvider.initBounds();
 			width  = parseInt( general.width, 10 );
 			offset = parseInt( general.offset, 10 );
+
+			$container.data( 'mapInstance', map );
 
 			if ( markers ) {
 				$.each( markers, function( index, markerData ) {
@@ -287,7 +383,9 @@
 				markerCluster = mapProvider.getMarkerCluster( {
 					map: map,
 					markers: gmMarkers,
-					clustererImg: general.clustererImg
+					clustererImg: general.clustererImg,
+					clusterMaxZoom: general.clusterMaxZoom,
+					clusterRadius: general.clusterRadius,
 				} );
 
 				JetEngineMaps.clusterersData[ mapID ] = markerCluster;
@@ -326,7 +424,7 @@
 
 				}
 
-				if ( autoCenter || ! customCenter ) {
+				if ( ! map.jeFiltersAutoCenterBlock && ( autoCenter || ! customCenter ) ) {
 					setAutoCenter();
 				}
 
@@ -369,6 +467,10 @@
 				return;
 			}
 
+			if ( zoom ) {
+				JetEngineMaps.preventPanToMarker = true;
+			}
+
 			for ( var i = 0; i < JetEngineMaps.markersData[ popupID ].length; i++ ) {
 
 				var marker = JetEngineMaps.markersData[ popupID ][i].marker,
@@ -391,14 +493,21 @@
 
 				mapProvider.triggerOpenPopup( marker );
 			}
+
+			JetEngineMaps.preventPanToMarker = false;
 		},
 
 		customInitMapBySelector: function( $selector ) {
 			var $mapBlock = $selector.closest( '[data-is-block="jet-engine/maps-listing"]' ),
+				$mapBricks = $selector.closest( '[data-is-block="jet-engine/bricks-maps-listing"]' ),
 				$mapElWidget = $selector.closest( '.elementor-widget-jet-engine-maps-listing' );
 
 			if ( $mapBlock.length ) {
 				JetEngineMaps.widgetMap( $mapBlock );
+			}
+
+			if ( $mapBricks.length ) {
+				JetEngineMaps.bricksWidgetMap( $mapBricks );
 			}
 
 			if ( $mapElWidget.length ) {
@@ -436,6 +545,99 @@
 				window.JetPopupFrontend.initAttachedPopups( $selector );
 			}
 
+			// Reinit the common events for a map popup.
+			// Only for Google provider as event propagation is disabled.
+			if ( window.JetEngine && mapProvider.getId && 'google' === mapProvider.getId() ) {
+				JetEngine.commonEvents( $selector );
+			}
+
+		},
+
+		// Restart the map when it is displayed
+		initMapAfterDisplayingWidgets: function( node ) {
+			const observer = new IntersectionObserver((entries, observer) => {
+				entries.forEach(entry => {
+					if (entry.isIntersecting) {
+						observer.unobserve(entry.target);
+
+						JetEngineMaps.widgetMap($(entry.target));
+					}
+				});
+			});
+
+			observer.observe(node);
+		},
+
+		// Check the Bricks parent node. Is it hidden or not?
+		// The problem was the accordion and tabs
+		isBricksHiddenWrap: function( $scope ) {
+			const generalWrapper = $scope[0].closest('.brxe-accordion-nested, .brxe-tabs-nested');
+			const wrapHidden = $scope[0].closest('.listening, .tab-pane');
+
+			if (generalWrapper && wrapHidden && !wrapHidden.classList.contains('brx-open')) {
+				return true;
+			}
+
+			return false;
+		},
+
+		//map - map instance
+		//bounds - an object containing 'south', 'west', 'north', 'east' coordinates
+		dispatchMapSyncEvent: function( map, bounds ) {
+
+			const mapDiv = mapProvider.getContainer( map );
+			//debounce event dispatch to prevent unnecessary filter requests on zoom/pan change
+			clearTimeout( mapDiv?.JetEngineMapDebounceTimer );
+
+			let debounceTime = + ( JetEngineSettings?.mapSyncFilter?.debounceTime ?? 500 );
+			
+			if ( ! isFinite( debounceTime ) ) {
+				debounceTime = 1000;
+			}
+
+			mapDiv.JetEngineMapDebounceTimer = setTimeout(
+				JetEngineMaps.dispatchMapSyncEventImmediate,
+				debounceTime,
+				mapDiv,
+				bounds,
+				map
+			);
+		},
+
+		dispatchMapSyncEventImmediate: function( mapDiv, bounds, map ) {
+			if ( map.isInternalInteraction ) {
+				map.isInternalInteraction = false;
+				return;
+			}
+
+			const event = new CustomEvent(
+				"jet-engine/maps/update-sync-bounds",
+				{
+					detail: {
+						div: mapDiv,
+						bounds: bounds,
+						map: map,
+						mapProvider
+					},
+				}
+			);
+			
+			document.dispatchEvent( event );
+		},
+
+		dispatchMapSyncInitEvent: function( map ) {
+			const event = new CustomEvent(
+				"jet-engine/maps/init-sync-bounds",
+				{
+					detail: {
+						map: map,
+						div: mapProvider.getContainer( map ),
+						mapProvider
+					},
+				}
+			);
+			
+			document.dispatchEvent( event );
 		},
 
 	};

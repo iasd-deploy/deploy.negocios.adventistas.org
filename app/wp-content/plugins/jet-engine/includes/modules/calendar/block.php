@@ -86,6 +86,18 @@ class Jet_Listing_Calendar_Block_Type extends \Jet_Engine_Blocks_Views_Type_Base
 				'type'    => 'boolean',
 				'default' => false,
 			),
+			'allow_date_select' => array(
+				'type'    => 'boolean',
+				'default' => false,
+			),
+			'start_year_select' => array(
+				'type'    => 'string',
+				'default' => '1970',
+			),
+			'end_year_select' => array(
+				'type'    => 'string',
+				'default' => '2038',
+			),
 			'caption_layout' => array(
 				'type'    => 'string',
 				'default' => 'layout-1',
@@ -131,6 +143,18 @@ class Jet_Listing_Calendar_Block_Type extends \Jet_Engine_Blocks_Views_Type_Base
 			'_element_id' => array(
 				'type'    => 'string',
 				'default' => '',
+			),
+			'cache_enabled' => array(
+				'type'    => 'boolean',
+				'default' => false,
+			),
+			'max_cache' => array(
+				'type'    => 'string',
+				'default' => '12',
+			),
+			'cache_timeout' => array(
+				'type'    => 'string',
+				'default' => '60',
 			),
 		) );
 	}

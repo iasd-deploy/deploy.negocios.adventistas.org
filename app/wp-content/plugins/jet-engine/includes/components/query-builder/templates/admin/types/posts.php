@@ -511,7 +511,7 @@
 			</cx-vui-tabs-panel>
 			<cx-vui-tabs-panel
 				name="post_page"
-				:label="isInUseMark( [ 'post__in', 'post__not_in', 'post_name__in', 'post_parent', 'post_parent__in', 'post_parent__not_in', 'p', 'name', 'page_id', 'pagename' ] ) + '<?php _e( 'Post & Page', 'jet-engine' ); ?>'"
+				:label="isInUseMark( [ 'post__in', 'post__not_in', 'post_name__in', 'post_parent', 'post_parent__in', 'post_parent__not_in', 'p', 'name', 'page_id', 'pagename', 'avoid_duplicates' ] ) + '<?php _e( 'Post & Page', 'jet-engine' ); ?>'"
 				key="category_tag"
 			>
 				<cx-vui-input
@@ -530,6 +530,7 @@
 					name="query_post__not_in"
 					v-model="query.post__not_in"
 				><jet-query-dynamic-args v-model="dynamicQuery.post__not_in"></jet-query-dynamic-args></cx-vui-input>
+				<?php \Jet_Engine\Query_Builder\Avoid_Duplicates::instance()->print_control( 'posts' ); ?>
 				<cx-vui-input
 					label="<?php _e( 'Post Name In', 'jet-engine' ); ?>"
 					description="<?php _e( 'Use post slugs. Specify posts list to retrieve. Comma-separated post slugs list', 'jet-engine' ); ?>"

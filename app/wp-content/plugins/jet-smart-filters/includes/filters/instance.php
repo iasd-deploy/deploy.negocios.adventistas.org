@@ -10,6 +10,7 @@ if ( ! defined( 'WPINC' ) ) {
 
 if ( ! class_exists( 'Jet_Smart_Filters_Filter_Instance' ) ) {
 
+	#[AllowDynamicProperties]
 	class Jet_Smart_Filters_Filter_Instance {
 
 		public $type      = null;
@@ -92,8 +93,8 @@ if ( ! class_exists( 'Jet_Smart_Filters_Filter_Instance' ) ) {
 
 			$query_var = $this->get_query_var( $args );
 
-			if ( isset( $_REQUEST[ $query_var ] ) ) {
-				return $_REQUEST[ $query_var ];
+			if ( isset( $_REQUEST[$query_var] ) ) {
+				return jet_smart_filters()->utils->stripslashes( $_REQUEST[$query_var] );
 			}
 
 			if ( isset( $args['current_value'] ) ) {
@@ -134,12 +135,12 @@ if ( ! class_exists( 'Jet_Smart_Filters_Filter_Instance' ) ) {
 				$atts['data-query-var-suffix'] = $args['query_var_suffix'];
 			}
 
+			if ( ! empty( $args['apply_on'] ) ) {
+				$atts['data-apply-on'] = $args['apply_on'];
+			}
+
 			if ( ! empty( $args['is_hierarchical'] ) ) {
 				$atts['data-hierarchical'] = true;
-
-				if ( ! empty( $args['single_tax'] ) ) {
-					$atts['data-single-tax'] = $args['single_tax'];
-				}
 			}
 
 			if ( ! empty( $args['relational_operator'] ) && 'OR' !== $args['relational_operator'] ) {
@@ -151,8 +152,20 @@ if ( ! class_exists( 'Jet_Smart_Filters_Filter_Instance' ) ) {
 				$additional_filter_data_atts['data-dropdown-placeholder'] = isset( $args['dropdown_placeholder'] ) ? $args['dropdown_placeholder'] : __( 'Select some options', 'jet-smart-filters' );
 			}
 
+			if ( ! empty( $args['inputs_separators_enabled'] ) && ! empty( $args['inputs_enabled'] ) ) {
+				$atts['data-inputs-separators'] = $args['inputs_separators_enabled'];
+			}
+
 			if ( method_exists( $this->type, 'additional_filter_data_atts' ) ) {
 				$atts = array_merge( $atts, $this->type->additional_filter_data_atts( $args ) );
+			}
+
+			if ( ! empty( $args['inputs_separators_enabled'] ) && ! empty( $args['inputs_enabled'] ) ) {
+				$atts['data-inputs-separators'] = $args['inputs_separators_enabled'];
+			}
+
+			if ( isset( $args['predefined_value'] ) ) {
+				$atts['data-predefined-value'] = $args['predefined_value'];
 			}
 
 			echo $this->get_atts_string( $atts );
@@ -194,23 +207,10 @@ if ( ! class_exists( 'Jet_Smart_Filters_Filter_Instance' ) ) {
 					require jet_smart_filters()->plugin_path( 'includes/hierarchy.php' );
 				}
 
-				$queried_hierarchy = jet_smart_filters()->query->get_queried_hierarchy();
-				$values            = ! empty( $queried_hierarchy ) ? $queried_hierarchy['trail'] : array();
-				$hierarchy         = new Jet_Smart_Filters_Hierarchy( $this, false, $values, $args );
-				$levels            = $hierarchy->get_levels();
+				$hierarchy = new Jet_Smart_Filters_Hierarchy( $this, false, array(), $args, true );
+				$levels    = $hierarchy->get_levels();
 
-				if ( ! empty( $levels ) ) {
-
-					echo '<div class="jet-filters-group">';
-
-					foreach ( $levels as $level ) {
-						echo $level;
-					}
-
-					echo '</div>';
-
-				}
-
+				include jet_smart_filters()->get_template( 'filters/hierarchical.php' );
 			} else {
 				include $this->type->get_template( $args );
 			}

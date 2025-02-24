@@ -2,6 +2,7 @@ import GroupedSelectControl from "components/grouped-select-control.js";
 import JetEngineRepeater from "components/repeater-control.js";
 import CustomControl from "components/custom-control.js";
 import { getCallbackArgs } from "utils/utility.js";
+import { isIdUnique } from "common/functions";
 
 import {
 	clone
@@ -55,7 +56,7 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'maps-listings' )
 
 			constructor( props ) {
 
-				if ( ! props.attributes._block_id ) {
+				if ( ! props.attributes._block_id || ! isIdUnique( props ) ) {
 					props.setAttributes( { _block_id: props.clientId } );
 				}
 
@@ -100,6 +101,16 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'maps-listings' )
 				const markerTypes         = window.JetEngineListingData.mapsListingConfig.markerTypes;
 				const markerLabelTypes    = window.JetEngineListingData.mapsListingConfig.markerLabelTypes;
 				const filterCallbacksArgs = window.JetEngineListingData.filterCallbacksArgs;
+
+				let taxonomies = [];
+
+				if ( window.JetEngineListingData.taxonomies.length ) {
+					for ( var i = 0; i < window.JetEngineListingData.taxonomies.length; i++ ) {
+						for ( var j = 0; j < window.JetEngineListingData.taxonomies[i].values.length; j++ ) {
+							taxonomies.push( window.JetEngineListingData.taxonomies[i].values[j] );
+						}
+					}
+				}
 
 				const metaTypes = [
 					{
@@ -238,16 +249,6 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'maps-listings' )
 										props.setAttributes( { auto_center: ! attributes.auto_center } );
 									} }
 								/>
-								{ attributes.auto_center && <TextControl
-									type="number"
-									label={ __( 'Max Zoom' ) }
-									value={ attributes.max_zoom }
-									min={ `1` }
-									max={ `20` }
-									onChange={ newValue => {
-										props.setAttributes( { max_zoom: Number(newValue) } );
-									} }
-								/> }
 								{ ! attributes.auto_center && <TextareaControl
 									type="text"
 									label={ __( 'Map Center' ) }
@@ -266,7 +267,45 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'maps-listings' )
 										props.setAttributes( { custom_zoom: Number(newValue) } );
 									} }
 								/> }
+								<TextControl
+									type="number"
+									label={ __( 'Max Zoom' ) }
+									value={ attributes.max_zoom }
+									min={ `1` }
+									max={ `20` }
+									onChange={ newValue => {
+										props.setAttributes( { max_zoom: Number(newValue) } );
+									} }
+								/>
+								<TextControl
+									type="number"
+									label={ __( 'Min Zoom' ) }
+									value={ attributes.min_zoom }
+									min={ `1` }
+									max={ `10` }
+									onChange={ newValue => {
+										props.setAttributes( { min_zoom: Number(newValue) } );
+									} }
+								/>
 								{ this.getCustomControlsSection( 'section_general' ) }
+								<hr/>
+								<ToggleControl
+									label={ __( 'Centering Map when click on marker' ) }
+									checked={ attributes.centering_on_open }
+									onChange={ () => {
+										props.setAttributes( { centering_on_open: ! attributes.centering_on_open } );
+									} }
+								/>
+								{ attributes.centering_on_open && <TextControl
+									type="number"
+									label={ __( 'Zoom Map' ) }
+									value={ attributes.zoom_on_open }
+									min={ `1` }
+									max={ `20` }
+									onChange={ newValue => {
+										props.setAttributes( { zoom_on_open: Number(newValue) } );
+									} }
+								/> }
 							</PanelBody>
 							{ window.JetEngineListingData.legacy.is_disabled && <PanelBody
 								title={ __( 'Custom Query' ) }
@@ -388,6 +427,15 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'maps-listings' )
 										props.setAttributes( { marker_label_text: newValue } );
 									} }
 								/> }
+								<SelectControl
+									label={ __( 'Image Size' ) }
+									value={ attributes.marker_image_size }
+									help={ __( 'Applies to the main marker if it is of image type, and to conditional image markers.' ) }
+									options={ JetEngineListingData.imageSizes || [] }
+									onChange={ newValue => {
+										props.setAttributes( { marker_image_size: newValue } );
+									} }
+								/>
 								{ -1 !== window.JetEngineListingData.activeModules.indexOf( 'custom-content-types' ) &&
 									( ( 'text' === attributes.marker_type && 'cct_field' === attributes.marker_label_type ) || 'dynamic_image_cct' === attributes.marker_type )  &&
 									<TextControl
@@ -561,6 +609,31 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'maps-listings' )
 										props.setAttributes( { marker_clustering: ! attributes.marker_clustering } );
 									} }
 								/>
+								{ attributes.marker_clustering &&
+									<div>
+										<TextControl
+											type="number"
+											label={ __( 'Cluster Max Zoom' ) }
+											help={ __( 'Maximum zoom level that a marker can be part of a cluster' ) }
+											value={ attributes.cluster_max_zoom }
+											min={ `1` }
+											max={ `20` }
+											onChange={ newValue => {
+												props.setAttributes( { cluster_max_zoom: Number(newValue) } );
+											} }
+										/>
+										<TextControl
+											type="number"
+											label={ __( 'Cluster Radius' ) }
+											help={ __( 'Radius of each cluster when clustering markers in px' ) }
+											value={ attributes.cluster_radius }
+											min={ `10` }
+											onChange={ newValue => {
+												props.setAttributes( { cluster_radius: Number(newValue) } );
+											} }
+										/>
+									</div>
+								}
 							</PanelBody>
 							<PanelBody
 								title={ __( 'Popup' ) }
@@ -1011,7 +1084,7 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'maps-listings' )
 													<SelectControl
 														label={ __( 'Taxonomy' ) }
 														value={ item.tax_query_taxonomy }
-														options={ window.JetEngineListingData.taxonomies }
+														options={ taxonomies }
 														onChange={newValue => {
 															updateItem( item, 'tax_query_taxonomy', newValue )
 														}}

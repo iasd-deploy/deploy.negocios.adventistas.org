@@ -101,6 +101,45 @@
             >
             </cx-vui-select>
 
+            <cx-vui-select
+                name="jet-mega-menu-mega-width-type"
+                label="<?php _e( 'Mega Container Width Type', 'jet-menu' ); ?>"
+                :wrapper-css="[ 'equalwidth' ]"
+                size="fullwidth"
+                :options-list="pageOptions['jet-mega-menu-mega-width-type']['options']"
+                v-model="pageOptions['jet-mega-menu-mega-width-type']['value']"
+                :conditions="[
+                    {
+                        input: this.pageOptions['jet-mega-menu-layout']['value'],
+                        compare: 'in',
+                        value: ['horizontal'],
+                    }
+                ]"
+            >
+            </cx-vui-select>
+
+            <cx-vui-input
+                name="jet-mega-menu-mega-width-selector"
+                label="<?php _e( 'Custom selector', 'jet-menu' ); ?>"
+                :wrapper-css="[ 'equalwidth' ]"
+                size="fullwidth"
+                type="text"
+                v-model="pageOptions['jet-mega-menu-mega-width-selector']['value']"
+                :conditions="[
+                    {
+                        input: this.pageOptions['jet-mega-menu-layout']['value'],
+                        compare: 'in',
+                        value: ['horizontal'],
+                    },
+                    {
+                        input: pageOptions['jet-mega-menu-mega-width-type']['value'],
+                        compare: 'equal',
+                        value: 'selector',
+                    }
+                ]"
+            >
+            </cx-vui-input>
+
             <cx-vui-input
                 name="jet-mega-menu-dropdown-breakpoint"
                 label="<?php _e( 'Breakpoint', 'jet-menu' ); ?>"

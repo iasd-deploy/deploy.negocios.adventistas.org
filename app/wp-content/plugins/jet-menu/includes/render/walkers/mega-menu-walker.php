@@ -356,7 +356,7 @@ class Mega_Menu_Walker extends \Walker_Nav_Menu {
 		);
 
 		$item_output = sprintf(
-			'%1$s<div class="jet-mega-menu-item__inner" tabindex="1" aria-label="%5$s">%2$s%3$s</div>%4$s',
+			'%1$s<div class="jet-mega-menu-item__inner" tabindex="0" aria-label="%5$s">%2$s%3$s</div>%4$s',
 			$args->before,
 			$link_html,
 			$dropdown_html,
@@ -424,10 +424,8 @@ class Mega_Menu_Walker extends \Walker_Nav_Menu {
 
 				if ( ! $use_ajax ) {
 					do_action( 'jet-menu/mega-sub-menu/before-render', $item->ID );
-
-					ob_start();
-					$render_status = $render_instance->render();
-					$template_content = ob_get_clean();
+					
+					$template_content = $render_data['content'];
 
 					do_action( 'jet-menu/mega-sub-menu/after-render', $item->ID );
 				} else {

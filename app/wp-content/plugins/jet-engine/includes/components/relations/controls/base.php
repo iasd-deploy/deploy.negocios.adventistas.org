@@ -1,6 +1,8 @@
 <?php
 namespace Jet_Engine\Relations\Controls;
 
+use Jet_Engine\Relations\Storage\Ordering;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
@@ -311,8 +313,9 @@ class Base {
 		);
 
 		$js_common = array(
-			'_nonce' => wp_create_nonce( 'jet-engine-relations-control' ),
-			'help'   => array(
+			'_nonce'    => wp_create_nonce( 'jet-engine-relations-control' ),
+			'orderMode' => Ordering::instance()->get_mode(),
+			'help'      => array(
 				'emptyObject' => $this->get_empty_object_help(),
 			),
 			'i18n' => array(

@@ -112,7 +112,7 @@ if ( ! class_exists( 'Jet_Engine_Base_WP_Intance' ) ) {
 		/**
 		 * Return instance items
 		 *
-		 * @return [type] [description]
+		 * @return array Array of registered items
 		 */
 		public function get_items() {
 

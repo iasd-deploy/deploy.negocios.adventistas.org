@@ -6,6 +6,7 @@ use Jet_Engine\Query_Builder\Manager;
 class Users_Query extends Base_Query {
 
 	use Traits\Meta_Query_Trait;
+	use Traits\Date_Query_Trait;
 
 	public $current_wp_query = null;
 
@@ -33,6 +34,10 @@ class Users_Query extends Base_Query {
 			return $this->current_wp_query;
 		}
 
+		if ( null === $this->final_query ) {
+			$this->setup_query();
+		}
+
 		$args = $this->final_query;
 
 		// Prevent php error if `paged` argument is empty string.
@@ -42,6 +47,10 @@ class Users_Query extends Base_Query {
 
 		if ( ! empty( $args['meta_query'] ) ) {
 			$args['meta_query'] = $this->prepare_meta_query_args( $args );
+		}
+
+		if ( ! empty( $args['date_query'] ) ) {
+			$args['date_query'] = $this->prepare_date_query_args( $args );
 		}
 
 		$this->current_wp_query = new \WP_User_Query( $args );
@@ -222,6 +231,17 @@ class Users_Query extends Base_Query {
 
 	public function reset_query() {
 		$this->current_wp_query = null;
+	}
+	public function _debug_info() {
+		$current_query = $this->get_current_wp_query();
+		$request = is_object( $current_query ) && isset( $current_query->request ) ? $current_query->request : 'Query error';
+
+		$result = array(
+			'request' => $request,
+			'current_query' => $current_query,
+		);
+
+		return $result;
 	}
 
 }

@@ -59,7 +59,7 @@ class Integration {
 				'path'     => jet_menu()->plugin_path( 'integration/plugins/jet-form-builder/manager.php' ),
 			),
 		] );
-
+		
 		$this->load_compatibility_modules();
 
 		$this->include_integration_theme_file();

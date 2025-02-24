@@ -305,6 +305,19 @@
 				}
 
 			},
+			setDefaultQueryVar: function() {
+				if ( ! this.generalSettings.slug && ! this.$CXNotice?.instance?.stack?.slug ) {
+					this.$CXNotice.add( {
+						message: JetEngineCPTConfig.notices.slug,
+						type: 'error',
+						duration: 7000,
+					}, 'slug' );
+
+					return;
+				}
+
+				this.advancedSettings.query_var = this.generalSettings.slug;
+			},
 			checkSlug: function() {
 				this.showIncorrectSlug = ( 32 < this.generalSettings.slug.length );
 			},

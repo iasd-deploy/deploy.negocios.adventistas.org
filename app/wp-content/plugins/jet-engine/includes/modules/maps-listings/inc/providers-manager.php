@@ -79,9 +79,11 @@ class Providers_Manager {
 
 	/**
 	 * Returns all providers list or provider object by ID
-	 *
-	 * @param  [type] $provider_id [description]
-	 * @return [type]              [description]
+	 * 
+	 * @param  string $source      'map' or 'geocode'
+	 * @param  string $provider_id Provider ID ('google', 'mapbox', etc.), if null - returns all providers list
+	 * 
+	 * @return Geocode_Providers\Base|Geocode_Providers\Base[]|false Provider instance, array of provider instances, or false if no provider with given ID
 	 */
 	public function get_providers( $source = 'map', $provider_id = null ) {
 

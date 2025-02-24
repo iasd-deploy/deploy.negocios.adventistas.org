@@ -128,6 +128,11 @@ class Query {
 		} else {
 			foreach ( $pages as $page ) {
 				if ( ! empty( $page['slug'] ) && $this->subpagenow === $page['slug'] ) {
+
+					if ( ! empty( $page['template'] ) && ! is_array( $page['template'] ) ) {
+						$page['template'] = [ $page['template'] ];
+					}
+
 					$this->subpage = $page;
 				}
 			}
@@ -145,6 +150,10 @@ class Query {
 
 		// If first page is accessible for any role - use it as default
 		if ( ! empty( $pages[0] ) && empty( $pages[0]['roles'] ) ) {
+
+			if ( ! empty( $pages[0]['template'] ) && ! is_array( $pages[0]['template'] ) ) {
+				$pages[0]['template'] = [ $pages[0]['template'] ];
+			}
 
 			$this->subpage    = $pages[0];
 			$this->subpagenow = $this->subpage['slug'];
@@ -266,7 +275,7 @@ class Query {
 
 			$current_object = jet_engine()->listings->data->get_current_object();
 
-			if ( 'users' === $listing || ( 'query' === $listing && 'WP_User' === get_class( $current_object ) ) ) {
+			if ( in_array( $listing, array( 'users', 'query' ) ) && 'WP_User' === get_class( $current_object ) ) {
 				$user = $current_object;
 			} elseif ( $this->is_single_user_page() ) {
 				$user = $this->get_queried_user();

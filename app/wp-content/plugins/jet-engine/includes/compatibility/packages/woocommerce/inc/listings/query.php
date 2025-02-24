@@ -27,7 +27,8 @@ class Query {
 
 		add_filter(
 			'jet-engine/listings/frontend/custom-listing-url',
-			[ $this, 'set_wc_product_custom_listing_url' ]
+			[ $this, 'set_wc_product_custom_listing_url' ],
+			10, 2
 		);
 
 		add_action( 
@@ -108,7 +109,13 @@ class Query {
 	 *
 	 * @return mixed|string
 	 */
-	public function set_wc_product_custom_listing_url( $url ) {
+	public function set_wc_product_custom_listing_url( $url, $settings ) {
+
+		$source = ! empty( $settings['listing_link_source'] ) ? $settings['listing_link_source'] : '_permalink';
+
+		if ( $source !== '_permalink' && $source !== 'get_permalink' ) {
+			return $url;
+		}
 
 		$object = jet_engine()->listings->data->get_current_object();
 

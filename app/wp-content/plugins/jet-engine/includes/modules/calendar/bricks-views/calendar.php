@@ -20,7 +20,7 @@ class Calendar extends Listing_Grid {
 
 	// Return localised element label
 	public function get_label() {
-		return esc_html__( 'Calendar', 'jet-engine' );
+		return esc_html__( 'Dynamic Calendar', 'jet-engine' );
 	}
 
 	// Set builder control groups
@@ -243,6 +243,78 @@ class Calendar extends Listing_Grid {
 				'label'   => esc_html__( 'Hide past events', 'jet-engine' ),
 				'type'    => 'checkbox',
 				'default' => false,
+			]
+		);
+
+		$this->register_jet_control(
+			'allow_date_select',
+			[
+				'tab'     => 'content',
+				'label'   => esc_html__( 'Allow date select', 'jet-engine' ),
+				'type'    => 'checkbox',
+				'default' => false,
+			]
+		);
+
+		$this->register_jet_control(
+			'start_year_select',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Min select year', 'jet-engine' ),
+				'type'        => 'text',
+				'default'     => '1970',
+				'description' => esc_html__( 'Will be set to current year if "Hide past events" option enabled', 'jet-engine' ),
+				'required'    => [ 'allow_date_select', '=', true ],
+			]
+		);
+
+		$this->register_jet_control(
+			'end_year_select',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Max select year', 'jet-engine' ),
+				'type'        => 'text',
+				'default'     => '2038',
+				'description' => esc_html__( 'You may use JetEngine macros in min/max select year. Also, you may use strings like \'+3years\', \'-1year\', \'this year\' to set year value relative to the curent year.' ),
+				'required'    => [ 'allow_date_select', '=', true ],
+			]
+		);
+
+		$this->register_jet_control(
+			'cache_enabled',
+			[
+				'tab'     => 'content',
+				'label'   => esc_html__( 'Cache Calendar', 'jet-engine' ),
+				'type'    => 'checkbox',
+				'default' => false,
+			]
+		);
+
+		$this->register_jet_control(
+			'cache_timeout',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Cache Timeout', 'jet-engine' ),
+				'description' => esc_html__( 'Cache timeout in seconds. Set -1 for unlimited.', 'jet-engine' ),
+				'type'        => 'number',
+				'min'         => -1,
+				'max'         => 86400,
+				'default'     => 60,
+				'required'    => [ 'cache_enabled', '=', true ],
+			]
+		);
+
+		$this->register_jet_control(
+			'max_cache',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Maximum Cache Size', 'jet-engine' ),
+				'description' => esc_html__( 'Maximum cache size (months). If number of cached month exceeds this number - the oldest month will be deleted from cache.', 'jet-engine' ),
+				'type'        => 'number',
+				'min'         => 1,
+				'max'         => 120,
+				'default'     => 12,
+				'required'    => [ 'cache_enabled', '=', true ],
 			]
 		);
 
@@ -1235,6 +1307,7 @@ class Calendar extends Listing_Grid {
 	public function parse_jet_render_attributes( $attrs = [] ) {
 
 		$attrs['show_posts_nearby_months'] = $attrs['show_posts_nearby_months'] ?? false;
+		$attrs['_id']                      = $this->id;
 
 		return $attrs;
 	}

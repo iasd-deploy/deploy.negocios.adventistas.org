@@ -81,4 +81,13 @@ class Get_Elementor_Template_Content extends Base {
 		return rest_ensure_response( $template_data );
 	}
 
+	/**
+	 * Is public end-point
+	 *
+	 * @return bool
+	 */
+	public function permission_callback() {
+		return true;
+	}
+
 }

@@ -57,9 +57,22 @@ class Rewrite {
 		$pages  = Module::instance()->settings->get_pages();
 
 		foreach ( $pages as $page => $page_id ) {
-			$rewrite = $this->get_page_rewrite( $page, $page_id );
-			if ( $rewrite ) {
-				$result[ $rewrite['regex'] ] = $rewrite['redirect'];
+			$ids = apply_filters( 'jet-engine/profile-builder/rewrite/page-translations', array( $page_id ), $page_id );
+
+			if ( empty( $ids ) || ! is_array( $ids ) ) {
+				$ids = array( $page_id );
+			}
+
+			if ( false === array_search( $page_id, $ids ) ) {
+				$ids[] = $page_id;
+			}
+
+			foreach ( $ids as $id ) {
+				$rewrite = $this->get_page_rewrite( $page, $id );
+
+				if ( $rewrite ) {
+					$result[ $rewrite['regex'] ] = $rewrite['redirect'];
+				}
 			}
 		}
 
@@ -79,7 +92,7 @@ class Rewrite {
 			return false;
 		}
 
-		$page_object = get_page( $page_id );
+		$page_object = get_post( $page_id );
 
 		if ( ! $page_object ) {
 			return;
@@ -95,7 +108,7 @@ class Rewrite {
 				break;
 
 			default:
-				$regex    = $slug . '/?([^/]+)?';
+				$regex    = $slug . '(?:/([^/]+))?/?$';
 				$redirect = 'pagename=' . $slug . '&' . $this->page_var . '=' . $page . '&' . $this->subpage_var . '=$matches[1]';
 				break;
 		}

@@ -33,6 +33,26 @@ class Get_Map_Marker_Info extends \Jet_Engine_Base_API_Endpoint {
 			) );
 		}
 
+		if ( false !== strpos( $post_id, '-' ) ) {
+			$this->maybe_apply_jet_smart_filters( $params['jsf'] ?? '' );
+		}
+
+		$queried_id = 0;
+
+		// Set the current queried object.
+		if ( ! empty( $params['queried_id'] ) ) {
+			$queried_obj_data = explode( '|', $params['queried_id'] );
+			$queried_id       = ! empty( $queried_obj_data[0] ) ? absint( $queried_obj_data[0] ) : false;
+			$queried_class    = ! empty( $queried_obj_data[1] ) ? $queried_obj_data[1] : 'WP_Post';
+
+			if ( $queried_id ) {
+				jet_engine()->listings->data->set_current_object_by_id( $queried_id, $queried_class );
+			}
+		}
+
+		// Set the current element id.
+		$element_id = $params['element_id'] ?? '';
+
 		jet_engine()->listings->data->set_listing_by_id( $listing_id );
 
 		$post_obj = false;
@@ -58,14 +78,28 @@ class Get_Map_Marker_Info extends \Jet_Engine_Base_API_Endpoint {
 			) );
 		}
 
+		$additional_attrs = array();
+
+		if ( isset( $params['geo_query_distance'] ) && $params['geo_query_distance'] >= 0 ) {
+			$post_obj->geo_query_distance = $params['geo_query_distance'];
+		}
+
 		jet_engine()->frontend->set_listing( $listing_id );
 
-		do_action( 'jet-engine/maps-listings/get-map-marker', $listing_id );
+		do_action( 'jet-engine/maps-listings/get-map-marker', $listing_id, $queried_id, $element_id );
 
 		ob_start();
 
 		$content = jet_engine()->frontend->get_listing_item( $post_obj );
-		$content = sprintf( '<div class="jet-map-popup-%1$d jet-listing-dynamic-post-%1$d" data-item-object="%1$d">%2$s</div>', $post_id, $content );
+
+		$additional_attrs = apply_filters( 'jet-engine/maps-listings/map-popup-additional-attrs', $additional_attrs, $params, $post_obj );
+
+		$content = sprintf(
+			'<div class="jet-map-popup-%1$s jet-listing-dynamic-post-%1$s" data-item-object="%1$s" data-additional-map-popup-data="%3$s">%2$s</div>',
+			$post_id,
+			$content,
+			! empty( $additional_attrs ) ? htmlspecialchars( json_encode( $additional_attrs ) ) : '{}'
+		);
 		$content = apply_filters( 'jet-engine/maps-listings/marker-content', $content, $post_obj, $listing_id );
 
 		$content .= ob_get_clean();
@@ -79,6 +113,34 @@ class Get_Map_Marker_Info extends \Jet_Engine_Base_API_Endpoint {
 
 	}
 
+	public function maybe_apply_jet_smart_filters( string $url ) {
+		if ( empty( $url ) ) {
+			return;
+		}
+
+		if ( ! function_exists( 'jet_smart_filters' ) ) {
+			return;
+		}
+
+		$server_uri = $_SERVER['REQUEST_URI'];
+
+		global $wp;
+
+		$_SERVER['REQUEST_URI'] = preg_replace(
+			site_url(),
+			'',
+			$url
+		);
+
+		$wp->parse_request();
+		$wp->query_posts();
+		wp_reset_postdata();
+
+		jet_smart_filters()->render->apply_filters_from_permalink( $wp );
+
+		$_SERVER['REQUEST_URI'] = $server_uri;
+	}
+
 	/**
 	 * Returns endpoint request method - GET/POST/PUT/DELTE
 	 *
@@ -90,7 +152,8 @@ class Get_Map_Marker_Info extends \Jet_Engine_Base_API_Endpoint {
 
 	/**
 	 * Check user access to current end-popint
-	 *
+	 * This is public endpoint so it always accessible
+	 * 
 	 * @return bool
 	 */
 	public function permission_callback( $request ) {
@@ -114,6 +177,14 @@ class Get_Map_Marker_Info extends \Jet_Engine_Base_API_Endpoint {
 			),
 			'source' => array(
 				'default'  => 'posts',
+				'required' => false,
+			),
+			'queried_id' => array(
+				'default'  => '',
+				'required' => false,
+			),
+			'geo_query_distance' => array(
+				'default'  => -1,
 				'required' => false,
 			),
 		);

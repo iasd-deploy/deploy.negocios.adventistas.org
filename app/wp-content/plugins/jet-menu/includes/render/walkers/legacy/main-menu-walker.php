@@ -322,7 +322,7 @@ class Main_Walker extends \Walker_Nav_Menu {
 			$classes = explode( ' ', $classes );
 		}
 
-		if ( in_array( 'menu-item-has-children', $classes ) || $this->is_mega_enabled( $item->ID ) ) {
+		if ( in_array( 'jet-menu-item-has-children', $classes ) || $this->is_mega_enabled( $item->ID ) ) {
 			$arrow_icon_type = jet_menu()->settings_manager->options_manager->get_option( 'jet-menu-' . $level . '-arrow-type', 'icon' );
 
 			switch ( $arrow_icon_type ) {

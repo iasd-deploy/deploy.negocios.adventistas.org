@@ -87,18 +87,21 @@ if ( ! class_exists( 'Jet_Smart_Filters_Indexer_Controls' ) ) {
 					'type'        => Elementor\Controls_Manager::CHOOSE,
 					'toggle'      => false,
 					'label_block' => false,
-					'default'     => 'default',
+					'default'     => 'initial',
 					'options'     => array(
-						'default'       => array(
+						'initial' => array(
 							'title' => esc_html__( 'Default', 'jet-smart-filters' ),
 							'icon'  => 'eicon-justify-center-h',
 						),
-						'space-between' => array(
+						'auto'    => array(
 							'title' => esc_html__( 'Space Between', 'jet-smart-filters' ),
 							'icon'  => 'eicon-justify-space-between-h',
 						),
 					),
-					'prefix_class' => 'jet-filters-counter-position-',
+					'selectors'  => array(
+						'{{WRAPPER}} .jet-filters-counter'      => 'margin-left: {{VALUE}};',
+						'.rtl {{WRAPPER}} .jet-filters-counter' => 'margin-right: {{VALUE}};',
+					),
 					'condition'    => array(
 						'filters_position' => 'block',
 					),

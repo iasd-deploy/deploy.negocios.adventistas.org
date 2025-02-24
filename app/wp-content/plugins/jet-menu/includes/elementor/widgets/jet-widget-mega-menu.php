@@ -361,6 +361,18 @@ class Jet_Widget_Mega_Menu extends Widget_Base {
 			);
 
 			$this->add_control(
+				'fill-svg-icon',
+				array(
+					'label'        => esc_html__( 'Fill SVG icons', 'jet-menu' ),
+					'type'         => Controls_Manager::SWITCHER,
+					'label_on'     => esc_html__( 'Yes', 'jet-menu' ),
+					'label_off'    => esc_html__( 'No', 'jet-menu' ),
+					'return_value' => 'yes',
+					'default'      => 'yes',
+				)
+			);
+
+			$this->add_control(
 				'dropdown-icon',
 				array(
 					'label'            => __( 'Dropdown Icon', 'jet-menu' ),
@@ -867,6 +879,22 @@ class Jet_Widget_Mega_Menu extends Widget_Base {
 			]
 		);
 
+		$this->add_responsive_control(
+			'menu_item_dropdown_icon_size',
+			[
+				'label' => __( 'Dropdown Icon Size', 'jet-menu' ),
+				'type' => Controls_Manager::SLIDER,
+				'range' => array(
+					'px' => array(
+						'max' => 50,
+					),
+				),
+				'selectors' => array(
+					'{{WRAPPER}}' => '--jmm-top-item-dropdown-icon-size:{{SIZE}}{{UNIT}};',
+				),
+			]
+		);
+
 		$this->add_group_control(
 			Group_Control_Typography::get_type(),
 			array(
@@ -1135,9 +1163,12 @@ class Jet_Widget_Mega_Menu extends Widget_Base {
 					{{WRAPPER}} .jet-mega-menu.jet-mega-menu--layout-horizontal .jet-mega-menu-mega-container__inner,
 					{{WRAPPER}} .jet-mega-menu.jet-mega-menu--layout-vertical .jet-mega-menu-sub-menu__list,
 					{{WRAPPER}} .jet-mega-menu.jet-mega-menu--layout-vertical .jet-mega-menu-mega-container__inner' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+					'{{WRAPPER}}' => '--jmm-sub-menu-top-left-radius:{{TOP}}{{UNIT}}; --jmm-sub-menu-top-right-radius:{{RIGHT}}{{UNIT}}; --jmm-sub-menu-bottom-right-radius:{{BOTTOM}}{{UNIT}}; --jmm-sub-menu-bottom-left-radius:{{LEFT}}{{UNIT}};',
 				),
 			)
 		);
+
+		//--jmm-sub-menu-top-left-radius
 
 		$this->add_group_control(
 			Group_Control_Box_Shadow::get_type(),
@@ -2015,6 +2046,23 @@ class Jet_Widget_Mega_Menu extends Widget_Base {
 				),
 				'selectors' => array(
 					'{{WRAPPER}}' => '--jmm-dropdown-toggle-size:{{SIZE}}{{UNIT}};',
+				),
+			)
+		);
+
+		$this->add_responsive_control(
+			'dropdown_menu_toggle_icon_size',
+			array(
+				'label' => __( 'Icon Size', 'jet-menu' ),
+				'type' => Controls_Manager::SLIDER,
+				'range' => array(
+					'px' => array(
+						'min' => 12,
+						'max' => 60,
+					),
+				),
+				'selectors' => array(
+					'{{WRAPPER}}' => '--jmm-dropdown-toggle-icon-size:{{SIZE}}{{UNIT}};',
 				),
 			)
 		);
@@ -2949,6 +2997,7 @@ class Jet_Widget_Mega_Menu extends Widget_Base {
 				'toggle-default-icon'   => $this->get_icon_html( $settings['toggle-default-icon'] ),
 				'toggle-opened-icon'    => $this->get_icon_html( $settings['toggle-opened-icon'] ),
 				'ajax-loading'          => filter_var( $settings['ajax-loading'], FILTER_VALIDATE_BOOLEAN ),
+				'fill-svg-icon'          => filter_var( $settings[ 'fill-svg-icon' ], FILTER_VALIDATE_BOOLEAN ),
 				'location'              => 'elementor',
 			) );
 		}

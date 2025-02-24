@@ -110,7 +110,7 @@ class Jet_Engine_Listings_Callbacks {
 	}
 
 	/**
-	 * Apply callbacks args for givan callback
+	 * Apply callbacks args for given callback
 	 * 
 	 * @return [type] [description]
 	 */
@@ -485,6 +485,39 @@ class Jet_Engine_Listings_Callbacks {
 	}
 
 	/**
+	 * List of callbacks that require unserialized value as input
+	 * 
+	 * @return array Callback list
+	 */
+	public function non_scalar_callbacks() {
+		return apply_filters(
+			'jet-engine/listings/non-scalar-callbacks',
+			array(
+				'jet_engine_render_multiselect'         => true,
+				'jet_engine_render_checkbox_values'     => true,
+				'jet_engine_render_checklist'           => true,
+				'jet_engine_render_acf_checkbox_values' => true,
+				'jet_engine_render_post_titles'         => true,
+				'jet_related_posts_list'                => true,
+				'jet_related_items_list'                => true,
+				'jet_engine_render_field_values_count'  => true,
+				'jet_engine_get_child'                  => true,
+				'jet_engine_label_by_glossary'          => true,
+			)
+		);
+	}
+
+	/**
+	 * Check if callback requires unserialized input
+	 * @param string $callback Callback name
+	 * @return bool  Is unserialized input required
+	 */
+	public function is_non_scalar( $callback ) {
+		$non_scalar = $this->non_scalar_callbacks();
+		return isset( $non_scalar[ $callback ] );
+	}
+
+	/**
 	 * Apply selected callback for given data
 	 * 
 	 * @param  [type] $input    [description]
@@ -506,6 +539,10 @@ class Jet_Engine_Listings_Callbacks {
 		$args   = array();
 		$result = $input;
 
+		if ( $this->is_non_scalar( $callback ) ) {
+			$result = jet_engine_maybe_unserialize( $result, $callback );
+		}
+
 		switch ( $callback ) {
 
 			case 'date':
@@ -513,7 +550,7 @@ class Jet_Engine_Listings_Callbacks {
 			case 'jet_engine_date':
 
 				// Added to prevent print `January 1, 1970` if date field is empty.
-				if ( empty( $result ) ) {
+				if ( empty( $result ) || is_object( $result ) || is_array( $result ) ) {
 					return '';
 				}
 
@@ -539,6 +576,11 @@ class Jet_Engine_Listings_Callbacks {
 			case 'wp_get_attachment_image':
 
 				$size = isset( $settings['attachment_image_size'] ) ? $settings['attachment_image_size'] : 'full';
+
+				if ( is_array( $result ) && isset( $result['id'] ) ) {
+					$result = $result['id'];
+				}
+
 				$args = array( $result, $size );
 
 				break;
@@ -561,7 +603,7 @@ class Jet_Engine_Listings_Callbacks {
 			case 'jet_related_posts_list':
 			case 'jet_related_items_list':
 
-				$tag       = isset( $settings['related_list_tag'] ) ? $settings['related_list_tag'] : '';
+				$tag       = isset( $settings['related_list_tag'] ) ? $settings['related_list_tag'] : 'ul';
 				$tag       = Jet_Engine_Tools::sanitize_html_tag( $tag );
 				$is_linked = isset( $settings['related_list_is_linked'] ) ? $settings['related_list_is_linked'] : '';
 				$is_single = isset( $settings['related_list_is_single'] ) ? $settings['related_list_is_single'] : '';
@@ -576,6 +618,8 @@ class Jet_Engine_Listings_Callbacks {
 						$args[] = $settings['dynamic_field_post_object'];
 					} elseif ( ! empty( $settings['object_field'] ) ) {
 						$args[] = $settings['object_field'];
+					} elseif ( ! empty( $settings['related_items_prop'] ) ) {
+						$args[] = $settings['related_items_prop'];
 					}
 
 				}

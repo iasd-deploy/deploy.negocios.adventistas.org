@@ -143,6 +143,8 @@ if ( ! class_exists( 'Jet_Engine_Smart_Filters_Package' ) ) {
 				$query_id = $widget_settings['_element_id'];
 			}
 
+			$query_id = apply_filters( 'jet-engine/compatibility/listing/query-id', $query_id, $widget_settings );
+
 			$filters_data = array();
 
 			$filters_settings = array(
@@ -151,9 +153,16 @@ if ( ! class_exists( 'Jet_Engine_Smart_Filters_Package' ) ) {
 				'props'     => jet_smart_filters()->query->get_query_props(),
 			);
 
+			$verification_enabled = ! empty( jet_smart_filters()->render->use_signature_verification );
+
 			foreach ( $filters_settings as $param => $data ) {
 				if ( ! empty( $data['jet-engine'][ $query_id ] ) ) {
 					$filters_data[ $param ][ $query_id ] = $data['jet-engine'][ $query_id ];
+
+					if ( $param === 'settings' && $verification_enabled ) {
+						$signature = jet_smart_filters()->render->create_signature( $data['jet-engine'][ $query_id ] );
+						$filters_data[ $param ][ $query_id ]['jsf_signature'] = $signature;
+					}
 				}
 			}
 
@@ -175,6 +184,12 @@ if ( ! class_exists( 'Jet_Engine_Smart_Filters_Package' ) ) {
 
 			if ( class_exists( 'Jet_Engine\Query_Builder\Manager' ) ) {
 				$query_builder_id = Jet_Engine\Query_Builder\Manager::instance()->listings->get_query_id( $widget_settings['lisitng_id'], $widget_settings );
+
+				$query = Jet_Engine\Query_Builder\Manager::instance()->get_query_by_id( $query_builder_id );
+
+				if ( $query && ! empty( $query->final_query['_random_seed'] ) ) {
+					$response['filters_data']['extra_props'][ '_random_seed_' . $query_builder_id ] = $query->final_query['_random_seed'];
+				}
 			}
 
 			/**

@@ -113,6 +113,8 @@ if ( ! class_exists( 'Jet_Engine_Listings_Data' ) ) {
 				$is_main_query = $query->is_main_query();
 			}
 
+			$is_main_query = apply_filters( 'jet-engine/listings/data/the-post/is-main-query', $is_main_query, $post, $query );
+
 			if ( $is_main_query ) {
 				$current_object = $this->get_current_object();
 
@@ -788,6 +790,15 @@ if ( ! class_exists( 'Jet_Engine_Listings_Data' ) ) {
 				case 'current_post_author':
 					return jet_engine()->listings->data->get_current_author_object();
 
+				case 'parent_object':
+					$parent_object = jet_engine()->listings->objects_stack->get_parent_object_from_stack();
+
+					if ( ! $parent_object ) {
+						$parent_object = jet_engine()->listings->objects_stack->get_root_object();
+					}
+
+					return $parent_object;
+
 				default:
 					return apply_filters( 'jet-engine/listings/data/object-by-context/' . $context, null );
 			}
@@ -979,6 +990,12 @@ if ( ! class_exists( 'Jet_Engine_Listings_Data' ) ) {
 		 */
 		public function get_meta( $key = null, $object = null, $source = null ) {
 
+			//moved before trying to get value from user to fix issue with Dynamic Image
+			//https://github.com/Crocoblock/issues-tracker/issues/11251
+			if ( ! $object ) {
+				$object = $this->get_current_object();
+			}
+
 			if ( in_array( $key, $this->user_fields ) ) {
 
 				if ( $object && 'WP_User' === get_class( $object ) ) {
@@ -1001,11 +1018,11 @@ if ( ! class_exists( 'Jet_Engine_Listings_Data' ) ) {
 			}
 
 			if ( ! $object ) {
-				$object = $this->get_current_object();
+				return false;
 			}
 
-			if ( ! $object ) {
-				return false;
+			if ( property_exists( $object, $key ) ) {
+				return maybe_unserialize( $object->$key );
 			}
 
 			$class  = get_class( $object );
@@ -1078,6 +1095,7 @@ if ( ! class_exists( 'Jet_Engine_Listings_Data' ) ) {
 						);
 					}
 
+					return $result;
 			}
 
 		}
@@ -1277,6 +1295,61 @@ if ( ! class_exists( 'Jet_Engine_Listings_Data' ) ) {
 			}
 
 			return apply_filters( 'jet-engine/listings/data/sources', $sources );
+		}
+
+		/**
+		 * Set $current_object property by object id and class name.
+		 *
+		 * @param mixed  $object_id  Object ID
+		 * @param string $class      Object class name
+		 * @param bool   $clear_hook Clear or not the `the_post` hook
+		 */
+		public function set_current_object_by_id( $object_id = null, $class = null, $clear_hook = false ) {
+			$object = $this->get_object_by_id( $object_id, $class );
+			$this->set_current_object( $object, $clear_hook );
+		}
+
+		/**
+		 * Get object by object id and class name.
+		 *
+		 * @param mixed  $object_id Object ID
+		 * @param string $class     Object class name
+		 *
+		 * @return object|null
+		 */
+		public function get_object_by_id( $object_id = null, $class = null ) {
+
+			$object = null;
+
+			if ( ! $object_id || ! $class ) {
+				return $object;
+			}
+
+			switch ( $class ) {
+				case 'WP_Post':
+					$object = get_post( $object_id );
+					break;
+
+				case 'WP_Term':
+					$object = get_term( $object_id );
+					break;
+
+				case 'WP_User':
+					$object = get_user_by( 'ID', $object_id );
+					break;
+
+				case 'WP_Comment':
+					$object = get_comment( $object_id );
+					break;
+
+				default:
+					$object = apply_filters(
+						'jet-engine/listings/data/object-by-id',
+						null, $object_id, $class
+					);
+			}
+
+			return $object;
 		}
 
 	}

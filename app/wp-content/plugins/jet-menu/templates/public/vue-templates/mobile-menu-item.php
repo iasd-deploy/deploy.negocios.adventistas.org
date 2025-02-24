@@ -4,7 +4,7 @@
 >
 	<div
 		class="jet-mobile-menu__item-inner"
-		tabindex="1"
+		tabindex="0"
 		:aria-label="itemDataObject.name"
         aria-expanded="false"
 		v-on:click="itemSubHandler"
@@ -26,6 +26,7 @@
 				<div class="jet-menu-name">
 					<span
 						class="jet-menu-label"
+						v-if="isLabelVisible"
 						v-html="itemDataObject.name"
 					></span>
 					<small

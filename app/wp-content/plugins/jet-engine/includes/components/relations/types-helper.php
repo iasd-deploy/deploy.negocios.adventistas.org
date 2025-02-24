@@ -9,6 +9,9 @@ if ( ! defined( 'WPINC' ) ) {
 class Types_Helper {
 
 	public $types = null;
+	/**
+	 * @var Jet_Engine\Relations\Types\Base[]
+	 */
 	public $types_instances = array();
 
 	/**
@@ -98,8 +101,9 @@ class Types_Helper {
 	/**
 	 * Returns types instances list
 	 *
-	 * @param  [type] $slug [description]
-	 * @return [type]       [description]
+	 * @param  string $slug Type slug
+	 * 
+	 * @return Types\Base|Types\Base[]|false If $slug passed - type instance or false, array of types instances if no $slug provided
 	 */
 	public function get_instances( $slug = null ) {
 
@@ -258,9 +262,9 @@ class Types_Helper {
 	/**
 	 * Returns item title by object type data and item ID
 	 *
-	 * @param  [type] $type    [description]
-	 * @param  [type] $item_id [description]
-	 * @return [type]          [description]
+	 * @param  string $type    Relation type
+	 * @param  string $item_id Item ID
+	 * @return string          Item title
 	 */
 	public function get_type_item_title( $type, $item_id, $relation ) {
 

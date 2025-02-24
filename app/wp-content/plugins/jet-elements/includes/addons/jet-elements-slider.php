@@ -47,7 +47,7 @@ class Jet_Elements_Slider extends Jet_Elements_Base {
 	}
 
 	public function get_style_depends() {
-		return array( 'jet-slider-pro-css' );
+		return array( 'jet-slider-pro-css', 'jet-slider', 'jet-slider-skin' );
 	}
 
 	protected function register_controls() {
@@ -690,6 +690,15 @@ class Jet_Elements_Slider extends Jet_Elements_Base {
 		);
 
 		$this->add_control(
+			'slider_id',
+			array(
+				'label'   => esc_html__( 'Slider CSS ID', 'jet-elements' ),
+				'type'    => Controls_Manager::TEXT,
+				'dynamic' => array( 'active' => true ),
+			)
+		);
+
+		$this->add_control(
 			'slider_width',
 			array(
 				'label' => esc_html__( 'Slider Width(%)', 'jet-elements' ),
@@ -763,6 +772,7 @@ class Jet_Elements_Slider extends Jet_Elements_Base {
 					'{{WRAPPER}} ' . $css_scheme['instance_slider'] . ' .jet-slider__content-inner' => 'max-width: {{SIZE}}{{UNIT}}',
 					'{{WRAPPER}} ' . $css_scheme['pagination'] => 'max-width: {{SIZE}}{{UNIT}}',
 				),
+				'render_type'        => 'template',
 			)
 		);
 
@@ -3292,7 +3302,10 @@ class Jet_Elements_Slider extends Jet_Elements_Base {
 
 		$settings = json_encode( $settings );
 
-		return sprintf( 'data-settings=\'%1$s\'', $settings );
+    	// Escape the JSON string for safe use in HTML attributes
+   		$data_settings_attribute = esc_attr( $settings );
+
+		return sprintf( 'data-settings=\'%1$s\'', $data_settings_attribute );
 	}
 
 	/**

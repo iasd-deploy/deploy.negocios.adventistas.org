@@ -467,14 +467,17 @@ function jet_get_pretty_term_link( $value ) {
  */
 function jet_engine_icon_html( $value = null ) {
 
-	$format = apply_filters(
-		'jet-engine/listings/icon-html-format',
-		'<i class="fa %s"></i>',
-		$value
-	);
+	if ( 0 === strpos( $value, 'fa-' ) ) {
+		$format = apply_filters(
+			'jet-engine/listings/icon-html-format',
+			'<i class="fa %s"></i>',
+			$value
+		);
 
-	return sprintf( $format, $value );
+		return sprintf( $format, $value );
+	}
 
+	return Jet_Engine_Icons_Manager::get_icon_html( $value );
 }
 
 /**
@@ -622,7 +625,7 @@ function jet_related_items_list( $items = array(), $tag = 'ul', $is_single = fal
 
 	$relation = jet_engine()->relations->get_active_relations( $rel_id );
 
-	if ( ! $relation ) {
+	if ( ! $relation || ! is_object( $relation ) ) {
 		return;
 	}
 
@@ -987,6 +990,7 @@ function jet_engine_render_field_values_count( $values = array() ) {
  * @return mixed
  */
 function jet_engine_custom_cb_render_select( $post_id = 0, $field = '', $delimeter = ', ' ) {
+
 	$value = get_post_meta( $post_id, $field, true );
 
 	if ( ! $value ) {
@@ -1010,7 +1014,6 @@ function jet_engine_get_field_options_labels( $value = null, $obj_type = 'post',
 
 	$all_fields  = jet_engine()->meta_boxes->get_registered_fields();
 	$found_field = null;
-	$result      = array();
 
 	if ( ! isset( $all_fields[ $obj_type ] ) ) {
 		return is_array( $value ) ? wp_kses_post( implode( $delimiter, $value ) ) : wp_kses_post( $value );
@@ -1022,24 +1025,29 @@ function jet_engine_get_field_options_labels( $value = null, $obj_type = 'post',
 		}
 	}
 
-	if ( ! $found_field || ( empty( $found_field['options'] ) && empty( $found_field['options_from_glossary'] ) ) ) {
+	$post_meta        = new \Jet_Engine_CPT_Meta();
+	$prepared_options = $post_meta->filter_options_list( [], $found_field );
+
+	if ( empty( $prepared_options ) ) {
 		return is_array( $value ) ? wp_kses_post( implode( $delimiter, $value ) ) : wp_kses_post( $value );
 	}
 
-	if ( ! empty( $found_field['options_from_glossary'] ) ) {
+	$value  = is_array( $value ) ? $value : array( $value );
+	$result = [];
 
-		if ( ! empty( $found_field['glossary_id'] ) ) {
-			return jet_engine_label_by_glossary( $value, $found_field['glossary_id'], $delimiter );
-		}
-
-		return is_array( $value ) ? wp_kses_post( implode( $delimiter, $value ) ) : wp_kses_post( $value );
+	if ( is_array( $prepared_options ) ) {
+		$all_values = array_column( $prepared_options, 'key' );
+		$all_labels = array_column( $prepared_options, 'value' );
+		$prepared_options = array_combine( $all_values, $all_labels );
+	} elseif ( is_callable( $prepared_options ) ) {
+		$prepared_options = call_user_func( $prepared_options );
 	}
 
-	foreach ( $found_field['options'] as $option ) {
-		if ( is_array( $value ) && in_array( $option['key'], $value ) ) {
-			$result[] = $option['value'];
-		} elseif ( $value === $option['key'] )  {
-			$result[] = $option['value'];
+	foreach ( $value as $single_value ) {
+		if ( isset( $prepared_options[ $single_value ] ) ) {
+			$result[] = is_array( $prepared_options[ $single_value ] ) 
+						? $prepared_options[ $single_value ]['label']
+						: $prepared_options[ $single_value ];
 		}
 	}
 
@@ -1232,4 +1240,47 @@ function jet_engine_date( $format, $timestamp ) {
  */
 function jet_engine_get_user_data_by_id( $user_id = 0, $prop = 'display_name' ) {
 	return jet_engine()->listings->data->get_prop( $prop, get_user_by( 'ID', $user_id ) );
+}
+
+/**
+ * Maybe unserialize value; used in callbacks to ensure proper function
+ * 
+ * @param  string  $value   Input value
+ * @param  string  $context Callback name given for context; or any other value so that filter may be applied selectively
+ * @return mixed            Output value, serialized if allowed and needed
+ */
+function jet_engine_maybe_unserialize( $value = '', $context = '' ) {
+	if ( ! is_string( $value ) || true !== apply_filters( 'jet-engine/maybe-unserialize-allowed', true, $context ) ) {
+		return $value;
+	}
+
+    $unserialized = maybe_unserialize( $value );
+
+	if ( $unserialized !== false ) {
+		return $unserialized;
+	}
+
+	return $value;
+}
+
+/**
+ * Maybe unserialize object properties
+ * 
+ * @param  object  $object  Object for which properties should be unserialized
+ * @return object           Object in which serialized properties have been unserialized
+ */
+function jet_engine_maybe_unserialize_object_props( $object ) {
+	if ( ! is_object( $object ) ) {
+		return $object;
+	}
+
+    foreach ( get_object_vars( $object ) as $var => $value ) {
+		$unserialized = maybe_unserialize( $value );
+
+		if ( $unserialized !== false ) {
+			$object->$var = $unserialized;
+		}
+	}
+
+	return $object;
 }

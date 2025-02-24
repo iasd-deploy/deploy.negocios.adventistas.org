@@ -6,6 +6,7 @@ class Map_Field {
 	public $field_type = 'map';
 
 	public $assets_added = false;
+	public $cct_map_cols = array();
 
 	/**
 	 * Constructor for the class
@@ -28,7 +29,8 @@ class Map_Field {
 		add_action( 'jet-engine/meta-boxes/templates/fields/controls',          array( $this, 'add_controls' ) );
 		add_action( 'jet-engine/meta-boxes/templates/fields/repeater/controls', array( $this, 'add_repeater_controls' ) );
 
-		add_filter( 'jet-engine/custom-content-types/item-to-update', array( $this, 'ensure_cct_data_on_save' ), 10, 2 );
+		add_filter( 'jet-engine/custom-content-types/item-to-update',    array( $this, 'ensure_cct_data_on_save' ), 10, 2 );
+		add_filter( 'jet-engine/custom-content-types/db/exclude-fields', array( $this, 'exclude_cct_map_fields' ) );
 
 	}
 
@@ -89,7 +91,7 @@ class Map_Field {
 		if ( $is_cct_field || $is_repeater_field ) {
 			$field_prefix = $field['name'];
 		} else {
-			$field_prefix = md5( $field['name'] );
+			$field_prefix = self::get_field_prefix( $field['name'] );
 		}
 
 		if ( ! $is_repeater_field ) {
@@ -180,8 +182,33 @@ class Map_Field {
 		?>
 		<script type="text/html" id="tmpl-jet-engine-map-field">
 			<div class="jet-engine-map-field__preview">
-				<address class="jet-engine-map-field__position"></address>
-				<div class="jet-engine-map-field__reset" role="button">× <?php _e( 'Reset location', 'jet-engine' ); ?></div>
+				<div class="jet-engine-map-field__address-wrapper show">
+					<address class="jet-engine-map-field__position"></address>
+					<# if ( data.valueFormat === 'location_address' ) { #>
+						<div class="jet-engine-map-field__edit_address" role="button">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -1 20 20" height="1em">
+							<script xmlns=""/>
+								<rect x="0" fill="none" width="20" height="20"/>
+									<g>
+										<path d="M13.89 3.39l2.71 2.72c.46.46.42 1.24.03 1.64l-8.01 8.02-5.56 1.16 1.16-5.58s7.6-7.63 7.99-8.03c.39-.39 1.22-.39 1.68.07zm-2.73 2.79l-5.59 5.61 1.11 1.11 5.54-5.65zm-2.97 8.23l5.58-5.6-1.07-1.08-5.59 5.6z"/>
+									</g>
+							<script xmlns=""/>
+						</svg> <?php _e( 'Edit address', 'jet-engine' ); ?></div>
+					<# } #>
+				</div>
+				<# if ( data.valueFormat === 'location_address' ) { #>
+					<div class="jet-engine-map-field__address-edit-wrapper">
+						<div class="jet-engine-map-field__address-edit-form-wrapper">
+							<input type="text" class="cx-ui-text jet-engine-map-field__new_address" placeholder="<?php _e( 'Enter address...', 'jet-engine' ); ?>"/>
+							<div class="jet-engine-map-field__confirm_edit" role="button">✓ <?php _e( 'Confirm', 'jet-engine' ); ?></div>
+							<div class="jet-engine-map-field__cancel_edit" role="button">× <?php _e( 'Cancel', 'jet-engine' ); ?></div>
+						</div>
+						<div class="jet-engine-map-field__edit-notice">
+							<strong>Note:</strong> updating the address does not lead to updating the coordinates. Use if automatically obtained address does not match your request.
+						</div>
+					</div>
+				<# } #>
+				<div class="jet-engine-map-field__reset show" role="button">× <?php _e( 'Reset location', 'jet-engine' ); ?></div>
 			</div>
 			<div class="jet-engine-map-field__search">
 				<input type="text" class="widefat cx-ui-text" placeholder="<?php _e( 'Search...', 'jet-engine' ); ?>">
@@ -199,6 +226,10 @@ class Map_Field {
 			<# } #>
 		</script>
 		<?php
+	}
+
+	public static function get_field_prefix( $field_name ) {
+		return apply_filters( 'jet-engine/maps-listings/map-field-prefix', md5( $field_name ), $field_name );
 	}
 
 	public function add_lat_lng_fields( $fields = array(), $instance = null ) {
@@ -221,7 +252,7 @@ class Map_Field {
 
 			if ( $this->field_type === $field['type'] ) {
 
-				$hash = md5( $field['name'] );
+				$hash = self::get_field_prefix( $field['name'] );
 
 				$field_prefix = $hash;
 
@@ -231,6 +262,10 @@ class Map_Field {
 					$hash_col = $field_prefix . '_hash';
 					$lat_col  = $field_prefix . '_lat';
 					$lng_col  = $field_prefix . '_lng';
+
+					$this->cct_map_cols[] = $hash_col;
+					$this->cct_map_cols[] = $lat_col;
+					$this->cct_map_cols[] = $lng_col;
 
 					if ( ! $instance->db->column_exists( $hash_col ) ) {
 						$instance->db->insert_table_columns( array( $hash_col => 'text' ) );
@@ -341,6 +376,11 @@ class Map_Field {
 					'lng' => array( 'type' => array( 'string', 'float' ) ),
 				),
 				'prepare_callback' => function( $value, $request, $args ) {
+
+					if ( empty( $value ) ) {
+						return new \stdClass();
+					}
+
 					return json_decode( $value );
 				}
 			);
@@ -478,6 +518,15 @@ class Map_Field {
 			]"
 		></cx-vui-input>
 		<?php
+	}
+
+	public function exclude_cct_map_fields( $exclude ) {
+
+		if ( empty( $this->cct_map_cols ) ) {
+			return $exclude;
+		}
+
+		return array_merge( $exclude, array_unique( $this->cct_map_cols ) );
 	}
 
 }

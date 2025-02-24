@@ -64,7 +64,7 @@ abstract class Base {
 	 * Returns new DOM parser instance for given content
 	 *
 	 * @param  string $content Content to parse
-	 * @return object DOM_Parser
+	 * @return DOM_Parser DOM_Parser
 	 */
 	public function get_parser_instance( $content = '' ) {
 

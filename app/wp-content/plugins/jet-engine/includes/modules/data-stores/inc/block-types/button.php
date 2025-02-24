@@ -43,14 +43,14 @@ class Button extends \Jet_Engine_Blocks_Views_Type_Base {
 				'type'    => 'string',
 				'default' => '',
 			),
-//			'synch_grid' => array(
-//				'type'    => 'boolean',
-//				'default' => false,
-//			),
-//			'synch_grid_id' =>array(
-//				'type'    => 'string',
-//				'default' => '',
-//			),
+			'synch_grid' => array(
+				'type'    => 'boolean',
+				'default' => false,
+			),
+			'synch_grid_id' =>array(
+				'type'    => 'string',
+				'default' => '',
+			),
 			'action_after_added' => array(
 				'type'    => 'string',
 				'default' => 'remove_from_store',

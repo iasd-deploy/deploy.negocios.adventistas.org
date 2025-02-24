@@ -1034,6 +1034,12 @@
 						return false === badgeVisible || '' === this.itemDataObject.badgeText || ! this.itemDataObject.badgeText ? false : true;
 					},
 
+					isLabelVisible: function() {
+						let labelVisible = ! this.itemDataObject.hideItemText;
+
+						return false === labelVisible || '' === this.itemDataObject.name || ! this.itemDataObject.name ? false : true;
+					},
+
 					isDescVisible: function() {
 						let descVisible = this.$root.menuOptions.itemDescVisible;
 

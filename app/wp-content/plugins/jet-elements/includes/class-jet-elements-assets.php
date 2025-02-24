@@ -32,8 +32,6 @@ if ( ! class_exists( 'Jet_Elements_Assets' ) ) {
 		 */
 		public function init() {
 			add_action( 'elementor/frontend/before_register_styles', array( $this, 'register_styles' ) );
-			add_action( 'elementor/frontend/before_enqueue_styles',   array( $this, 'enqueue_styles' ) );
-
 			add_action( 'elementor/preview/enqueue_styles', array( $this, 'enqueue_preview_styles' ) );
 
 			add_action( 'elementor/frontend/before_register_scripts', array( $this, 'register_scripts' ) );
@@ -95,35 +93,38 @@ if ( ! class_exists( 'Jet_Elements_Assets' ) ) {
 				false,
 				'2.5.1'
 			);
-		}
-
-		/**
-		 * Enqueue public-facing stylesheets.
-		 *
-		 * @since 1.0.0
-		 * @access public
-		 * @return void
-		 */
-		public function enqueue_styles() {
 
 			$direction_suffix = is_rtl() ? '-rtl' : '';
 
-			wp_enqueue_style(
+			wp_register_style(
 				'jet-elements',
 				jet_elements()->plugin_url( 'assets/css/jet-elements' . $direction_suffix . '.css' ),
 				false,
 				jet_elements()->get_version()
 			);
 
+			$addons_with_styles = jet_elements_integration()->addons_with_styles();
+
 			$default_theme_enabled = apply_filters( 'jet-elements/assets/css/default-theme-enabled', true );
 
-			if ( $default_theme_enabled ) {
-				wp_enqueue_style(
-					'jet-elements-skin',
-					jet_elements()->plugin_url( 'assets/css/jet-elements-skin' . $direction_suffix . '.css' ),
-					false,
+			foreach ( $addons_with_styles as $addons_name ) {
+
+				wp_register_style(
+					$addons_name,
+					jet_elements()->plugin_url( 'assets/css/addons/' . $addons_name  . $direction_suffix . '.css' ),
+					[ 'jet-elements' ],
 					jet_elements()->get_version()
 				);
+
+				if ( $default_theme_enabled ) {
+				
+					wp_register_style(
+						$addons_name . '-skin',
+						jet_elements()->plugin_url( 'assets/css/skin/' . $addons_name  . $direction_suffix . '.css' ),
+						false,
+						jet_elements()->get_version()
+					);
+				}
 			}
 		}
 
@@ -170,11 +171,20 @@ if ( ! class_exists( 'Jet_Elements_Assets' ) ) {
 			$key          = jet_elements_settings()->get( 'api_key' );
 
 			if ( ! empty( $key ) && ( empty( $api_disabled ) || 'true' !== $api_disabled['disable'] ) ) {
+				
+				$map_query_arg = apply_filters(  
+					'jet-elements/advanced-map/query-arg',  
+					array(  
+						'key' => jet_elements_settings()->get('api_key'),  
+						'libraries' => 'marker',
+						'loading'   => 'async',
+					)  
+				);
 
 				wp_register_script(
 					'google-maps-api',
 					add_query_arg(
-						array( 'key' => jet_elements_settings()->get( 'api_key' ), ),
+						$map_query_arg,
 						'https://maps.googleapis.com/maps/api/js'
 					),
 					false,
@@ -251,7 +261,7 @@ if ( ! class_exists( 'Jet_Elements_Assets' ) ) {
 				'chart-js',
 				jet_elements()->plugin_url( 'assets/js/lib/chart-js/chart.min.js' ),
 				array(),
-				'2.7.3',
+				'2.9.4',
 				true
 			);
 

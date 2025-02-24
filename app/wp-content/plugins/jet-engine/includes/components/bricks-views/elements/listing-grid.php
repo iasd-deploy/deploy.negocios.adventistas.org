@@ -164,6 +164,12 @@ class Listing_Grid extends Base {
 			'item'        => '> .jet-listing-grid > .jet-listing-grid__items > .jet-listing-grid__item',
 			'loader'      => '.jet-listing-grid__loader',
 			'loader-text' => '.jet-listing-grid__loader-text',
+
+			// This selector format is required for cases after filtering the slick slider,
+			// when the slider fails to initialize properly
+			'slider'      => '> .jet-listing-grid > [data-slider_options] > .jet-listing-grid__items',
+
+			'slider-list' => '.jet-listing-grid__slider > .slick-slider > .slick-list',
 			'slider-icon' => '.jet-listing-grid__slider-icon',
 			'prev-arrow'  => '.jet-listing-grid__slider-icon.prev-arrow',
 			'next-arrow'  => '.jet-listing-grid__slider-icon.next-arrow',
@@ -482,7 +488,6 @@ class Listing_Grid extends Base {
 				'max'      => 6,
 				'default'  => 1,
 				'required' => [
-					[ 'columns', '!=', 1 ],
 					[ 'carousel_enabled', '=', true ],
 				],
 			]
@@ -555,6 +560,20 @@ class Listing_Grid extends Base {
 				'min'      => 0,
 				'max'      => 10000,
 				'default'  => 5000,
+				'required' => [
+					[ 'carousel_enabled', '=', true ],
+					[ 'autoplay', '=', true ],
+				],
+			]
+		);
+
+		$this->register_jet_control(
+			'pause_on_hover',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'Pause On Hover', 'jet-engine' ),
+				'type'     => 'checkbox',
+				'default'  => true,
 				'required' => [
 					[ 'carousel_enabled', '=', true ],
 					[ 'autoplay', '=', true ],
@@ -682,8 +701,8 @@ class Listing_Grid extends Base {
 						'selector' => $css_scheme['items'],
 					],
 					[
-						'property' => 'column-gap',
-						'selector' => $css_scheme['items'],
+						'property' => '--column-gap',
+						'selector' => $css_scheme['slider'],
 					],
 				],
 			]
@@ -703,8 +722,8 @@ class Listing_Grid extends Base {
 						'selector' => $css_scheme['items'],
 					],
 					[
-						'property' => 'row-gap',
-						'selector' => $css_scheme['items'],
+						'property' => '--row-gap',
+						'selector' => $css_scheme['slider'],
 					],
 				]
 			]
@@ -767,6 +786,29 @@ class Listing_Grid extends Base {
 		$this->end_jet_control_group();
 
 		$this->start_jet_control_group( 'section_slider_style' );
+
+		$this->register_jet_control(
+			'center_moder_padding',
+			[
+				'tab'      => 'style',
+				'label'    => esc_html__( 'Center Mode Padding', 'jet-engine' ),
+				'type'     => 'number',
+				'units'    => true,
+				'css'      => [
+					[
+						'property'  => 'padding-left',
+						'selector'  => $css_scheme['slider-list'],
+						'important' => true,
+					],
+					[
+						'property'  => 'padding-right',
+						'selector'  => $css_scheme['slider-list'],
+						'important' => true,
+					],
+				],
+				'required' => [ 'center_mode', '=', true ],
+			]
+		);
 
 		$this->register_jet_control(
 			'arrows_box_size',
@@ -1334,19 +1376,19 @@ class Listing_Grid extends Base {
 
 	// Render element HTML
 	public function render() {
-
 		parent::render();
 
-		$settings = $this->parse_jet_render_attributes( $this->get_jet_settings() );
+		$settings          = $this->parse_jet_render_attributes( $this->get_jet_settings() );
+		$listing_id        = $settings['lisitng_id'];
+		$has_dynamic_value = jet_engine()->bricks_views->listing->has_dynamic_value_in_controls( $listing_id );
 
 		$this->set_attribute( '_root', 'class', 'brxe-' . $this->id );
-		$this->set_attribute( '_root', 'class', 'brxe-jet-listing-el' );
-		$this->set_attribute( '_root', 'class', 'jet-listing-base' );
+		$this->set_attribute( '_root', 'class', 'brxe-jet-listing' );
 		$this->set_attribute( '_root', 'data-element-id', $this->id );
 		$this->set_attribute( '_root', 'data-listing-type', 'bricks' );
 
 		// STEP: Listing field is empty: Show placeholder text
-		if ( empty( $settings['lisitng_id'] ) ) {
+		if ( empty( $listing_id ) ) {
 			return $this->render_element_placeholder(
 				[
 					'title' => esc_html__( 'Please select listing to show.', 'jet-engine' )
@@ -1370,22 +1412,22 @@ class Listing_Grid extends Base {
 		$render->before_listing_grid();
 
 		echo "<div {$this->render_attributes( '_root' )}>";
-		jet_engine()->bricks_views->listing->render_assets( $this->get_jet_settings( 'lisitng_id' ) );
+		jet_engine()->bricks_views->listing->render_assets( $listing_id, $has_dynamic_value );
 		$render->render_content();
 		echo "</div>";
 
 		$render->after_listing_grid();
-
 	}
 
 	public function parse_jet_render_attributes( $attrs = [] ) {
-
 		$attrs['arrows']            = $attrs['arrows'] ?? false;
 		$attrs['autoplay']          = $attrs['autoplay'] ?? false;
+		$attrs['pause_on_hover']    = $attrs['pause_on_hover'] ?? false;
 		$attrs['infinite']          = $attrs['infinite'] ?? false;
 		$attrs['not_found_message'] = $attrs['not_found_message'] ?? '';
+		$attrs['_id']               = $this->id;
 
-		return $attrs;
+		return parent::parse_jet_render_attributes( $attrs );
 	}
 
 	public function css_selector( $mod = null ) {

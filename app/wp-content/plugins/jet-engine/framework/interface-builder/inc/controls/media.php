@@ -134,6 +134,8 @@ if ( ! class_exists( 'CX_Control_Media' ) ) {
 											$media_url = wp_get_attachment_url( $media_id );
 									}
 
+									$media_id = apply_filters( 'cx-interface-builder/media/media_id', $media_id );
+
 									$media_ids[] = $media_id;
 									$media_title = get_the_title( $media_id );
 									$mime_type   = get_post_mime_type( $media_id );
@@ -146,9 +148,11 @@ if ( ! class_exists( 'CX_Control_Media' ) ) {
 										case 'image/gif':
 										case 'image/svg+xml':
 										case 'image/webp':
+										case 'image/avif':
 											$img_src    = wp_get_attachment_image_src( $media_id, 'thumbnail' );
 											$img_src    = $img_src[0];
-											$thumb      = '<img src="' . esc_html( $img_src ) . '" alt="">';
+											$img_alt    = get_post_meta( $media_id, '_wp_attachment_image_alt', true );
+											$thumb      = '<img src="' . esc_html( $img_src ) . '" alt="' . esc_attr( $img_alt ) . '">';
 											$thumb_type = 'image';
 											break;
 

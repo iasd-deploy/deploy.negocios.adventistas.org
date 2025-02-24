@@ -72,104 +72,113 @@ class Manager {
 
 		$items = array();
 
-		foreach ( $menu_items as $key => $item ) {
-			$item_id = $item->ID;
-			$item_settings = jet_menu()->settings_manager->get_item_settings( $item_id );
-			$item_content_type = isset( $item_settings['content_type'] ) ? $item_settings['content_type'] : 'default';
-
-			switch ( $item_content_type ) {
-				case 'default':
-					$mega_template_id = get_post_meta( $item_id, 'jet-menu-item-block-editor', true );
-					break;
-				case 'elementor':
-					$mega_template_id = get_post_meta( $item_id, 'jet-menu-item', true );
-
-					break;
-			}
-
-			$template_id = ( isset( $item_settings['enabled'] ) && filter_var( $item_settings['enabled'], FILTER_VALIDATE_BOOLEAN ) ) ? (int)$mega_template_id : false;
-			$mega_render_data = false;
-			$use_ajax = false;
-
-			if ( $template_id ) {
+		if ( ! empty( $menu_items ) ) {
+			foreach ( $menu_items as $key => $item ) {
+				$item_id = $item->ID;
+				$item_settings = jet_menu()->settings_manager->get_item_settings( $item_id );
+				$item_content_type = isset( $item_settings['content_type'] ) ? $item_settings['content_type'] : 'default';
+	
 				switch ( $item_content_type ) {
 					case 'default':
-						$mega_template_dependencies = get_post_meta( $template_id, '_is_deps_ready', true );
-						$is_content = ! $use_ajax || empty( $mega_template_dependencies ) ? true : false;
-
-						$render_instance = new \Jet_Menu\Render\Block_Editor_Content_Render( [
-							'template_id' => $template_id,
-							'with_css'   => true,
-							'is_content' => $is_content
-						] );
-
+						$mega_template_id = get_post_meta( $item_id, 'jet-menu-item-block-editor', true );
 						break;
 					case 'elementor':
-						$mega_template_dependencies = get_post_meta( $template_id, '_is_deps_ready', true );
-						$is_content = ! $use_ajax || empty( $mega_template_dependencies ) ? true : false;
-
-						$render_instance = new \Jet_Menu\Render\Elementor_Content_Render( [
-							'template_id' => $template_id,
-							'with_css'   => true,
-							'is_content' => $is_content
-						] );
-
+						$mega_template_id = get_post_meta( $item_id, 'jet-menu-item', true );
+	
 						break;
 				}
-
-				if ( $is_content ) {
-					update_post_meta( $template_id, '_is_deps_ready', 'true' );
+	
+				$template_id = ( isset( $item_settings['enabled'] ) && filter_var( $item_settings['enabled'], FILTER_VALIDATE_BOOLEAN ) ) ? (int)$mega_template_id : false;
+				$mega_render_data = false;
+				$use_ajax = false;
+	
+				if ( $template_id ) {
+					switch ( $item_content_type ) {
+						case 'default':
+							$mega_template_dependencies = get_post_meta( $template_id, '_is_deps_ready', true );
+							$is_content = ! $use_ajax || empty( $mega_template_dependencies ) ? true : false;
+	
+							$render_instance = new \Jet_Menu\Render\Block_Editor_Content_Render( [
+								'template_id' => $template_id,
+								'with_css'   => true,
+								'is_content' => $is_content
+							] );
+	
+							break;
+						case 'elementor':
+							$mega_template_dependencies = get_post_meta( $template_id, '_is_deps_ready', true );
+							$is_content = ! $use_ajax || empty( $mega_template_dependencies ) ? true : false;
+	
+							$render_instance = new \Jet_Menu\Render\Elementor_Content_Render( [
+								'template_id' => $template_id,
+								'with_css'   => true,
+								'is_content' => $is_content
+							] );
+	
+							break;
+					}
+	
+					if ( $is_content ) {
+						update_post_meta( $template_id, '_is_deps_ready', 'true' );
+					}
+	
+					if ( $render_instance ) {
+						$mega_render_data = $render_instance->get_render_data();
+						$mega_render_data = apply_filters( 'jet-plugins/render/render-data', $mega_render_data, $template_id, $item_content_type );
+					}
 				}
-
-				if ( $render_instance ) {
-					$mega_render_data = $render_instance->get_render_data();
-					$mega_render_data = apply_filters( 'jet-plugins/render/render-data', $mega_render_data, $template_id, $item_content_type );
+	
+				$hide_item_text = ! empty( $item_settings['hide_item_text'] ) ? filter_var( $item_settings['hide_item_text'], FILTER_VALIDATE_BOOLEAN ) : false;
+				$icon_type = isset( $item_settings['menu_icon_type'] ) ? $item_settings['menu_icon_type'] : 'icon';
+	
+	
+				if ( jet_menu_tools()->is_nextgen_mode() ) {
+					$icon_type = 'svg';
 				}
+	
+				switch ( $icon_type ) {
+					case 'icon':
+						$item_icon = ! empty( $item_settings['menu_icon'] ) ? jet_menu_tools()->get_icon_html( $item_settings['menu_icon'], '' ) : '';
+						break;
+	
+					case 'svg':
+						$item_icon = ! empty( $item_settings['menu_svg'] ) ? jet_menu_tools()->get_svg_html( $item_settings['menu_svg'], false ) : '';
+						break;
+				}
+	
+				$badge_content_type = isset( $item_settings['menu_badge_type'] ) ? $item_settings['menu_badge_type'] : 'text';
+	
+				switch ( $badge_content_type ) {
+					case 'text':
+						$badge_content = isset( $item_settings[ 'menu_badge' ] ) ? $item_settings[ 'menu_badge' ] : false;
+	
+						break;
+					case 'svg':
+						$badge_content = ! empty( $item_settings['badge_svg'] ) ? jet_menu_tools()->get_svg_html( $item_settings['badge_svg'], false ) : false;;
+	
+						break;
+				}
+	
+				$items[] = array (
+					'id'              => 'item-' . $item_id,
+					'name'            => $item->title,
+					'attrTitle'       => ! empty( $item->attr_title ) ? $item->attr_title : false,
+					'description'     => $item->description,
+					'url'             => $item->url,
+					'target'          => ! empty( $item->target ) ? $item->target : false,
+					'xfn'             => ! empty( $item->xfn ) ? $item->xfn : false,
+					'itemParent'      => ! empty( $item->menu_item_parent ) ? 'item-' . $item->menu_item_parent : false,
+					'itemId'          => $item_id,
+					'megaTemplateId'  => $template_id,
+					'megaContent'     => $mega_render_data,
+					'megaContentType' => $item_content_type,
+					'open'            => false,
+					'badgeContent'    => $badge_content,
+					'itemIcon'        => $item_icon,
+					'hideItemText'    => $hide_item_text,
+					'classes'         => $item->classes,
+				);
 			}
-
-			$icon_type = isset( $item_settings['menu_icon_type'] ) ? $item_settings['menu_icon_type'] : 'icon';
-
-			switch ( $icon_type ) {
-				case 'icon':
-					$item_icon = ! empty( $item_settings['menu_icon'] ) ? jet_menu_tools()->get_icon_html( $item_settings['menu_icon'], '' ) : '';
-					break;
-
-				case 'svg':
-					$item_icon = ! empty( $item_settings['menu_svg'] ) ? jet_menu_tools()->get_svg_html( $item_settings['menu_svg'], false ) : '';
-					break;
-			}
-
-			$badge_content_type = isset( $item_settings['menu_badge_type'] ) ? $item_settings['menu_badge_type'] : 'text';
-
-			switch ( $badge_content_type ) {
-				case 'text':
-					$badge_content = isset( $item_settings[ 'menu_badge' ] ) ? $item_settings[ 'menu_badge' ] : false;
-
-					break;
-				case 'svg':
-					$badge_content = ! empty( $item_settings['badge_svg'] ) ? jet_menu_tools()->get_svg_html( $item_settings['badge_svg'], false ) : false;;
-
-					break;
-			}
-
-			$items[] = array (
-				'id'              => 'item-' . $item_id,
-				'name'            => $item->title,
-				'attrTitle'       => ! empty( $item->attr_title ) ? $item->attr_title : false,
-				'description'     => $item->description,
-				'url'             => $item->url,
-				'target'          => ! empty( $item->target ) ? $item->target : false,
-				'xfn'             => ! empty( $item->xfn ) ? $item->xfn : false,
-				'itemParent'      => ! empty( $item->menu_item_parent ) ? 'item-' . $item->menu_item_parent : false,
-				'itemId'          => $item_id,
-				'megaTemplateId'  => $template_id,
-				'megaContent'     => $mega_render_data,
-				'megaContentType' => $item_content_type,
-				'open'            => false,
-				'badgeContent'    => $badge_content,
-				'itemIcon'        => $item_icon,
-				'classes'         => $item->classes,
-			);
 		}
 
 		if ( ! empty( $items ) ) {

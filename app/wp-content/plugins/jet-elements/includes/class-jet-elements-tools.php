@@ -535,6 +535,10 @@ if ( ! class_exists( 'Jet_Elements_Tools' ) ) {
 			return ( ( string ) ( int ) $timestamp === $timestamp ) && ( $timestamp <= PHP_INT_MAX ) && ( $timestamp >= ~PHP_INT_MAX );
 		}
 
+		/**
+		 * @param $tag
+		 * @return mixed|string
+		 */
 		public function validate_html_tag( $tag ) {
 			$allowed_tags = array(
 				'article',
@@ -570,6 +574,18 @@ if ( ! class_exists( 'Jet_Elements_Tools' ) ) {
 			) );
 
 			return $callbacks;
+		}
+
+		/**
+		 * @return false|int|string
+		 */
+		public function get_plugin_license() {
+
+			if ( ! class_exists( '\Jet_Dashboard\Utils' ) ) {
+				\Jet_Dashboard\Dashboard::get_instance();
+			}
+
+			return \Jet_Dashboard\Utils::get_plugin_license_key( 'jet-elements/jet-elements.php' );
 		}
 
 		/**

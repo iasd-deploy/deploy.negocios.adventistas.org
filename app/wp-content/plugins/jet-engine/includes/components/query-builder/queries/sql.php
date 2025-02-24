@@ -6,16 +6,32 @@ use Jet_Engine\Query_Builder\Manager;
 class SQL_Query extends Base_Query {
 
 	public $current_query = null;
+	public $calc_columns = array();
+
+	public $sql_query_strings = array(
+		'items' => array(
+			'query' => '',
+			'error' => '',
+		),
+		'count' => array(
+			'query' => '',
+			'error' => '',
+		),
+	);
 
 	/**
 	 * Returns queries items
 	 *
-	 * @return [type] [description]
+	 * @return object[] Database query results. 
 	 */
 	public function _get_items() {
 
 		$sql    = $this->build_sql_query();
 		$result = $this->wpdb()->get_results( $sql );
+
+		if ( $this->wpdb()->last_error ) {
+			$this->sql_query_strings['items']['error'] = $this->wpdb()->last_error;
+		}
 
 		$cast_to_class = ! empty( $this->query['cast_object_to'] ) ? $this->query['cast_object_to'] : false;
 
@@ -73,8 +89,13 @@ class SQL_Query extends Base_Query {
 
 		if ( 'nosql' === $sql ) {
 			$result = count( $this->get_items() );
+			$this->sql_query_strings['count']['error'] = '';
 		} else {
 			$result = $this->wpdb()->get_var( $sql );
+			
+			if ( $this->wpdb()->last_error ) {
+				$this->sql_query_strings['count']['error'] = $this->wpdb()->last_error;
+			}
 		}
 
 		$this->update_query_cache( $result, 'count' );
@@ -284,9 +305,10 @@ class SQL_Query extends Base_Query {
 		$advanced_query = $this->get_advanced_query();
 
 		if ( $advanced_query ) {
+			$sql = rtrim( $sql );
 			$sql = rtrim( $sql, ';' );
 			$sql = 'SELECT ' . $select . ' FROM ( ' . $sql . ' ) AS advanced_query_result;';
-			return round( $this->wpdb()->get_var( $sql ), $decimal_count );
+			return round( floatval( $this->wpdb()->get_var( $sql ) ), $decimal_count );
 		}
 
 		if ( $this->is_grouped() ) {
@@ -295,7 +317,7 @@ class SQL_Query extends Base_Query {
 			$sql = preg_replace( '/SELECT (.+?) FROM/', 'SELECT ' . $select . ' FROM', $sql );
 		}
 
-		return round( $this->wpdb()->get_var( $sql ), $decimal_count );
+		return round( floatval( $this->wpdb()->get_var( $sql ) ), $decimal_count );
 
 	}
 
@@ -393,6 +415,12 @@ class SQL_Query extends Base_Query {
 		$advanced_query = $this->get_advanced_query( $is_count );
 
 		if ( $advanced_query ) {
+			if ( $is_count ) {
+				$this->sql_query_strings['count']['query'] = $advanced_query;
+			} else {
+				$this->sql_query_strings['items']['query'] = $advanced_query;
+			}
+			
 			return $advanced_query;
 		}
 
@@ -414,17 +442,26 @@ class SQL_Query extends Base_Query {
 
 			if ( ! empty( $this->final_query['include_calc'] ) && ! empty( $this->final_query['calc_cols'] ) ) {
 				foreach ( $this->final_query['calc_cols'] as $col ) {
-					if ( 'custom' === $col['function'] ) {
+
+					if ( empty( $col['column'] ) ) {
+						continue;
+					}
+
+					$col_func = ! empty( $col['function'] ) ? $col['function'] : '';
+
+					if ( 'custom' === $col_func ) {
 						$custom_col      = ! empty( $col['custom_col'] ) ? $col['custom_col'] : '%1$s';
 						$prepared_col    = str_replace( '%1$s', $col['column'], $custom_col );
 						$prepared_col    = jet_engine()->listings->macros->do_macros( $prepared_col );
-						$prepared_col_as = sprintf( '%1$s(%2$s)', $col['function'], $col['column'] );
+						$prepared_col_as = sprintf( '%1$s(%2$s)', $col_func, $col['column'] );
 					} else {
-						$prepared_col    = sprintf( '%1$s(%2$s)', $col['function'], $col['column'] );
+						$prepared_col    = sprintf( '%1$s(%2$s)', $col_func, $col['column'] );
 						$prepared_col_as = $prepared_col;
 					}
-					
+
 					$implode[] = $prepared_col . " AS '" . $prepared_col_as . "'";
+
+					$this->calc_columns[] = $prepared_col_as;
 				}
 			}
 
@@ -502,6 +539,11 @@ class SQL_Query extends Base_Query {
 				$current_query .= " ";
 
 				foreach ( $this->final_query['orderby'] as $row ) {
+
+					if ( empty( $row['orderby'] ) ) {
+						continue;
+					}
+
 					$row['column'] = $row['orderby'];
 					$orderby[] = $row;
 				}
@@ -557,6 +599,12 @@ class SQL_Query extends Base_Query {
 			$result = $this->wrap_grouped_query( 'COUNT(*)', $result );
 		}
 
+		if ( $is_count ) {
+			$this->sql_query_strings['count']['query'] = $result;
+		} else {
+			$this->sql_query_strings['items']['query'] = $result;
+		}
+
 		return $result;
 
 	}
@@ -575,18 +623,30 @@ class SQL_Query extends Base_Query {
 	 */
 	public function add_order_args( $args = array() ) {
 
-		$query = "ORDER BY ";
-		$glue  = ' ';
+		$query = '';
+		$glue  = '';
 
 		foreach ( $args as $arg ) {
 
-			$column = $arg['column'];
-			$type   = $arg['type'];
-			$order  = $arg['order'];
+			if ( in_array( $arg['column'], $this->calc_columns ) ) {
+				$column = sprintf( '`%s`', $arg['column'] );
+			} else {
+				// Sanitize SQL `column name` string to prevent SQL injection.
+				// See: https://github.com/Crocoblock/issues-tracker/issues/5251
+				$column = \Jet_Engine_Tools::sanitize_sql_orderby( $arg['column'] );
+			}
+
+			$type   = ! empty( $arg['type'] ) ? $arg['type'] : 'CHAR';
+			$order  = ! empty( $arg['order'] ) ? strtoupper( $arg['order'] ) : 'DESC';
+			$order  = in_array( $order, array( 'ASC', 'DESC' ) ) ? $order : 'DESC';
+
+			if ( ! $column ) {
+				continue;
+			}
 
 			$query .= $glue;
 
-			switch ( $arg['type'] ) {
+			switch ( $type ) {
 				case 'NUMERIC':
 				case 'DECIMAL':
 					$query .= "CAST( $column as DECIMAL )";
@@ -605,6 +665,10 @@ class SQL_Query extends Base_Query {
 			$query .= $order;
 
 			$glue = ", ";
+		}
+
+		if ( $query ) {
+			$query  = "ORDER BY " . $query;
 		}
 
 		return $query;
@@ -901,7 +965,14 @@ class SQL_Query extends Base_Query {
 
 		if ( ! empty( $this->query['include_calc'] ) && ! empty( $this->query['calc_cols'] ) ) {
 			foreach ( $this->query['calc_cols'] as $col ) {
-				$cols[] = sprintf( '%1$s(%2$s)', $col['function'], $col['column'] );
+
+				if ( empty( $col['column'] ) ) {
+					continue;
+				}
+
+				$col_func = ! empty( $col['function'] ) ? $col['function'] : '';
+
+				$cols[] = sprintf( '%1$s(%2$s)', $col_func, $col['column'] );
 			}
 		}
 
@@ -928,11 +999,20 @@ class SQL_Query extends Base_Query {
 	}
 
 	public function before_preview_body() {
-		print_r( $this->wpdb()->last_query . "\n\n" );
+		print_r( esc_html__( ' QUERY:' ) . "\n" );
+		print_r( $this->sql_query_strings['items']['query'] . "\n\n" );
+		
+		if ( $this->sql_query_strings['items']['error'] ) {
+			print_r( esc_html__( ' QUERY ERROR:' ) . "\n" );
+			print_r( $this->sql_query_strings['items']['error'] . "\n\n" );
+			return;
+		}
 
-		if ( $this->wpdb()->last_error ) {
-			print_r( esc_html__( 'ERROR:' ) . "\n" );
-			print_r( $this->wpdb()->last_error . "\n\n" );
+		if ( $this->sql_query_strings['count']['error'] ) {
+			print_r( esc_html__( ' COUNT QUERY:' ) . "\n" );
+			print_r( $this->sql_query_strings['count']['query'] . "\n\n" );
+			print_r( esc_html__( ' COUNT QUERY ERROR:' ) . "\n" );
+			print_r( $this->sql_query_strings['count']['error'] . "\n\n" );
 		}
 	}
 

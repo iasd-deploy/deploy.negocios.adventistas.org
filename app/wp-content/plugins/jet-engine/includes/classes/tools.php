@@ -69,7 +69,7 @@ class Jet_Engine_Tools {
 		$final_query_args = array();
 
 		foreach ( $query_args as $arg ) {
-			$arg = explode( '=', $arg );
+			$arg = explode( '=', $arg, 2 );
 
 			if ( 1 < count( $arg ) ) {
 				$final_query_args[ $arg[0] ] = jet_engine()->listings->macros->do_macros( $arg[1], $url );
@@ -85,9 +85,59 @@ class Jet_Engine_Tools {
 			}
 
 			$url = add_query_arg( $final_query_args, $url );
+
 		}
 
 		return $url;
+
+	}
+
+	/**
+	 * Get options prepared to use by JetEngine fields from the callback
+	 * 
+	 * @param  [type] $callback [description]
+	 * @return [type]           [description]
+	 */
+	public static function get_options_from_callback( $callback = null, $is_blocks = false ) {
+		
+		if ( ! is_callable( $callback ) ) {
+			return [];
+		}
+
+		$options = call_user_func( $callback );
+
+		foreach ( $options as $value => $option ) {
+
+			if ( $is_blocks ) {
+				if ( ! is_array( $option ) ) {
+					$options[ $value ] = [
+						'value' => $value,
+						'label' => $option,
+					];
+				} else {
+
+					$value = isset( $option['value'] ) ? $option['value'] : $value;
+					$label = isset( $option['label'] ) ? $option['label'] : array_values( $option )[0];
+					
+					$options[ $value ] = [
+						'value' => $value,
+						'label' => $label,
+					];
+				}
+			} else {
+				if ( ! is_array( $option ) ) {
+					$options[ $value ] = $option;
+				} else {
+					$options[ $value ] = isset( $option['label'] ) ? $option['label'] : array_values( $option )[0];
+				}
+			}
+		}
+
+		if ( $is_blocks ) {
+			return array_values( $options );
+		} else {
+			return $options;
+		}
 
 	}
 
@@ -320,7 +370,7 @@ class Jet_Engine_Tools {
 	 *
 	 * @return [type] [description]
 	 */
-	public static function render_icon( $icon = null, $icon_class = '', $custom_atts = array() ) {
+	public static function render_icon( $icon = null, $icon_class = '', $custom_atts = array(), $image_size = 'full' ) {
 
 		$custom_atts_string = '';
 
@@ -348,7 +398,11 @@ class Jet_Engine_Tools {
 				}
 
 			} else {
-				echo wp_get_attachment_image( $icon, 'full' );
+				if ( empty( $image_size ) ) {
+					$image_size = 'full';
+				}
+				
+				echo wp_get_attachment_image( $icon, $image_size );
 			}
 
 			echo '</div>';
@@ -584,36 +638,28 @@ class Jet_Engine_Tools {
 
 	public static function get_post_statuses_for_js() {
 
-		return array(
+		$statuses = array(
 			array(
 				'value' => 'any',
 				'label' => __( 'Any', 'jet-engine' ),
 			),
-			array(
-				'value' => 'publish',
-				'label' => __( 'Publish', 'jet-engine' ),
-			),
-			array(
-				'value' => 'pending',
-				'label' => __( 'Pending', 'jet-engine' ),
-			),
-			array(
-				'value' => 'draft',
-				'label' => __( 'Draft', 'jet-engine' ),
-			),
-			array(
-				'value' => 'future',
-				'label' => __( 'Future', 'jet-engine' ),
-			),
-			array(
-				'value' => 'private',
-				'label' => __( 'Private', 'jet-engine' ),
-			),
-			array(
-				'value' => 'trash',
-				'label' => __( 'Trash', 'jet-engine' ),
-			)
 		);
+
+		$labels_map = array(
+			'future' => __( 'Future', 'jet-engine' ),
+		);
+
+		$post_statuses = get_post_stati( array( 'show_in_admin_status_list' => true ), 'objects' );
+		$post_statuses = apply_filters( 'jet-engine/tools/post-statuses', $post_statuses );
+
+		foreach ( $post_statuses as $post_status => $post_status_obj ) {
+			$statuses[] = array(
+				'value' => $post_status,
+				'label' => sprintf( '%s (%s)', $labels_map[ $post_status ] ?? $post_status_obj->label, $post_status ),
+			);
+		}
+
+		return $statuses;
 
 	}
 
@@ -872,22 +918,11 @@ class Jet_Engine_Tools {
 		return $options;
 	}
 
+	/**
+	 * Duplicate of `Jet_Engine_Tools::insert_after`.
+	 */
 	public static function array_insert_after( $source = array(), $after = null, $insert = array() ) {
-
-		$keys  = array_keys( $source );
-		$index = array_search( $after, $keys );
-
-		if ( ! $source ) {
-			$source = array();
-		}
-
-		if ( false === $index ) {
-			return $source + $insert;
-		}
-
-		$offset = $index + 1;
-
-		return array_slice( $source, 0, $offset, true ) + $insert + array_slice( $source, $offset, null, true );
+		return self::insert_after( $source, $after, $insert );
 	}
 
 	/**
@@ -963,6 +998,121 @@ class Jet_Engine_Tools {
 	 */
 	public static function get_default_menu_position() {
 		return apply_filters( 'jet-engine/tools/default-menu-position', '' );
+	}
+
+	/**
+	 * Ensures a string is a valid SQL 'order by' clause.
+	 *
+	 * Accepts one or more columns, with or without a sort order (ASC / DESC).
+	 * e.g. 'column_1', 'column_1, column_2', 'column_1 ASC, column_2 DESC' etc.
+	 *
+	 * Also accepts 'posts.column_1', 'posts.column_1, column_2', 'posts.column_1 ASC, column_2 DESC' etc.
+	 *
+	 * Also accepts 'RAND()'.
+	 *
+	 * @param string $orderby Order by clause to be validated.
+	 * @return string|false Returns $orderby if valid, false otherwise.
+	 */
+	public static function sanitize_sql_orderby( $orderby ) {
+
+		if (
+			preg_match( '/^\s*(([a-z0-9_\.]+|`[a-z0-9_\.]+`)(\s+(ASC|DESC))?\s*(,\s*(?=[a-z0-9_`\.])|$))+$/i', $orderby )
+			|| preg_match( '/^\s*RAND\(\s*\)\s*$/i', $orderby )
+			|| preg_match( '/^\s*FIELD\s*\(.*?\)\s*$/i', $orderby )
+		) {
+			return $orderby;
+		}
+
+		return false;
+	}
+
+	public static function delete_metadata_by_object_where( $meta_type = null, $meta_key = null, $object_where = array() ) {
+
+		if ( empty( $meta_type )  || empty( $meta_key ) || empty( $object_where ) ) {
+			return false;
+		}
+
+		if ( ! in_array( $meta_type, array( 'post', 'term', 'user' ) ) ) {
+			return false;
+		}
+
+		global $wpdb;
+
+		$raw_meta_table   = $meta_type . 'meta';
+		$raw_object_table = ( 'term' === $meta_type ) ? 'term_taxonomy' : $meta_type . 's';
+
+		if ( empty( $wpdb->$raw_meta_table ) || empty( $wpdb->$raw_object_table ) ) {
+			return false;
+		}
+
+		$meta_table    = $wpdb->$raw_meta_table;
+		$object_table  = $wpdb->$raw_object_table;
+		$meta_column   = sanitize_key( $meta_type . '_id' );
+		$object_column = ( 'term' === $meta_type ) ? 'term_id' : 'ID';
+		$id_column     = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
+
+		$query = "SELECT $raw_meta_table.$id_column FROM $meta_table AS $raw_meta_table ";
+		$query .= "INNER JOIN $object_table AS $raw_object_table ON $raw_object_table.$object_column = $raw_meta_table.$meta_column ";
+
+		$query .= "WHERE ";
+
+		$where = array(
+			"$raw_meta_table.meta_key" => $meta_key
+		);
+
+		foreach ( $object_where as $column => $value ) {
+			$where["$raw_object_table.$column"] = $value;
+		}
+
+		$glue = '';
+
+		foreach ( $where as $column => $value ) {
+
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			if ( is_array( $value ) ) {
+				$operator = 'IN';
+				$value = array_map( 'trim', $value );
+				$value = array_map( function ( $item ) {
+					return sprintf( "'%s'", esc_sql( $item ) );
+				}, $value );
+				$value = sprintf( '( %s )', implode( ', ', $value ) );
+			} else {
+				$operator = '=';
+				$value    = sprintf( "'%s'", esc_sql( $value ) );
+			}
+
+			$column = esc_sql( $column );
+			$query .= $glue;
+			$query .= "$column $operator $value";
+			$glue = ' AND ';
+		}
+
+		$meta_ids = $wpdb->get_col( $query );
+
+		if ( ! count( $meta_ids ) ) {
+			return false;
+		}
+
+		$object_ids_query = str_replace( "SELECT $raw_meta_table.$id_column", "SELECT $raw_meta_table.$meta_column", $query );
+
+		$object_ids = $wpdb->get_col( $object_ids_query );
+		$object_ids = array_unique( $object_ids );
+		$object_ids = array_values( $object_ids );
+
+		$delete_query = "DELETE FROM $meta_table WHERE $id_column IN( " . implode( ',', $meta_ids ) . " )";
+
+		$count = $wpdb->query( $delete_query );
+
+		if ( ! $count ) {
+			return false;
+		}
+
+		wp_cache_delete_multiple( (array) $object_ids, $meta_type . '_meta' );
+
+		return true;
 	}
 
 }

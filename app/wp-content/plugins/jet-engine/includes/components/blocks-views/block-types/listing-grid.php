@@ -177,6 +177,10 @@ if ( ! class_exists( 'Jet_Engine_Blocks_Views_Type_Grid' ) ) {
 					'type' => 'number',
 					'default' => 5000,
 				),
+				'pause_on_hover' => array(
+					'type' => 'boolean',
+					'default' => true,
+				),
 				'infinite' => array(
 					'type' => 'boolean',
 					'default' => true,
@@ -395,6 +399,25 @@ if ( ! class_exists( 'Jet_Engine_Blocks_Views_Type_Grid' ) ) {
 					),
 					'css_selector' => array(
 						':is( {{WRAPPER}} > .jet-listing-grid > .jet-listing-grid__items, {{WRAPPER}} > .jet-listing-grid > .jet-listing-grid__slider > .jet-listing-grid__items > .slick-list > .slick-track, {{WRAPPER}} > .jet-listing-grid > .jet-listing-grid__scroll-slider > .jet-listing-grid__items ) > .jet-listing-grid__item' => 'padding-top: calc({{VALUE}}{{UNIT}} / 2); padding-bottom: calc({{VALUE}}{{UNIT}} / 2);',
+						':is( {{WRAPPER}} > .jet-listing-grid, {{WRAPPER}} > .jet-listing-grid > .jet-listing-grid__slider, {{WRAPPER}} > .jet-listing-grid > .jet-listing-grid__scroll-slider ) > .jet-listing-grid__items.grid-collapse-gap' => 'margin-top: calc(-{{VALUE}}{{UNIT}} / 2); margin-bottom: calc(-{{VALUE}}{{UNIT}} / 2);',
+					),
+				)
+			);
+
+			$this->controls_manager->add_control(
+				array(
+					'id'         => 'collapse_first_last_gap',
+					'type'       => 'toggle',
+					'label'      => esc_html__( 'Correct first/last row gap', 'jet-engine' ),
+					'help'       => esc_html__( 'Correct first/last row Ensure that the first and last rows do not have unnecessary gap on top/bottom.', 'jet-engine' ),
+					'return_value' => array(
+						'true'  => 'true',
+						'false' => 'false',
+					),
+					'attributes' => array(
+						'default' => array(
+							'value' => false,
+						)
 					),
 				)
 			);
@@ -463,6 +486,38 @@ if ( ! class_exists( 'Jet_Engine_Blocks_Views_Type_Grid' ) ) {
 					'id'        => 'section_slider_style',
 					'condition' => array(
 						'carousel_enabled' => true,
+					),
+				)
+			);
+
+			$this->controls_manager->add_control(
+				array(
+					'id'    => 'center_mode_padding',
+					'label' => __( 'Center Mode Padding', 'jet-engine' ),
+					'type'  => 'range',
+					'units' => array(
+						array(
+							'value'     => 'px',
+							'intervals' => array(
+								'step' => 1,
+								'min'  => 0,
+								'max'  => 200,
+							),
+						),
+						array(
+							'value'     => '%',
+							'intervals' => array(
+								'step' => 1,
+								'min'  => 0,
+								'max'  => 100,
+							),
+						),
+					),
+					'css_selector' => array(
+						'{{WRAPPER}} .jet-listing-grid__slider > .jet-listing-grid__items > .slick-list' => 'padding: 0 {{VALUE}}{{UNIT}} !important;',
+					),
+					'condition' => array(
+						'center_mode' => true,
 					),
 				)
 			);

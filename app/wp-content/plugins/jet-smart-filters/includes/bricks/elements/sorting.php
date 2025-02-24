@@ -2,6 +2,9 @@
 
 namespace Jet_Smart_Filters\Bricks_Views\Elements;
 
+use Bricks\Database;
+use Bricks\Helpers;
+
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
@@ -267,7 +270,10 @@ class Jet_Smart_Filters_Bricks_Sorting extends Jet_Smart_Filters_Bricks_Base {
 
 		echo "<div {$this->render_attributes( '_root' )}>";
 
+		printf( '<div class="%1$s jet-filter">', $this->name );
 		include jet_smart_filters()->get_template( 'filters/sorting.php' );
+		echo '</div>';
+
 		include jet_smart_filters()->get_template( 'common/apply-filters.php' );
 
 		echo "</div>";

@@ -126,20 +126,31 @@ class Jet_Engine_Base_DB {
 	}
 
 	/**
-	 * Insert booking
+	 * Reset found items cache.
+	 * Should be reseted each time on Jet_Engine_Base_DB::update() call to make sure we always getting actual data.
+	 * https://github.com/Crocoblock/suggestions/issues/7774
 	 *
-	 * @param  array  $booking [description]
-	 * @return [type]          [description]
+	 * @return void
+	 */
+	public function reset_found_items_cache() {
+		$this->_found_items = array();
+	}
+
+	/**
+	 * Insert DB data
+	 *
+	 * @param  array $data Data to insert.
+	 * @return void
 	 */
 	public function insert( $data = array() ) {
 	}
 
 	/**
-	 * Update appointment info
+	 * Update DB data
 	 *
 	 * @param  array  $new_data [description]
 	 * @param  array  $where    [description]
-	 * @return [type]           [description]
+	 * @return void
 	 */
 	public function update( $new_data = array(), $where = array() ) {
 	}
@@ -174,7 +185,13 @@ class Jet_Engine_Base_DB {
 
 		$table = $this->table();
 
-		if ( strtolower( $table ) === strtolower( self::wpdb()->get_var( "SHOW TABLES LIKE '$table'" ) ) ) {
+		if ( ! $table ) {
+			return false;
+		}
+
+		$existing_table = self::wpdb()->get_var( "SHOW TABLES LIKE '$table'" );
+
+		if ( $existing_table && strtolower( $table ) === strtolower( $existing_table ) ) {
 			$this->table_exists = true;
 		} else {
 			$this->table_exists = false;
@@ -248,6 +265,11 @@ class Jet_Engine_Base_DB {
 
 		dbDelta( $sql );
 
+		/**
+		 * Assume table was created correctly and change $table_exists to true
+		 * https://github.com/Crocoblock/suggestions/issues/7797
+		 */
+		$this->table_exists = true;
 	}
 
 	/**
@@ -280,10 +302,12 @@ class Jet_Engine_Base_DB {
 	}
 
 	/**
-	 * Insert new columns into existing bookings table
+	 * Insert new columns into the table
 	 *
-	 * @param  [type] $columns [description]
-	 * @return [type]          [description]
+	 * @param  array $columns Array of new columns, 'column name' => 'column type',
+	 *                        or 'column name' => false (column will be of 'text' type)
+	 * 
+	 * @return void
 	 */
 	public function insert_table_columns( $columns = array() ) {
 
@@ -401,10 +425,10 @@ class Jet_Engine_Base_DB {
 	}
 
 	/**
-	 * Delete columns into existing bookings table
+	 * Delete columns from the table
 	 *
-	 * @param  [type] $columns [description]
-	 * @return [type]          [description]
+	 * @param  array $columns Array of column names to delete
+	 * @return void
 	 */
 	public function delete_table_columns( $columns ) {
 
@@ -777,23 +801,37 @@ class Jet_Engine_Base_DB {
 		foreach ( $order as $order_clause ) {
 			if ( ! empty( $order_clause['orderby'] ) ) {
 
-				$orderby = $order_clause['orderby'];
-				$order   = ! empty( $order_clause['order'] ) ? $order_clause['order'] : 'desc';
-				$order   = strtoupper( $order );
+				// Sanitize SQL `column name` string to prevent SQL injection.
+				// See: https://github.com/Crocoblock/issues-tracker/issues/5251
+				$orderby = \Jet_Engine_Tools::sanitize_sql_orderby( $order_clause['orderby'] );
+				$order   = ! empty( $order_clause['order'] ) ? strtoupper( $order_clause['order'] ) : 'DESC';
+				$order   = in_array( $order, array( 'ASC', 'DESC' ) ) ? $order : 'DESC';
 				$type    = ! empty( $order_clause['type'] ) ? $order_clause['type'] : false;
+
+				if ( ! $orderby ) {
+					continue;
+				}
 
 				switch ( $type ) {
 					case 'integer':
-						$orderby = sprintf( 'CAST( %s AS DECIMAL )', $orderby );
-						break;
 					case 'float':
-						$orderby = sprintf( 'CAST( %s AS DECIMAL )', $orderby );
-						break;
 					case 'timestamp':
+					case 'NUMERIC':
+					case 'DECIMAL':
+					case 'TIMESTAMP':
 						$orderby = sprintf( 'CAST( %s AS DECIMAL )', $orderby );
 						break;
 					case 'date':
 						$orderby = sprintf( 'CAST( %s AS DATE )', $orderby );
+						break;
+
+					case 'DATE':
+					case 'DATETIME':
+					case 'TIME':
+					case 'BINARY':
+					case 'SIGNED':
+					case 'UNSIGNED':
+						$orderby = sprintf( 'CAST( %1$s AS %2$s )', $orderby, $type );
 						break;
 				}
 

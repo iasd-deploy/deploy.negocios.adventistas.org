@@ -27,11 +27,16 @@ class Maps {
 			array( $this, 'register_cct_source' )
 		);
 
+		/*
+		This filter not needed anymore, but keep commented just in case.
+		The map source for Query builder is set automatically.
+		See: `set_source` method in `includes/modules/maps-listings/inc/render.php`
 		add_filter(
 			'jet-engine/maps-listing/source',
 			array( $this, 'set_cct_source' ),
 			10, 2
 		);
+		*/
 
 		add_filter(
 			'jet-engine/maps-listing/settings/fields',
@@ -228,7 +233,7 @@ class Maps {
 			case 'bricks':
 
 				$control_args = \Jet_Engine\Bricks_Views\Helpers\Options_Converter::convert( $control_args );
-				
+
 				$widget->register_jet_control( $control_name . '__image', array_merge( $control_args, array(
 					'required' => array(
 						'marker_type',

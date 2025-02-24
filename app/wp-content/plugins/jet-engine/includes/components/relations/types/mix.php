@@ -78,6 +78,7 @@ class Mix extends Base {
 
 				$table = $wpdb->users;
 				$res   = $wpdb->get_results( "SELECT ID AS value, CONCAT( user_login, ' (', user_email, ')' ) AS label FROM $table", ARRAY_A );
+				$res   = apply_filters( 'jet-engine/relations/types/mix/items/users', ! empty( $res ) ? $res : array(), $relation );
 
 				return ! empty( $res ) ? $res : array();
 
@@ -105,7 +106,7 @@ class Mix extends Base {
 					$result = $user->user_login . ' (' . $user->user_email . ')';
 				}
 
-				return $result;
+				return apply_filters( 'jet-engine/relations/types/mix/item-title/users', $result, $item_id, $relation );
 
 			default:
 				return apply_filters( 'jet-engine/relations/types/mix/item-title/' . $object_name, $result, $item_id, $relation );
@@ -115,10 +116,6 @@ class Mix extends Base {
 
 	/**
 	 * Returns item edit URL by object type data and item ID
-	 *
-	 * @param  [type] $type    [description]
-	 * @param  [type] $item_id [description]
-	 * @return [type]          [description]
 	 */
 	public function get_type_item_edit_url( $item_id, $object_name, $relation ) {
 

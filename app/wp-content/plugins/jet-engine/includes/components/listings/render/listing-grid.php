@@ -55,6 +55,7 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				'arrow_icon'               => 'fa fa-angle-left',
 				'dots'                     => '',
 				'autoplay'                 => 'true',
+				'pause_on_hover'           => 'true',
 				'autoplay_speed'           => 5000,
 				'infinite'                 => 'true',
 				'center_mode'              => '',
@@ -67,18 +68,58 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				'custom_query'             => false,
 				'custom_query_id'          => null,
 				'_element_id'              => '',
+				'collapse_first_last_gap'  => '',
+				'list_items_wrapper_tag'   => 'div',
+				'list_item_tag'            => 'div',
+				'empty_items_wrapper_tag'  => 'div',
 			) );
+		}
+
+		public function sanitize_wrapper_tag( $setting ) {
+			$value   = $this->get_settings( $setting );
+
+			if ( empty( $value ) ) {
+				return 'div';
+			}
+
+			$allowed = array();
+
+			switch ( $setting ) {
+				case 'list_items_wrapper_tag':
+					$allowed = array(
+						'div'  => true,
+						'ul'   => true,
+						'ol'   => true,
+					);
+					break;
+
+				case 'list_item_tag':
+					$allowed = array(
+						'div'  => true,
+						'li'   => true,
+					);
+					break;
+				default:
+					$allowed = array(
+						'div'  => true,
+						'span' => true,
+						'h1'   => true,
+						'h2'   => true,
+						'h3'   => true,
+						'h4'   => true,
+						'h5'   => true,
+						'h6'   => true,
+						'p'    => true,
+					);
+					break;
+			}
+
+			return ! empty( $allowed[ $value ] ) ? $value : 'div';
 		}
 
 		public function render() {
 
-			$settings               = $this->get_settings();
-			$listing_id             = absint( $settings['lisitng_id'] );
-			$this->listing_id       = $listing_id;
-			$this->listing_query_id = \Jet_Engine\Query_Builder\Manager::instance()->listings->get_query_id(
-				$listing_id,
-				$settings
-			);
+			$this->setup_listing_props();
 
 			if ( ! $this->listing_id || ! get_post( $this->listing_id ) ) {
 				$this->print_no_listing_notice();
@@ -88,6 +129,16 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 			$this->render_posts();
 			jet_engine()->frontend->frontend_scripts();
 
+		}
+
+		public function setup_listing_props() {
+			$settings               = $this->get_settings();
+			$listing_id             = absint( $settings['lisitng_id'] );
+			$this->listing_id       = $listing_id;
+			$this->listing_query_id = \Jet_Engine\Query_Builder\Manager::instance()->listings->get_query_id(
+				$listing_id,
+				$settings
+			);
 		}
 
 		/**
@@ -222,12 +273,13 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 			);
 
 			foreach ( $keys as $key ) {
+				$setting = $settings[ $key ] ?? '';
 
-				if ( Jet_Engine_Tools::is_empty( $settings[ $key ] ) ) {
+				if ( Jet_Engine_Tools::is_empty( $setting ) ) {
 					continue;
 				}
 
-				$args[ str_replace( 'terms_', '', $key ) ] = esc_attr( $settings[ $key ] );
+				$args[ str_replace( 'terms_', '', $key ) ] = esc_attr( $setting );
 
 			}
 
@@ -264,8 +316,9 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 			array_walk( $args, array( $this, 'apply_macros_in_query' ) );
 
 			foreach ( array( 'terms_include', 'terms_exclude' ) as $key ) {
+				$setting = $settings[ $key ] ?? '';
 
-				$ids = jet_engine()->listings->macros->do_macros( $settings[ $key ], $tax );
+				$ids = jet_engine()->listings->macros->do_macros( $setting, $tax );
 				$ids = $this->explode_string( $ids );
 				$arg = str_replace( 'terms_', '', $key );
 
@@ -813,6 +866,10 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 
 			$terms = get_terms( $args );
 
+			if ( empty( $terms ) || is_wp_error( $terms ) ) {
+				$terms = array();
+			}
+
 			return $terms;
 
 		}
@@ -948,7 +1005,7 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 
 			jet_engine()->admin_bar->register_item( 'edit_post_' . $listing_id, array(
 				'title'     => get_the_title( $listing_id ),
-				'sub_title' => jet_engine()->admin_bar->get_post_type_label( jet_engine()->post_type->slug() ),
+				'sub_title' => esc_html__( 'Listing Item', 'jet-engine' ),
 				'href'      => jet_engine()->post_type->admin_screen->get_edit_url( $view_type, $listing_id ),
 			) );
 
@@ -1033,24 +1090,28 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				}
 			}
 
+			$post_id = apply_filters( 'jet-engine/listing/grid/lazy-load/post-id', $post_id );
+
 			$options = array(
 				'offset'  => $offset,
 				'post_id' => $post_id,
 			);
 
-			$current_obj_id = jet_engine()->listings->data->get_current_object_id();
-			$current_obj    = jet_engine()->listings->data->get_current_object();
+			$queried_id = $this->get_queried_id();
 
-			if ( $current_obj_id && $current_obj ) {
-				$options['queried_id'] = sprintf( '%s|%s', $current_obj_id, get_class( $current_obj ) );
+			if ( $queried_id ) {
+				$options['queried_id'] = $queried_id;
 			}
 
+			/*
+			This code not needed anymore with new ajax listing url.
 			if ( ( is_home() || is_archive() || is_search() ) && ! empty( $settings['is_archive_template'] ) ) {
 				global $wp_query;
 				$default_query = $this->get_default_query( $wp_query );
 				$default_query = apply_filters( 'jet-engine/listing/grid/posts-query-args', $default_query, $this, $settings );
 				$options['query'] = $default_query;
 			}
+			*/
 
 			$options = apply_filters( 'jet-engine/listing/grid/lazy-load/options', $options, $settings );
 
@@ -1220,6 +1281,7 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 					'arrow_icon'               => ! empty( $settings['arrow_icon'] ) ? $settings['arrow_icon'] : 'fa fa-angle-left',
 					'dots'                     => ! empty( $settings['dots'] ) ? $settings['dots'] : '',
 					'autoplay'                 => ! empty( $settings['autoplay'] ) ? $settings['autoplay'] : 'true',
+					'pause_on_hover'           => ! empty( $settings['pause_on_hover'] ) ? $settings['pause_on_hover'] : 'true',
 					'autoplay_speed'           => ! empty( $settings['autoplay_speed'] ) ? $settings['autoplay_speed'] : 5000,
 					'infinite'                 => ! empty( $settings['infinite'] ) ? $settings['infinite'] : 'true',
 					'center_mode'              => ! empty( $settings['center_mode'] ) ? $settings['center_mode'] : '',
@@ -1232,6 +1294,7 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 					'custom_query'             => ! empty( $settings['custom_query'] ) ? $settings['custom_query'] : false,
 					'custom_query_id'          => ! empty( $settings['custom_query_id'] ) ? $settings['custom_query_id'] : '',
 					'_element_id'              => ! empty( $settings['_element_id'] ) ? $settings['_element_id'] : '',
+					'collapse_first_last_gap'  => ! empty( $settings['collapse_first_last_gap'] ) ? $settings['collapse_first_last_gap'] : false,
 				),
 			);
 
@@ -1243,9 +1306,14 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				$result['widget_settings'] = apply_filters(
 					'jet-engine/listing/grid/nav-widget-settings',
 					$result['widget_settings'],
-					$settings
+					$settings,
+					$this
 				);
 			}
+
+			$result['widget_settings']['list_items_wrapper_tag']  = $this->sanitize_wrapper_tag( 'list_items_wrapper_tag' );
+			$result['widget_settings']['list_item_tag']           = $this->sanitize_wrapper_tag( 'list_item_tag' );
+			$result['widget_settings']['empty_items_wrapper_tag'] = $this->sanitize_wrapper_tag( 'empty_items_wrapper_tag' );
 
 			if ( $has_load_more ) {
 				$result['enabled'] = true;
@@ -1283,7 +1351,7 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				$base_class . '--' . absint( $settings['lisitng_id'] ),
 			);
 
-			if ( ! empty( $settings['inline_columns_css'] ) ) {
+			if ( ! empty( $settings['inline_columns_css'] ) && filter_var( $settings['inline_columns_css'], FILTER_VALIDATE_BOOLEAN ) ) {
 
 				$inline_css = '';
 
@@ -1320,6 +1388,12 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				$container_attrs[]   = $this->get_masonry_options( $settings );
 			}
 
+			$queried_id = $this->get_queried_id();
+
+			if ( $queried_id ) {
+				$container_attrs[] = sprintf( 'data-queried-id="%s"', $queried_id );
+			}
+
 			printf( '<div class="%1$s jet-listing">', $base_class );
 
 			$container_attrs = apply_filters(
@@ -1330,6 +1404,12 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 			);
 
 			if ( ! empty( $query ) ) {
+
+				$list_tag = $this->sanitize_wrapper_tag( 'list_items_wrapper_tag' );
+
+				if ( $list_tag === 'ul' ) {
+					$container_attrs[] = 'data-is-list';
+				}
 
 				do_action( 'jet-engine/listing/grid/before', $this );
 
@@ -1372,10 +1452,29 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 					$container_classes[] = 'jet-equal-columns__wrapper';
 				}
 
+				$container_classes = apply_filters(
+					'jet-engine/listing/container-classes',
+					$container_classes,
+					$settings,
+					$this
+				);
+
+				if ( is_array( $settings['collapse_first_last_gap'] ?? '' ) ) {
+					$collapse_gap = $settings['collapse_first_last_gap']['value'] ?? false;
+				} else {
+					$collapse_gap = $settings['collapse_first_last_gap'] ?? false;
+				}
+
+				$collapse_gap = filter_var( $collapse_gap, FILTER_VALIDATE_BOOLEAN );
+
+				if ( $collapse_gap ) {
+					$container_classes[] = 'grid-collapse-gap';
+				}
+
 				do_action( 'jet-engine/listing/grid-items/before', $settings, $this );
 
 				printf(
-					'<div class="%1$s" %2$s data-nav="%3$s" data-page="%4$d" data-pages="%5$d" data-listing-source="%6$s" data-listing-id="%7$s" data-query-id="%8$s">',
+					'<%9$s class="%1$s" %2$s data-nav="%3$s" data-page="%4$d" data-pages="%5$d" data-listing-source="%6$s" data-listing-id="%7$s" data-query-id="%8$s">',
 					esc_attr( implode( ' ', $container_classes ) ),
 					implode( ' ', $container_attrs ),
 					$this->get_nav_settings( $settings ),
@@ -1383,7 +1482,8 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 					esc_attr( $this->query_vars['pages'] ),
 					jet_engine()->listings->data->get_listing_source(),
 					$this->listing_id,
-					$this->listing_query_id
+					$this->listing_query_id,
+					$list_tag
 				);
 
 				do_action( 'jet-engine/listing/posts-loop/before', $settings, $this );
@@ -1392,7 +1492,7 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 
 				do_action( 'jet-engine/listing/posts-loop/after', $settings, $this );
 
-				echo '</div>';
+				echo "</$list_tag>";
 
 				$this->maybe_print_load_more_loader( $settings );
 
@@ -1406,14 +1506,17 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 
 			} else {
 
+				$list_tag = $this->sanitize_wrapper_tag( 'empty_items_wrapper_tag' );
+
 				do_action( 'jet-engine/listing/grid/not-found/before', $this );
 
 				printf(
-					'<div class="jet-listing-not-found %3$s" data-nav="%2$s" %4$s>%1$s</div>',
+					'<%5$s class="jet-listing-not-found %3$s" data-nav="%2$s" %4$s>%1$s</%5$s>',
 					wp_kses_post( do_shortcode( wp_unslash( $settings['not_found_message'] ) ) ),
 					$this->get_nav_settings( $settings ),
 					$base_class . '__items',
-					implode( ' ', $container_attrs )
+					implode( ' ', $container_attrs ),
+					$list_tag
 				);
 
 				do_action( 'jet-engine/listing/grid/not-found/after', $this );
@@ -1475,6 +1578,10 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				$custom_css = 'style="flex: 0 0 ' . $col_width . 'px; max-width: ' . $col_width . 'px;"';
 			}
 
+			//timer_start();
+
+			$list_item_tag = $this->sanitize_wrapper_tag( 'list_item_tag' );
+
 			foreach ( $query as $post_obj ) {
 
 				if ( empty( $post_obj ) ) {
@@ -1497,7 +1604,12 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				$static_inject = ob_get_clean();
 
 				if ( ! $content ) {
-					jet_engine()->frontend->set_listing( absint( $settings['lisitng_id'] ) );
+					$listing_id = apply_filters(
+						'jet-engine/listing/listing-id',
+						absint( $settings['lisitng_id'] ), $settings, $post_obj, $this
+					);
+
+					jet_engine()->frontend->set_listing( $listing_id );
 					$content = jet_engine()->frontend->get_listing_item( $post_obj );
 				}
 
@@ -1507,8 +1619,12 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				$classes = array(
 					$base_class . '__item',
 					'jet-listing-dynamic-post-' . $post_id,
-					$equal_cols_class
+					$equal_cols_class,
 				);
+
+				if ( $list_item_tag === 'li' ) {
+					$classes[] = 'jet-listing-grid__list_item';
+				}
 
 				if ( $static_inject ) {
 
@@ -1517,11 +1633,17 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 						$classes, $post_obj, $i, $this, true
 					);
 
+					$static_post_id = apply_filters(
+						'jet-engine/listing/item-post-id',
+						$post_id, $post_obj, $i, $this, true
+					);
+
 					printf(
-						'<div class="%1$s" data-post-id="%3$s">%2$s</div>',
+						'<%4$s class="%1$s" data-post-id="%3$s">%2$s</%4$s>',
 						implode( ' ', array_filter( $static_classes ) ),
 						$static_inject,
-						$post_id
+						$static_post_id,
+						$list_item_tag
 					);
 
 					$i++;
@@ -1533,11 +1655,12 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 				do_action( 'jet-engine/listing/before-grid-item', $post_obj, $this );
 
 				printf(
-					'<div class="%1$s" data-post-id="%3$s" %4$s>%2$s</div>',
+					'<%5$s class="%1$s" data-post-id="%3$s" %4$s>%2$s</%5$s>',
 					implode( ' ', array_filter( $classes ) ),
 					$content,
 					$post_id,
-					$custom_css
+					$custom_css,
+					$list_item_tag
 				);
 
 				do_action( 'jet-engine/listing/after-grid-item', $post_obj, $this, $i );
@@ -1731,6 +1854,7 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 			$options = array(
 				'autoplaySpeed'  => absint( $settings['autoplay_speed'] ),
 				'autoplay'       => filter_var( $settings['autoplay'], FILTER_VALIDATE_BOOLEAN ),
+				'pauseOnHover'   => filter_var( $settings['pause_on_hover'], FILTER_VALIDATE_BOOLEAN ),
 				'infinite'       => filter_var( $settings['infinite'], FILTER_VALIDATE_BOOLEAN ),
 				'centerMode'     => filter_var( $settings['center_mode'], FILTER_VALIDATE_BOOLEAN ),
 				'speed'          => absint( $settings['speed'] ),
@@ -1861,6 +1985,19 @@ if ( ! class_exists( 'Jet_Engine_Render_Listing_Grid' ) ) {
 
 		public function after_listing_grid() {
 			do_action( 'jet-engine/listing/grid/after-render', $this );
+		}
+
+		public function get_queried_id() {
+			$queried_id     = false;
+			$current_obj    = jet_engine()->listings->data->get_current_object();
+			$current_obj_id = jet_engine()->listings->data->get_current_object_id();
+
+			if ( $current_obj && $current_obj_id ) {
+				$queried_id = sprintf( '%s|%s', $current_obj_id, get_class( $current_obj ) );
+				$queried_id = apply_filters( 'jet-engine/listing/grid/queried-id', $queried_id, $current_obj_id, $current_obj );
+			}
+
+			return $queried_id;
 		}
 
 	}

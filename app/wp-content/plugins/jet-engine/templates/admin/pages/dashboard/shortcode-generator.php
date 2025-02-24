@@ -30,6 +30,7 @@
 								:type="field.inputType"
 								:options-list="field.optionsList"
 								:groups-list="field.groupsList"
+								:multiple="field.multiple"
 								:label="field.label"
 								:description="field.description"
 								:wrapper-css="[ 'equalwidth' ]"
@@ -48,6 +49,7 @@
 				:key="control.name"
 				:options-list="control.optionsList"
 				:groups-list="control.groupsList"
+				:multiple="control.multiple"
 				:label="control.label"
 				:description="control.description"
 				:wrapper-css="[ 'equalwidth' ]"
@@ -58,7 +60,7 @@
 		</template>
 	</div>
 	<div class="jet-shortocde-generator__result">
-		{{ generatedShortcode }}		
+		{{ generatedShortcode }}
 		<div
 			class="jet-shortocde-generator__result-copy"
 			role="button"

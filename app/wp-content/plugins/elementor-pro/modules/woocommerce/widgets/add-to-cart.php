@@ -7,6 +7,7 @@ use ElementorPro\Base\Base_Widget_Trait;
 use ElementorPro\Core\Utils;
 use ElementorPro\Modules\QueryControl\Module;
 use ElementorPro\Modules\Woocommerce\Traits\Product_Id_Trait;
+use ElementorPro\Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -37,6 +38,10 @@ class Add_To_Cart extends Widget_Button {
 		return [ 'woocommerce', 'shop', 'store', 'cart', 'product', 'button', 'add to cart' ];
 	}
 
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::elementor()->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	/**
 	 * Get style dependencies.
 	 *
@@ -48,7 +53,7 @@ class Add_To_Cart extends Widget_Button {
 	 * @return array Widget style dependencies.
 	 */
 	public function get_style_depends(): array {
-		return [ 'widget-woocommerce' ];
+		return [ 'widget-woocommerce-product-add-to-cart' ];
 	}
 
 	public function on_export( $element ) {

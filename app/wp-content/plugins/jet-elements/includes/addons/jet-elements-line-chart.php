@@ -57,6 +57,10 @@ class Jet_Elements_Line_Chart extends Jet_Elements_Base {
 		return false;
 	}
 
+	public function get_style_depends() { 
+		return array( 'jet-charts' ); 
+	}
+
 	/**
 	 * Retrieve the list of scripts the widget depended on.
 	 *

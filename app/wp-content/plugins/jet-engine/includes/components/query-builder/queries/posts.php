@@ -7,6 +7,7 @@ class Posts_Query extends Base_Query {
 
 	use Traits\Meta_Query_Trait;
 	use Traits\Tax_Query_Trait;
+	use Traits\Date_Query_Trait;
 
 	public $current_wp_query = null;
 
@@ -103,6 +104,10 @@ class Posts_Query extends Base_Query {
 
 		}
 
+		if ( ! empty( $args['date_query'] ) ) {
+			$args['date_query'] = $this->prepare_date_query_args( $args );
+		}
+
 		if ( ! empty( $args['orderby'] ) ) {
 
 			$raw = $args['orderby'];
@@ -111,6 +116,10 @@ class Posts_Query extends Base_Query {
 			foreach ( $raw as $query_row ) {
 
 				if ( empty( $query_row ) ) {
+					continue;
+				}
+
+				if ( empty( $query_row['orderby'] ) ) {
 					continue;
 				}
 
@@ -147,7 +156,7 @@ class Posts_Query extends Base_Query {
 
 					case 'rand':
 
-						$rand = sprintf( 'RAND(%s)', rand() );
+						$rand = sprintf( 'RAND(%s)', $this->get_random_seed() );
 						$args['orderby'][ $rand ] = $order;
 
 						break;
@@ -282,6 +291,22 @@ class Posts_Query extends Base_Query {
 
 	public function set_filtered_prop( $prop = '', $value = null ) {
 
+		/**
+		 * Before start - check, if given prop is must be an array (included into get_args_to_explode()),
+		 * check the value and ensure is an array.
+		 *
+		 * @since 3.3.6, added only into Posts query type.
+		 */
+		if ( in_array( $prop, $this->get_args_to_explode() ) ) {
+
+			if ( empty( $value ) ) {
+				$value = [];
+			} elseif ( ! is_array( $value ) ) {
+				$value = [ $value ];
+			}
+
+		}
+
 		switch ( $prop ) {
 
 			case '_page':
@@ -303,6 +328,10 @@ class Posts_Query extends Base_Query {
 				$this->replace_tax_query_row( $value );
 				break;
 
+			case 'date_query':
+				$this->final_query['date_query'] = $value;
+				break;
+
 			case 'post__in':
 
 				if ( ! empty( $this->final_query['post__in'] ) ) {
@@ -318,6 +347,8 @@ class Posts_Query extends Base_Query {
 
 				break;
 
+			/*
+			 * This code not needed anymore, because the `post__not_in` prop need merged.
 			case 'post__not_in':
 
 				if ( ! empty( $this->final_query['post__not_in'] ) ) {
@@ -332,9 +363,14 @@ class Posts_Query extends Base_Query {
 				}
 
 				break;
+			*/
 
 			case 'post_type':
 				$this->final_query['post_type'] = $value;
+				break;
+
+			case 'suppress_filters':
+				$this->final_query['suppress_filters'] = filter_var( $value, FILTER_VALIDATE_BOOLEAN );
 				break;
 
 			default:
@@ -449,6 +485,36 @@ class Posts_Query extends Base_Query {
 
 	public function reset_query() {
 		$this->current_wp_query = null;
+	}
+
+	/**
+	 * Returns a random seed for random orderby.
+	 *
+	 * @return mixed|void
+	 */
+	public function get_random_seed() {
+
+		if ( ! empty( $this->final_query['_random_seed'] ) ) {
+			return $this->final_query['_random_seed'];
+		}
+
+		$seed = apply_filters( 'jet-engine/query-builder/types/posts-query/random-seed', rand(), $this );
+
+		$this->final_query['_random_seed'] = $seed;
+
+		return $this->final_query['_random_seed'];
+	}
+
+	public function _debug_info() {
+		$current_query = $this->get_current_wp_query();
+		$request = is_object( $current_query ) && isset( $current_query->request ) ? $current_query->request : 'Query error';
+
+		$result = array(
+			'request' => $request,
+			'current_query' => $current_query,
+		);
+
+		return $result;
 	}
 
 }

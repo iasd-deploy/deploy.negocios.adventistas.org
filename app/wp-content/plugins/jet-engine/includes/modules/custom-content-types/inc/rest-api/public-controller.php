@@ -28,23 +28,24 @@ class Public_Controller {
 		$namespace = $this->slug;
 		$base      = $args['slug'];
 
-		$raw_routes = array(
-			array(
+		$raw_routes = array();
+		$ids_routes = array();
+
+		if ( $args['get'] ) {
+			$raw_routes[] = array(
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_items' ),
 				'permission_callback' => array( $this, 'get_items_permissions_check' ),
 				'args'                => $this->prepare_get_args( $base ),
-			),
-		);
-
-		$ids_routes = array(
-			array(
+			);
+	
+			$ids_routes[] = array(
 				'methods'             => \WP_REST_Server::READABLE,
 				'callback'            => array( $this, 'get_item' ),
 				'permission_callback' => array( $this, 'get_item_permissions_check' ),
 				'args'                => array(),
-			),
-		);
+			);
+		}
 
 		if ( $args['create'] ) {
 			$raw_routes[] = array(
@@ -172,7 +173,7 @@ class Public_Controller {
 				$type = 'array';
 			}
 
-			if ( 'select' === $field['type'] && ! empty( $field['is_multiple'] )
+			if ( in_array( $field['type'], array( 'select', 'posts' ) ) && ! empty( $field['is_multiple'] )
 				 && filter_var( $field['is_multiple'], FILTER_VALIDATE_BOOLEAN )
 			) {
 				$type = 'array';
@@ -483,7 +484,7 @@ class Public_Controller {
 		$id      = $request->get_param( '_ID' );
 		$handler = $content_type->get_item_handler();
 
-		$handler->delete_item( $id );
+		$handler->raw_delete_item( $id );
 
 		return new \WP_REST_Response( array( 'success' => true ), 200 );
 

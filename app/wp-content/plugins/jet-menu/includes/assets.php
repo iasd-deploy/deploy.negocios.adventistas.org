@@ -148,14 +148,6 @@ if ( ! class_exists( 'Jet_Menu_Assets' ) ) {
 				true
 			);
 
-			wp_register_script(
-				'jet-menu-polyfills',
-				jet_menu()->plugin_url( 'assets/public/js/jet-menu-polyfills.js' ),
-				array(),
-				jet_menu()->get_version(),
-				true
-			);
-
 			$public_script_depend = apply_filters( 'jet-menu/assets/public-script-dependencies', [ 'jquery', 'wp-hooks', 'jet-vue' ] );
 
 			$scripts_path = jet_menu_tools()->is_nextgen_mode() ? 'assets/public/js' : 'assets/public/js/legacy';

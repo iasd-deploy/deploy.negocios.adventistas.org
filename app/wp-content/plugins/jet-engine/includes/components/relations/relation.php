@@ -1,6 +1,8 @@
 <?php
 namespace Jet_Engine\Relations;
 
+use Jet_Engine\Relations\Storage\Ordering;
+
 /**
  * Relation object
  */
@@ -32,12 +34,13 @@ if ( ! defined( 'WPINC' ) ) {
  */
 class Relation {
 
-	private $raw_args = array();
-	private $rel_id = array();
-	private $controls;
-	private $rel_cache_group = 'jet_engine_rel';
-	private $update_context  = null;
-	private $control_context = null;
+	protected $raw_args = array();
+	protected $rel_id = array();
+	protected $controls;
+	protected $rel_cache_group = 'jet_engine_rel';
+	protected $update_context  = null;
+	protected $control_context = null;
+	protected $query_order = array();
 
 	public $db;
 	public $meta_db;
@@ -73,6 +76,12 @@ class Relation {
 
 		do_action( 'jet-engine/relations/init/' . $rel_id, $this );
 
+		if ( 'date' === Ordering::instance()->get_mode() ) {
+			$this->query_order = array( array(
+				'orderby' => 'created',
+				'order'   => 'desc',
+			) );
+		}
 	}
 
 	public function init_public_rest_api() {
@@ -413,7 +422,19 @@ class Relation {
 					$field_data['description'] = wp_strip_all_tags( $field_data['description'] );
 				}
 
+				if ( ! empty( $field_data['options_callback'] )
+					&& is_callable( $field_data['options_callback'] ) 
+				) {
+
+					$field_data['options'] = \Jet_Engine_Tools::get_options_from_callback(
+						$field_data['options_callback'], true
+					);
+
+					unset( $field_data['options_callback'] );
+				}
+
 				$meta_fields[ $key ] = $field_data;
+
 			}
 
 		}
@@ -607,7 +628,7 @@ class Relation {
 		$children  = wp_cache_get( $cache_key, $this->rel_cache_group );
 
 		if ( ! $children ) {
-			$children = $this->db->query( $query_args );
+			$children = $this->get_items( $query_args );
 			wp_cache_set( $cache_key, $children, $this->rel_cache_group );
 		}
 
@@ -653,7 +674,7 @@ class Relation {
 		$parents   = wp_cache_get( $cache_key, $this->rel_cache_group );
 
 		if ( ! $parents ) {
-			$parents = $this->db->query( $query_args );
+			$parents = $this->get_items( $query_args );
 			wp_cache_set( $cache_key, $parents, $this->rel_cache_group );
 		}
 
@@ -725,7 +746,7 @@ class Relation {
 		$result    = wp_cache_get( $cache_key, $this->rel_cache_group );
 
 		if ( ! $result ) {
-			$result = $this->db->query( $query_args );
+			$result = $this->get_items( $query_args );
 		}
 
 		if ( 'all' !== $fields ) {
@@ -738,6 +759,16 @@ class Relation {
 
 		return apply_filters( 'jet-engine/relations/get-siblings', $result, $object_id, $fields, $this );
 
+	}
+
+	/**
+	 * Internal wrapper to db::query method
+	 *
+	 * @param  array  $query_args [description]
+	 * @return [type]             [description]
+	 */
+	public function get_items( $query_args = [] ) {
+		return $this->db->query( $query_args, 0, 0, $this->query_order );
 	}
 
 	/**
@@ -769,6 +800,8 @@ class Relation {
 		}
 
 		$this->delete_rows( $parent_object, $child_object, true );
+		$this->db->reset_cache();
+		$this->meta_db->reset_cache();
 
 	}
 
@@ -803,7 +836,10 @@ class Relation {
 
 		$this->db->delete( $delete_where );
 
-		wp_cache_flush();
+		do_action( 'jet-engine/relation/delete/after', $parent_object, $child_object, $clear_meta, $this );
+
+		$this->db->reset_cache();
+		$this->meta_db->reset_cache();
 
 	}
 
@@ -845,6 +881,9 @@ class Relation {
 				}
 			}
 		}
+
+		$this->db->reset_cache();
+		$this->meta_db->reset_cache();
 
 	}
 
@@ -888,7 +927,10 @@ class Relation {
 
 		}
 
-		wp_cache_flush();
+		do_action( 'jet-engine/relation/update-all-meta/after', $parent_object, $child_object, $new_meta, $this );
+
+		$this->db->reset_cache();
+		$this->meta_db->reset_cache();
 
 	}
 
@@ -995,9 +1037,16 @@ class Relation {
 			$this->meta_db->insert( $query );
 		}
 
-		$cache_key = $this->get_cache_key( $parent_object, $child_object );
+		$cache_key   = $this->get_cache_key( $parent_object, $child_object );
+		$p_cache_key = $this->get_cache_key( '0', $child_object );
+		$c_cache_key = $this->get_cache_key( $parent_object, '0' );
 
 		wp_cache_delete( $cache_key, $this->rel_cache_group );
+		wp_cache_delete( $p_cache_key, $this->rel_cache_group );
+		wp_cache_delete( $c_cache_key, $this->rel_cache_group );
+
+		$this->db->reset_cache();
+		$this->meta_db->reset_cache();
 
 	}
 
@@ -1031,8 +1080,16 @@ class Relation {
 			'meta_key'         => $meta_key,
 		) );
 
-		$cache_key = $this->get_cache_key( $parent_object, $child_object );
+		$cache_key   = $this->get_cache_key( $parent_object, $child_object );
+		$p_cache_key = $this->get_cache_key( '0', $child_object );
+		$c_cache_key = $this->get_cache_key( $parent_object, '0' );
+
 		wp_cache_delete( $cache_key, $this->rel_cache_group );
+		wp_cache_delete( $p_cache_key, $this->rel_cache_group );
+		wp_cache_delete( $c_cache_key, $this->rel_cache_group );
+
+		$this->db->reset_cache();
+		$this->meta_db->reset_cache();
 
 	}
 
@@ -1244,6 +1301,12 @@ class Relation {
 			return $exists[0];
 		}
 
+		$allow_update = apply_filters( 'jet-engine/relation/update/allow_update', true, $parent_object, $child_object, $this );
+
+		if ( ! $allow_update ) {
+			return false;
+		}
+
 		do_action( 'jet-engine/relation/update/before', $parent_object, $child_object, $this );
 
 		$update = false;
@@ -1321,8 +1384,17 @@ class Relation {
 
 		do_action( 'jet-engine/relation/update/after', $parent_object, $child_object, $item_id, $this );
 
+		$this->db->reset_cache();
+		$this->meta_db->reset_cache();
 		$this->reset_update_context();
-		wp_cache_flush();
+
+		$cache_key   = $this->get_cache_key( $parent_object, $child_object );
+		$p_cache_key = $this->get_cache_key( '0', $child_object );
+		$c_cache_key = $this->get_cache_key( $parent_object, '0' );
+
+		wp_cache_delete( $cache_key, $this->rel_cache_group );
+		wp_cache_delete( $p_cache_key, $this->rel_cache_group );
+		wp_cache_delete( $c_cache_key, $this->rel_cache_group );
 
 		if ( ! empty( $item_id ) && is_array( $item_id ) ) {
 			return $item_id;

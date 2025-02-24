@@ -187,6 +187,7 @@ if ( ! class_exists( 'Jet_Engine_Modules' ) ) {
 				'Jet_Engine_Module_Custom_Visibility_Conditions' => $path . 'external-custom-visibility-conditions/custom-visibility-conditions.php',
 				'Jet_Engine_Module_Trim_Callback'                => $path . 'external-trim-callback/trim-callback.php',
 				'Jet_Engine_Module_Post_Expiration_Period'       => $path . 'external-post-expiration-period/post-expiration-period.php',
+				'Jet_Engine_Module_Layout_Switcher'              => $path . 'external-layout-switcher/layout-switcher.php',
 
 			) );
 
@@ -238,12 +239,24 @@ if ( ! class_exists( 'Jet_Engine_Modules' ) ) {
 
 			foreach ( $modules as $module => $is_active ) {
 				if ( 'true' === $is_active ) {
-					$module_instance = isset( $this->modules[ $module ] ) ? $this->modules[ $module ] : false;
-					if ( $module_instance ) {
-						call_user_func( array( $module_instance, 'module_init' ) );
-						$this->active_modules[] = $module;
-					}
+					$this->init_module( $module );
 				}
+			}
+		}
+
+		/**
+		 * Initialize module by slug
+		 *
+		 * @param  string $module Module slug to init.
+		 * @return void
+		 */
+		public function init_module( $module ) {
+
+			$module_instance = $this->get_module( $module );
+
+			if ( $module_instance ) {
+				call_user_func( array( $module_instance, 'module_init' ) );
+				$this->active_modules[] = $module;
 			}
 
 		}
@@ -273,6 +286,7 @@ if ( ! class_exists( 'Jet_Engine_Modules' ) ) {
 					'embed'       => $module->get_video_embed(),
 					'isElementor' => $module->support_elementor(),
 					'isBlocks'    => $module->support_blocks(),
+					'isBricks'    => $module->support_bricks(),
 				);
 
 				if ( $extra_data ) {
@@ -290,9 +304,6 @@ if ( ! class_exists( 'Jet_Engine_Modules' ) ) {
 			}
 
 			return $result;
-
-
-
 		}
 
 		public function get_module_links( $module ) {
@@ -319,7 +330,6 @@ if ( ! class_exists( 'Jet_Engine_Modules' ) ) {
 			}
 
 			return $result;
-
 		}
 
 		/**
@@ -332,6 +342,7 @@ if ( ! class_exists( 'Jet_Engine_Modules' ) ) {
 			foreach ( $this->modules as $module ) {
 				$result[ $module->module_id() ] = $module->module_name();
 			}
+
 			return $result;
 		}
 

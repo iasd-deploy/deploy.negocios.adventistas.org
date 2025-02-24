@@ -91,11 +91,16 @@ if ( ! class_exists( 'Jet_Engine_Frontend' ) ) {
 			$hover_action_timeout = apply_filters( 'jet-engine/map-popup/timeout', 400 ); // deprecated
 			$hover_action_timeout = apply_filters( 'jet-engine/listings/custom-url-actions/hover-timeout', $hover_action_timeout );
 
+			$root_object = jet_engine()->listings->objects_stack->get_root_object();
+
+			$post_id = is_a( $root_object, 'WP_Post' ) ? $root_object->ID : 0;
+
 			$localize_data = apply_filters( 'jet-engine/listing/frontend/js-settings', array(
 				'ajaxurl'     => esc_url( admin_url( 'admin-ajax.php' ) ),
 				'ajaxlisting' => $this->get_ajax_listing_url(),
 				'restNonce'   => wp_create_nonce( 'wp_rest' ),
 				'hoverActionTimeout' => $hover_action_timeout,
+				'post_id' => $post_id,
 			) );
 
 			wp_localize_script( 'jet-engine-frontend', 'JetEngineSettings', $localize_data );
@@ -321,20 +326,52 @@ if ( ! class_exists( 'Jet_Engine_Frontend' ) ) {
 			if ( ! $url ) {
 				$source = ! empty( $settings['listing_link_source'] ) ? $settings['listing_link_source'] : '_permalink';
 
-				if ( '_permalink' === $source ) {
-					$url = jet_engine()->listings->data->get_current_object_permalink();
-				} elseif ( 'options_page' === $source ) {
-					$option = ! empty( $settings['listing_link_option'] ) ? $settings['listing_link_option'] : false;
-					$url    = jet_engine()->listings->data->get_option( $option );
-				} elseif ( $source ) {
-					$url = jet_engine()->listings->data->get_meta( $source );
+				switch ( $source ) {
+					case '_permalink':
+						$url = jet_engine()->listings->data->get_current_object_permalink();
+						break;
+					case 'options_page':
+						$option = ! empty( $settings['listing_link_option'] ) ? $settings['listing_link_option'] : false;
+						$url    = jet_engine()->listings->data->get_option( $option );
+						break;
+					case 'object_prop':
+						$prop = ! empty( $settings['listing_link_object_prop'] ) ? $settings['listing_link_object_prop'] : false;
+						$url = jet_engine()->listings->data->get_prop( $prop );
+						break;
+					default:
+						$url = jet_engine()->listings->data->get_meta( $source );
 				}
 			}
+
+			$custom_url = ! empty( $settings['listing_link_custom_url'] ) ? $settings['listing_link_custom_url'] : '';
+
+			if ( ! empty( $custom_url ) ) {
+				$custom_url = do_shortcode( $custom_url );
+				$custom_url = jet_engine()->listings->macros->do_macros( $custom_url );
+
+				$url = $custom_url;
+			}
+
+			$url = \Jet_Engine_Tools::add_query_args_by_settings(
+				$url,
+				array(
+					'add_query_args' => $settings['listing_link_add_query_args'] ?? '',
+					'query_args'    => $settings['listing_link_query_args'] ?? '',
+				)
+			);
 
 			$prefix = isset( $settings['listing_link_prefix'] ) ? $settings['listing_link_prefix'] : '';
 
 			if ( $prefix ) {
 				$url = $prefix . $url;
+			}
+
+			if ( ! empty( $settings['listing_link_url_anchor'] ) ) {
+				$url_anchor = $settings['listing_link_url_anchor'];
+				$url_anchor = do_shortcode( $url_anchor );
+				$url_anchor = jet_engine()->listings->macros->do_macros( $url_anchor );
+
+				$url = $url . '#' . esc_attr( $url_anchor );
 			}
 
 			$overlay_attrs = array(
@@ -350,6 +387,7 @@ if ( ! class_exists( 'Jet_Engine_Frontend' ) ) {
 			$open_in_new = isset( $settings['listing_link_open_in_new'] ) ? $settings['listing_link_open_in_new'] : '';
 			$rel_attr    = isset( $settings['listing_link_rel_attr'] ) ? $settings['listing_link_rel_attr'] : '';
 			$aria_label  = isset( $settings['listing_link_aria_label'] ) ? $settings['listing_link_aria_label'] : '';
+			$link_text   = '';
 
 			if ( $open_in_new ) {
 				$overlay_attrs['data-target'] = '_blank';
@@ -362,12 +400,13 @@ if ( ! class_exists( 'Jet_Engine_Frontend' ) ) {
 
 			if ( $aria_label ) {
 				$link_attrs['aria-label'] = esc_attr( $aria_label );
+				$link_text = esc_html( $aria_label );
 			}
 
 			$overlay_attrs = apply_filters( 'jet-engine/listings/frontend/listing-link/overlay-attrs', $overlay_attrs, $settings );
 			$link_attrs    = apply_filters( 'jet-engine/listings/frontend/listing-link/link-attrs', $link_attrs, $settings );
 
-			$link = sprintf( '<a %s></a>', Jet_Engine_Tools::get_attr_string( $link_attrs ) );
+			$link = sprintf( '<a %s>%s</a>', Jet_Engine_Tools::get_attr_string( $link_attrs ), $link_text );
 
 			return sprintf(
 				'<div %3$s>%1$s%2$s</div>',

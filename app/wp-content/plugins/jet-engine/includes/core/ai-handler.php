@@ -48,14 +48,14 @@ class Jet_Engine_AI_Handler {
 			) {
 				$license     = $license_key;
 				$is_lifetime = true;
-				$limit       = 30;
+				$limit       = 60;
 			} else {
 
 				$license = \Jet_Dashboard\Utils::get_plugin_license_key( 'jet-engine/jet-engine.php' );
 
 				if ( $license ) {
 					$is_lifetime = false;
-					$limit       = 5;
+					$limit       = 30;
 				}
 
 			}
@@ -103,13 +103,27 @@ class Jet_Engine_AI_Handler {
 			wp_send_json_error( 'Empty prompt' );
 		}
 
-		$max_length = 400;
+		$source     = ! empty( $_REQUEST['source'] ) ? esc_attr( $_REQUEST['source'] ) : 'sql';
+		$response   = $this->remote_get_completion( $prompt, $source );
+		$completion = $this->prepare_completion( $response['completion'] );
+
+		wp_send_json_success( [
+			'completion'     => $completion,
+			'requests_used'  => $response['usage'],
+			'requests_limit' => $response['limit'],
+			'rows'           => substr_count( $completion, "\n" ),
+		] );
+
+	}
+
+	public function remote_get_completion( $prompt = '', $source = 'sql' ) {
+
+		$max_length = 600;
 
 		if ( $max_length < strlen( $prompt ) ) {
 			wp_send_json_error( 'Prompt is too long. Limit is ' . $max_length . ' chars' );
 		}
 
-		$source  = ! empty( $_REQUEST['source'] ) ? esc_attr( $_REQUEST['source'] ) : 'sql';
 		$license = $this->get_matched_license();
 
 		if ( ! $license ) {
@@ -121,7 +135,8 @@ class Jet_Engine_AI_Handler {
 			'prompt'  => $prompt,
 			'license' => $license
 		], $this->url ), [
-			'timeout' => 60,
+			'timeout'   => 90,
+			'sslverify' => false,
 		] );
 
 		$body = wp_remote_retrieve_body( $response );
@@ -140,14 +155,7 @@ class Jet_Engine_AI_Handler {
 			wp_send_json_error( $body['data'] );
 		}
 
-		$completion = $this->prepare_completion( $body['data']['completion'] );
-
-		wp_send_json_success( [
-			'completion'     => $completion,
-			'requests_used'  => $body['data']['usage'],
-			'requests_limit' => $body['data']['limit'],
-			'rows'           => substr_count( $completion, "\n" ),
-		] );
+		return $body['data'];
 
 	}
 

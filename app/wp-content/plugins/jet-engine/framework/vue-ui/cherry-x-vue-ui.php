@@ -2,7 +2,7 @@
 /**
  * Vue.js based Interface Builder module
  *
- * Version: 1.4.9
+ * Version: 1.5.2
  */
 
 // If this file is called directly, abort.
@@ -51,7 +51,7 @@ if ( ! class_exists( 'CX_Vue_UI' ) ) {
 		 *
 		 * @var string
 		 */
-		protected $version = '1.4.9';
+		protected $version = '1.5.2';
 
 		/**
 		 * [$assets_enqueued description]
@@ -105,7 +105,7 @@ if ( ! class_exists( 'CX_Vue_UI' ) ) {
 				'cx-vue',
 				$this->url . 'assets/js/vue' . $suffix . '.js',
 				array(),
-				'2.6.10',
+				'2.6.11',
 				true
 			);
 
@@ -173,6 +173,7 @@ if ( ! class_exists( 'CX_Vue_UI' ) ) {
 			return apply_filters( 'cx-vue-ui/components-list', array(
 
 				// Layout elements
+				'alert',
 				'title',
 				'collapse',
 				'component-wrapper',

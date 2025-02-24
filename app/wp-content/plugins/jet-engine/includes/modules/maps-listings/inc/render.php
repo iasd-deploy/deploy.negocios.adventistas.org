@@ -18,6 +18,7 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 			'posts_num'                  => 6,
 			'auto_center'                => true,
 			'max_zoom'                   => '',
+			'min_zoom'                   => '',
 			'custom_center'              => '',
 			'custom_zoom'                => 11,
 			'zoom_control'               => 'auto',
@@ -33,6 +34,7 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 			'popup_offset'               => 40,
 			'marker_type'                => 'image',
 			'marker_image'               => null,
+			'marker_image_size'          => 'full',
 			'marker_icon'                => null,
 			'marker_label_type'          => 'post_title',
 			'marker_label_field'         => '',
@@ -111,6 +113,8 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 			if ( null === $this->source && empty( $query ) ) {
 				$this->set_source( null, $settings );
 			}
+
+			$initial_object = jet_engine()->listings->data->get_current_object();
 
 			foreach ( $query as $post ) {
 
@@ -213,18 +217,27 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 						$post_id = $post->term_id;
 						break;
 
+					case 'Jet_Engine_Queried_Repeater_Item':
+						$post_id = $post->get_id();
+						break;
+
 					default:
 						$post_id = apply_filters( 'jet-engine/listing/custom-post-id', get_the_ID(), $post );
 				}
 
+				jet_engine()->listings->data->set_current_object( $post );
+
 				$result[] = array(
-					'id'            => $post_id,
-					'latLang'       => $latlang,
-					'label'         => $this->get_marker_label( $post, $settings ),
-					'custom_marker' => $this->get_custom_marker( $post, $settings ),
+					'id'                 => $post_id,
+					'latLang'            => $latlang,
+					'label'              => $this->get_marker_label( $post, $settings ),
+					'custom_marker'      => $this->get_custom_marker( $post, $settings ),
+					'geo_query_distance' => $post->geo_query_distance ?? -1,
 				);
 
 			}
+
+			jet_engine()->listings->data->set_current_object( $initial_object );
 
 		}
 
@@ -248,15 +261,13 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 		);
 
 		if ( ! $obj ) {
-			
+
 			if ( $this->listing_query_id ) {
-				
 				$query = \Jet_Engine\Query_Builder\Manager::instance()->get_query_by_id( $this->listing_query_id );
 
 				if ( $query ) {
 					$source = str_replace( '-', '_', $query->query_type );
 				}
-
 			}
 		}
 
@@ -276,7 +287,20 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 					$source = 'terms';
 					break;
 
+				case 'Jet_Engine_Queried_Repeater_Item':
+					$source = 'repeater';
+					break;
+
 				default:
+
+					if ( $this->listing_query_id ) {
+						$query = \Jet_Engine\Query_Builder\Manager::instance()->get_query_by_id( $this->listing_query_id );
+
+						if ( $query ) {
+							$source = str_replace( '-', '_', $query->query_type );
+						}
+					}
+
 					$source = apply_filters( 'jet-engine/maps-listing/source', $source, $obj );
 			}
 		}
@@ -326,11 +350,12 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 
 		if ( $image_id ) {
 
-			$image_cache_key = 'jet_engine_marker_' . $image_id;
-			$image_url = wp_cache_get( $image_cache_key );
-
+			$image_size      = ! empty( $settings['marker_image_size'] ) ? $settings['marker_image_size'] : 'full';
+			$image_cache_key = sprintf( 'jet_engine_marker_%d_%s', $image_id, $image_size );
+			$image_url       = wp_cache_get( $image_cache_key );
+			
 			if ( ! $image_url ) {
-				$image_url = wp_get_attachment_image_url( $image_id, 'full' );
+				$image_url = wp_get_attachment_image_url( $image_id, $image_size );
 				wp_cache_set( $image_cache_key, $image_url );
 			}
 		} else {
@@ -401,6 +426,10 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 
 					$taxonomy = ! empty( $marker['tax_name'] ) ? $marker['tax_name'] : false;
 					$term     = ! empty( $marker['term_name'] ) ? $marker['term_name'] : false;
+
+					if ( $term ) {
+						$term = apply_filters( 'jet-engine/compatibility/translate/term', $term, $taxonomy );
+					}
 
 					if ( $taxonomy && $term && isset( $post->ID ) ) {
 						$condition_met = has_term( $term, $taxonomy, $post->ID );
@@ -523,11 +552,26 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 					return false;
 				} elseif ( is_array( $image ) ) {
 					$result['url'] = $image['url'];
-					return $result;
 				} else {
 					$result['url'] = $image;
+				}
+
+				$image_id = ! empty( $image['id'] ) ? $image['id'] : attachment_url_to_postid( $result['url'] );
+
+				if ( ! $image_id ) {
 					return $result;
 				}
+
+				$image_size = ! empty( $settings['marker_image_size'] ) ? $settings['marker_image_size'] : false;
+
+				if ( ! $image_size ) {
+					$widget_settings = $this->get_settings();
+					$image_size = ! empty( $widget_settings['marker_image_size'] ) ? $widget_settings['marker_image_size'] : 'full';
+				}
+
+				$result['url'] = wp_get_attachment_image_url( $image_id, $image_size );
+
+				return $result;
 
 			case 'icon':
 
@@ -537,7 +581,14 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 				if ( ! $icon ) {
 					return false;
 				} else {
-					$icon_html      = \Jet_Engine_Tools::render_icon( $icon, 'jet-map-marker', array( 'style' => 'cursor:pointer;' ) );
+					$image_size = ! empty( $settings['marker_image_size'] ) ? $settings['marker_image_size'] : false;
+
+					if ( ! $image_size ) {
+						$widget_settings = $this->get_settings();
+						$image_size = ! empty( $widget_settings['marker_image_size'] ) ? $widget_settings['marker_image_size'] : 'full';
+					}
+
+					$icon_html      = \Jet_Engine_Tools::render_icon( $icon, 'jet-map-marker', array( 'style' => 'cursor:pointer;' ), $image_size );
 					$result['html'] = $icon_html;
 					return $result;
 				}
@@ -659,6 +710,7 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 
 
 		if ( ! $auto_center && $custom_center ) {
+			$custom_center = jet_engine()->listings->macros->do_macros( $custom_center );
 			$custom_center = Module::instance()->lat_lng->get_from_transient( $custom_center );
 		}
 
@@ -675,12 +727,17 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 			'marker'           => $this->prepare_marker_data( $this->get_marker_data( $settings ) ),
 			'autoCenter'       => $auto_center,
 			'maxZoom'          => ! empty( $settings['max_zoom'] ) ? absint( $settings['max_zoom'] ) : false,
+			'minZoom'          => ! empty( $settings['min_zoom'] ) ? absint( $settings['min_zoom'] ) : false,
 			'customCenter'     => $custom_center,
 			'customZoom'       => $custom_zoom,
 			'popupPreloader'   => $popup_preloader,
 			'querySeparator'   => ! empty( $permalink_structure ) ? '?' : '&',
 			'markerClustering' => $marker_clustering,
+			'clusterMaxZoom'   => ! empty( $settings['cluster_max_zoom'] ) ? absint( $settings['cluster_max_zoom'] ) : '',
+			'clusterRadius'    => ! empty( $settings['cluster_radius'] ) ? absint( $settings['cluster_radius'] ) : '',
 			'popupOpenOn'      => ! empty( $settings['popup_open_on'] ) ? $settings['popup_open_on'] : 'click',
+			'centeringOnOpen'  => ! empty( $settings['centering_on_open'] ) ? filter_var( $settings['centering_on_open'], FILTER_VALIDATE_BOOLEAN ) : false,
+			'zoomOnOpen'       => ! empty( $settings['zoom_on_open'] ) ? absint( $settings['zoom_on_open'] ) : false,
 			'advanced'         => array(
 				'zoom_control' => ! empty( $settings['zoom_control'] ) ? $settings['zoom_control'] : 'auto',
 			),
@@ -699,7 +756,10 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 
 		$general = htmlspecialchars( json_encode( $general ) );
 
-		$classes = array( 'jet-map-listing' );
+		$classes = array( 
+			'jet-map-listing',
+			'jet-listing-grid--' . $listing_id, // for inline CSS consistency between differen views and listing widgets
+		);
 
 		if ( ! empty( $settings['popup_pin'] ) ) {
 			$classes[] = 'popup-has-pin';
@@ -731,6 +791,12 @@ class Render extends \Jet_Engine_Render_Listing_Grid {
 
 		if ( $this->listing_query_id ) {
 			$attrs['data-query-id'] = $this->listing_query_id;
+		}
+
+		$queried_id = $this->get_queried_id();
+
+		if ( $queried_id ) {
+			$attrs['data-queried-id'] = $queried_id;
 		}
 
 		if ( ! empty( $custom_css ) ) {

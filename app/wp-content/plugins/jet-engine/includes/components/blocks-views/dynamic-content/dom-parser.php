@@ -8,6 +8,8 @@ class DOM_Parser {
 
 	protected $replaced = false;
 
+	public $content;
+
 	public function __construct( $content ) {
 		$this->content = $content;
 	}
@@ -25,6 +27,11 @@ class DOM_Parser {
 
 		if ( class_exists( '\DOMDocument' ) && false === strpos( $content, '<svg' ) ) {
 			$document = new \DOMDocument();
+
+			if ( function_exists( 'mb_convert_encoding' ) ) {
+				$content = mb_convert_encoding( $content, 'HTML-ENTITIES', 'UTF-8' );
+			}
+
 			$document->loadHTML( $content );
 		} else {
 

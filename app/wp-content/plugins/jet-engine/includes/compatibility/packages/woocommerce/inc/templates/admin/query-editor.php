@@ -15,7 +15,7 @@
 		>
 			<cx-vui-tabs-panel
 				name="general"
-				:label="isInUseMark( [ 'status', 'type', 'include', 'exclude', 'parent', 'parent_exclude', 'author', 'orderby', 'meta_key', 'order' ] ) + '<?php _e( 'General', 'jet-engine' ); ?>'"
+				:label="isInUseMark( [ 'status', 'type', 'include', 'exclude', 'parent', 'parent_exclude', 'author', 'orderby', 'meta_key', 'order', 'avoid_duplicates' ] ) + '<?php _e( 'General', 'jet-engine' ); ?>'"
 				key="general"
 			>
 				<cx-vui-f-select
@@ -65,6 +65,7 @@
 				>
 					<jet-query-dynamic-args v-model="dynamicQuery.exclude"></jet-query-dynamic-args>
 				</cx-vui-input>
+				<?php \Jet_Engine\Query_Builder\Avoid_Duplicates::instance()->print_control( 'products' ); ?>
 				<cx-vui-input
 					label="<?php _e( 'Parent ID', 'jet-engine' ); ?>"
 					description="<?php _e( 'Post ID of the product parent. Get product with a specific parent.', 'jet-engine' ); ?>"
@@ -243,6 +244,10 @@
 					description="<?php _e( 'Get products that match selected visibility option.', 'jet-engine' ); ?>"
 					:wrapper-css="[ 'equalwidth' ]"
 					:options-list="[
+										{
+											'value': '',
+											'label': 'Select type...'
+										},
 										{
 											value: 'visible',
 											label: 'Catalog & search',

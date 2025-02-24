@@ -15,7 +15,7 @@ class Compatibility {
 			$has_seo_plugin = true;
 
 			add_filter( 'rank_math/frontend/title',       array( Module::instance()->frontend, 'set_document_title_on_single_user_page' ) );
-			add_filter( 'rank_math/frontend/description', array( Module::instance()->frontend, 'get_user_page_seo_description' ) );
+			add_filter( 'rank_math/frontend/description', array( Module::instance()->frontend, 'get_page_description' ) );
 			add_filter( 'rank_math/frontend/canonical',   array( Module::instance()->frontend, 'modify_canonical_url' ) );
 
 			// Opengraph Type
@@ -44,9 +44,9 @@ class Compatibility {
 			add_filter( 'wpseo_opengraph_title', array( Module::instance()->frontend, 'set_document_title_on_single_user_page' ) );
 			add_filter( 'wpseo_twitter_title',   array( Module::instance()->frontend, 'set_document_title_on_single_user_page' ) );
 
-			add_filter( 'wpseo_metadesc',            array( Module::instance()->frontend, 'get_user_page_seo_description' ) );
-			add_filter( 'wpseo_opengraph_desc',      array( Module::instance()->frontend, 'get_user_page_seo_description' ) );
-			add_filter( 'wpseo_twitter_description', array( Module::instance()->frontend, 'get_user_page_seo_description' ) );
+			add_filter( 'wpseo_metadesc',            array( Module::instance()->frontend, 'get_page_description' ) );
+			add_filter( 'wpseo_opengraph_desc',      array( Module::instance()->frontend, 'get_page_description' ) );
+			add_filter( 'wpseo_twitter_description', array( Module::instance()->frontend, 'get_page_description' ) );
 
 			add_filter( 'wpseo_canonical',     array( Module::instance()->frontend, 'modify_canonical_url' ) );
 			add_filter( 'wpseo_opengraph_url', array( Module::instance()->frontend, 'modify_canonical_url' ) );
@@ -67,7 +67,7 @@ class Compatibility {
 			$has_seo_plugin = true;
 
 			add_filter( 'seopress_titles_title',     array( Module::instance()->frontend, 'set_document_title_on_single_user_page' ) );
-			add_filter( 'seopress_titles_desc',      array( Module::instance()->frontend, 'get_user_page_seo_description' ) );
+			add_filter( 'seopress_titles_desc',      array( Module::instance()->frontend, 'get_page_description' ) );
 			add_filter( 'seopress_titles_canonical', array( $this, 'modify_seopress_canonical' ) );
 
 			// Opengraph Type

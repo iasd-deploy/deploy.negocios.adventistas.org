@@ -6,6 +6,8 @@ Vue.component( 'jet-engine-macros-generator', {
 			macrosData: window.JetEngineDashboardConfig.macros_generator,
 			contextList: window.JetEngineDashboardConfig.shortode_generator.context_list,
 			showCopy: undefined !== navigator.clipboard && undefined !== navigator.clipboard.writeText,
+			isBricksMacroVisible: window.JetEngineDashboardConfig.has_bricks,
+			isBricksMacroEnabled: false,
 			result: {
 				macros: '',
 				advancedSettings: {
@@ -76,14 +78,19 @@ Vue.component( 'jet-engine-macros-generator', {
 			res += this.result.macros;
 
 			if ( this.result[ this.result.macros ] ) {
-				for ( const prop in this.result[ this.result.macros ] ) {
+
+
+				for ( var i = 0; i < this.macrosControls.length; i++ ) {
 					res += '|';
 
-					if ( undefined !== this.result[ this.result.macros ][ prop ] ) {
-						res += this.result[ this.result.macros ][ prop ];
-					}
+					let controlName = this.macrosControls[ i ].name;
 
+					if ( undefined !== this.result[ this.result.macros ][ controlName ] ) {
+						res += this.result[ this.result.macros ][ controlName ];
+					}
+					
 				}
+
 			}
 
 			res += '%';
@@ -97,6 +104,10 @@ Vue.component( 'jet-engine-macros-generator', {
 				}
 
 				res += JSON.stringify( advancedSettings );
+			}
+
+			if ( this.isBricksMacroEnabled ) {
+				res = this.formatForBricksBuilder( res );
 			}
 
 			return res;
@@ -182,6 +193,7 @@ Vue.component( 'jet-engine-macros-generator', {
 					type: type,
 					name: controlID,
 					label: label,
+					description: control.description || '',
 					default: defaultVal,
 					optionsList: optionsList,
 					groupsList: groupsList,
@@ -232,6 +244,53 @@ Vue.component( 'jet-engine-macros-generator', {
 			}, function() {
 				// clipboard write failed
 			} );
+		},
+		formatForBricksBuilder: function( input ) {
+			// Map of replacements for characters in the part before the curly braces
+			const replacements = {
+				':': '==',
+				'"': '++',
+				'[': '<~',
+				']': '~>',
+				'{': '<<',
+				'}': '>>',
+			};
+
+			// Split input into prefix (part1) and JSON-like part (part2)
+			let [prefixPart, jsonPart] = this.splitInput(input);
+
+			// Apply replacements to the prefix part
+			const transformedPrefix = '%' + this.applyReplacements(prefixPart, replacements) + '%';
+
+			// Transform the JSON-like part if present
+			const transformedJson = jsonPart ? this.formatJsonPart(jsonPart) : '';
+
+			// Return the concatenated result
+			return transformedPrefix + transformedJson;
+		},
+		splitInput: function( input ) {
+			// Use a regular expression to match two parts:
+			// 1. Everything up to and including the first "%" (non-greedy)
+			// 2. Everything within curly braces "{}" if present
+			const match = input.match(/^(.*?%)({.*})$/);
+
+			// If a match is found, return an array with the two parts.
+			// Otherwise, return the entire input as the first part and an empty string as the second part.
+			return match ? [match[1], match[2]] : [input, ''];
+		},
+		applyReplacements: function(text, replacements) {
+			// Function to apply character replacements to the prefix part
+			let modifiedText = text;
+			for (const [original, replacement] of Object.entries(replacements)) {
+				modifiedText = modifiedText.replaceAll(original, replacement);
+			}
+			return modifiedText;
+		},
+		formatJsonPart: function(jsonString) {
+			const jsonObject = JSON.parse(jsonString);
+			return `<<${Object.entries(jsonObject)
+				.map(([key, value]) => `${key}==${value}`)
+				.join(';;')}>>`;
 		},
 	},
 } );

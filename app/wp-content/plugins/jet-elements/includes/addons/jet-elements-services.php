@@ -40,6 +40,14 @@ class Jet_Elements_Services extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-services', 'jet-services-skin' ); 
+	}
+
 	protected function register_controls() {
 		$css_scheme = apply_filters(
 			'jet-elements/services/css-scheme',
@@ -1497,7 +1505,7 @@ class Jet_Elements_Services extends Jet_Elements_Base {
 			if ( method_exists( $this, 'add_link_attributes' ) ) {
 				$this->add_link_attributes( 'url', $button_url );
 			} else {
-				$this->add_render_attribute( 'url', 'href', $button_url['url'] );
+				$this->add_render_attribute( 'url', 'href', esc_url( $button_url['url'] ) );
 
 				if ( $button_url['is_external'] ) {
 					$this->add_render_attribute( 'url', 'target', '_blank' );
@@ -1509,7 +1517,7 @@ class Jet_Elements_Services extends Jet_Elements_Base {
 			}
 
 		} else {
-			$this->add_render_attribute( 'url', 'href', $button_url );
+			$this->add_render_attribute( 'url', 'href', esc_url( $button_url ) );
 		}
 
 		$format = apply_filters( 'jet-elements/services/action-button-format', '<a %1$s><span class="jet-services__button-text">%2$s</span>%3$s</a>' );

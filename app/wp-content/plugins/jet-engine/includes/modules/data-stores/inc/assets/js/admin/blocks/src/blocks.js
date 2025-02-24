@@ -110,6 +110,25 @@ registerBlockType( 'jet-engine/data-store-button', {
 								</IconButton>
 							}
 						</div>
+						<ToggleControl
+							label={__( 'Reload listing grid on success' )}
+							checked={attributes.synch_grid}
+							onChange={() => {
+								props.setAttributes( { synch_grid: !attributes.synch_grid } );
+							}}
+						/>
+						{ attributes.synch_grid &&
+							<TextControl
+								type="text"
+								label={__( "Listing grid ID. Put comma-separated IDs to update multiple listings." )}
+								value={attributes.synch_grid_id}
+								onChange={newValue =>
+									props.setAttributes( {
+										synch_grid_id: newValue
+									} )
+								}
+							/>
+						}
 						<SelectControl
 							label={__( 'Action after an item added to store' )}
 							value={attributes.action_after_added}

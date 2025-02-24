@@ -113,20 +113,15 @@ if ( ! class_exists( 'Jet_Smart_Filters_Sorting_Filter' ) ) {
 
 			$output = '';
 
-			if ( 'submit' === $settings['apply_on'] && in_array( $settings['apply_type'], ['ajax', 'mixed'] ) ) {
-				$apply_type = $settings['apply_type'] . '-reload';
-			} else {
-				$apply_type = $settings['apply_type'];
-			}
-
 			$data_atts = array(
 				'data-smart-filter'         => 'sorting',
 				'data-query-type'           => 'sort',
 				'data-query-var'            => 'standard',
 				'data-content-provider'     => ! empty( $settings['content_provider'] ) ? $settings['content_provider'] : '',
-				'data-additional-providers' => jet_smart_filters()->utils->get_additional_providers( $settings ),
 				'data-query-id'             => ! empty( $settings['query_id'] ) ? $settings['query_id'] : 'default',
-				'data-apply-type'           => $apply_type,
+				'data-apply-type'           => ! empty( $settings['apply_type'] ) ? $settings['apply_type'] : 'ajax',
+				'data-apply-on'             => ! empty( $settings['apply_on'] ) ? $settings['apply_on'] : 'value',
+				'data-additional-providers' => jet_smart_filters()->utils->get_additional_providers( $settings ),
 			);
 
 			foreach ( $data_atts as $key => $value ) {

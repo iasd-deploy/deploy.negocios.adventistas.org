@@ -100,7 +100,7 @@ class Integration {
 			[
 				'label'      => __( 'Width', 'jet-engine' ),
 				'type'       => \Elementor\Controls_Manager::SLIDER,
-				'size_units' => [ '%', 'px' ],
+				'size_units' => [ '%', 'px', 'custom' ],
 				'default'    => [
 					'unit' => 'px',
 					'size' => 70,
@@ -223,7 +223,7 @@ class Integration {
 			[
 				'label'      => __( 'Border Radius', 'jet-engine' ),
 				'type'       => \Elementor\Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', '%' ],
+				'size_units' => [ 'px', '%', 'custom' ],
 				'selectors'  => [
 					$widget->css_selector( ' .quantity .qty' ) => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
@@ -243,7 +243,7 @@ class Integration {
 			[
 				'label'      => __( 'Margin', 'jet-engine' ),
 				'type'       => \Elementor\Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', '%' ],
+				'size_units' => [ 'px', 'em', '%', 'custom' ],
 				'selectors'  => [
 					$widget->css_selector( ' .quantity' ) => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],
@@ -255,7 +255,7 @@ class Integration {
 			[
 				'label'      => __( 'Padding', 'jet-engine' ),
 				'type'       => \Elementor\Controls_Manager::DIMENSIONS,
-				'size_units' => [ 'px', 'em', '%' ],
+				'size_units' => [ 'px', 'em', '%', 'custom' ],
 				'selectors'  => [
 					$widget->css_selector( ' .quantity .qty' ) => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				],

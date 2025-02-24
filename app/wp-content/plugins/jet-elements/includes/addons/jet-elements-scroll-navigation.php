@@ -40,6 +40,14 @@ class Jet_Elements_Scroll_Navigation extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-scroll-navigation', 'jet-scroll-navigation-skin' ); 
+	}
+
 	public function get_script_depends() {
 		return array( 'jet-resize-sensor' );
 	}
@@ -727,6 +735,9 @@ class Jet_Elements_Scroll_Navigation extends Jet_Elements_Base {
 
 		$instance_settings = json_encode( $instance_settings );
 
-		return sprintf( 'data-settings=\'%1$s\'', $instance_settings );
+		// Escape the JSON string for safe use in HTML attributes
+		$data_settings_attribute = esc_attr( $instance_settings );
+
+		return sprintf( 'data-settings=\'%1$s\'', $data_settings_attribute );
 	}
 }

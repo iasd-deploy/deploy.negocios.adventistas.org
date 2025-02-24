@@ -43,6 +43,11 @@ class Package {
 
 		add_filter( 'jet-engine/query-builder/types/sql-query/cast-objects', [ $this, 'add_product_to_cast' ] );
 
+		//properly get meta/terms from WC Product
+		//https://github.com/Crocoblock/issues-tracker/issues/9921
+		add_filter( 'jet-engine/listing-injections/item-meta-value', [ $this, 'get_injection_product_meta' ], 10, 3 );
+		add_filter( 'jet-engine/listing-injections/object-has-terms', [ $this, 'product_has_terms' ], 10, 4 );
+
 	}
 
 	public function add_product_to_cast( $objects ) {
@@ -50,9 +55,30 @@ class Package {
 		return $objects;
 	}
 
+	public function get_injection_product_meta( $value, $post, $meta_key ) {
+		if ( ! is_a( $post, 'WC_Product' ) ) {
+			return $value;
+		}
+		
+		return [ $post->get_meta( $meta_key ) ];
+	}
+
+	public function product_has_terms( $has_terms, $post, $tax, $terms ) {
+		if ( ! is_a( $post, 'WC_Product' ) ) {
+			return $has_terms;
+		}
+
+		return has_term( $terms, $tax, $post->get_id() );
+	}
+
 	public function register_macros() {
+
 		require_once $this->package_path( 'macros/products-in-cart.php' );
+		require_once $this->package_path( 'macros/purchased-products.php' );
+
 		new Macros\Products_In_Cart();
+		new Macros\Purchased_Products();
+
 	}
 
 	/**
@@ -97,6 +123,7 @@ class Package {
 		require_once $this->package_path( 'conditions/is-on-backorder.php' );
 		require_once $this->package_path( 'conditions/is-on-sale.php' );
 		require_once $this->package_path( 'conditions/is-purchasable.php' );
+		require_once $this->package_path( 'conditions/is-purchased.php' );
 		require_once $this->package_path( 'conditions/is-sold-individually.php' );
 		require_once $this->package_path( 'conditions/is-type.php' );
 		require_once $this->package_path( 'conditions/is-virtual.php' );
@@ -108,6 +135,7 @@ class Package {
 		$conditions_manager->register_condition( new Conditions\Is_On_Backorder() );
 		$conditions_manager->register_condition( new Conditions\Is_On_Sale() );
 		$conditions_manager->register_condition( new Conditions\Is_Purchasable() );
+		$conditions_manager->register_condition( new Conditions\Is_Purchased() );
 		$conditions_manager->register_condition( new Conditions\Is_Sold_Individually() );
 		$conditions_manager->register_condition( new Conditions\Is_Type() );
 		$conditions_manager->register_condition( new Conditions\Is_Virtual() );

@@ -100,6 +100,21 @@ class Blocks_Integration {
 			'default' => '',
 		);
 
+		$atts['dynamic_link_synch_grid'] = array(
+			'type'    => 'boolean',
+			'default' => false,
+		);
+
+		$atts['dynamic_link_synch_grid_id'] = array(
+			'type'    => 'text',
+			'default' => '',
+		);
+
+		$atts['remove_post_from_listing'] = array(
+			'type'    => 'boolean',
+			'default' => false,
+		);
+
 		return $atts;
 
 	}
@@ -116,6 +131,39 @@ class Blocks_Integration {
 			'options'   => $this->get_store_options(),
 			'condition' => array(
 				'dynamic_link_source' => array( 'add_to_store', 'remove_from_store' ),
+			),
+		);
+
+		$link_controls[] = array(
+			'name'      => 'dynamic_link_synch_grid',
+			'label'     => __( 'Reload listing grid on success', 'jet-engine' ),
+			'type'      => 'switcher',
+			'default'   => false,
+			'condition' => array(
+				'dynamic_link_source' => array( 'add_to_store' ),
+			),
+		);
+
+		$link_controls[] = array(
+			'name'        => 'dynamic_link_synch_grid_id',
+			'label'       => __( 'Listing grid ID', 'jet-engine' ),
+			'description' => __( 'Listing ID to reload. The same ID must be set in the Advanced settings of selected listing. Put comma-separated IDs to update multiple listings.', 'jet-engine' ),
+			'type'        => 'text',
+			'default'     => '',
+			'condition'   => array(
+				'dynamic_link_source' => array( 'add_to_store' ),
+				'dynamic_link_synch_grid' => array( true ),
+			),
+		);
+
+		$link_controls[] = array(
+			'name'        => 'remove_post_from_listing',
+			'label'       => __( 'Remove post from current listing', 'jet-engine' ),
+			'description' => __( 'Check this is you want to remove current post from current listing grid after removing post from store', 'jet-engine' ),
+			'type'        => 'switcher',
+			'default'     => false,
+			'condition'   => array(
+				'dynamic_link_source' => array( 'remove_from_store' ),
 			),
 		);
 

@@ -39,10 +39,16 @@
 
 		},
 		parseCSS: function( css ) {
+			if ( document.querySelector( '.interface-navigable-region.interface-interface-skeleton__content' ) ) {
+				return css.replace( /selector/g, '.interface-navigable-region.interface-interface-skeleton__content' );
+			}
+
 			return css.replace( /selector/g, '#editor' );
 		}
 	};
 
 	JEBlocksCSS.init();
+
+	window.addEventListener( 'load', () => $( '.jet_engine_listing_css' ).trigger( 'change' ) );
 
 }( jQuery ) );

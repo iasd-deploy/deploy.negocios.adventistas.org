@@ -42,6 +42,10 @@ class Jet_Elements_Images_Layout extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	public function get_style_depends() { 
+		return array( 'jet-images-layout', 'jet-images-layout-skin' ); 
+	}
+
 	public function get_script_depends() {
 		return array( 'imagesloaded', 'jet-salvattore' );
 	}
@@ -966,7 +970,10 @@ class Jet_Elements_Images_Layout extends Jet_Elements_Base {
 
 		$settings = json_encode( $settings );
 
-		return sprintf( 'data-settings=\'%1$s\'', $settings );
+		// Escape the JSON string for safe use in HTML attributes
+		$data_settings_attribute = esc_attr( $settings );
+
+		return sprintf( 'data-settings=\'%1$s\'', $data_settings_attribute );
 	}
 
 	/**

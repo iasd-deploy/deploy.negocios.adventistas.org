@@ -572,7 +572,6 @@ class Mobile_Menu extends Base {
 			'label'        => esc_html__( 'Icon Size', 'jet-menu' ),
 			'css_selector' => [
 				'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon' => 'font-size: {{VALUE}}{{UNIT}}',
-				'{{WRAPPER}} ' . $css_scheme['item'] . ' .jet-menu-icon svg' => 'width: {{VALUE}}{{UNIT}}',
 			],
 			'units'        => [
 				[

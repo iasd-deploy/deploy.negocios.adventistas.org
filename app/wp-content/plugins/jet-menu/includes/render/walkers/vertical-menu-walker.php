@@ -282,9 +282,9 @@ class Vertical_Menu_Walker extends \Walker_Nav_Menu {
 		}
 
 		if ( in_array( 'menu-item-has-children', $item->classes ) || $this->is_mega_enabled( $item->ID ) ) {
-			$arrow_icon = isset( $args->widget_settings['dropdown_icon'] ) ? $args->widget_settings['dropdown_icon'] : 'fa fa-chevron-right';
-
-			$title = $title . jet_menu_tools()->get_dropdown_arrow_icon_html( $arrow_icon, null );
+			$arrow_icon = isset( $args->settings['dropdown_icon'] ) ? $args->settings['dropdown_icon'] : jet_menu()->svg_manager->get_svg_html( 'arrow-right' );
+			$arrow_icon_html = sprintf( '<div class="jet-dropdown-arrow">%1$s</div>', $arrow_icon );
+			$title = $title . $arrow_icon_html;
 		}
 
 		$item_output .= $args->link_before . $title . $args->link_after;
@@ -343,9 +343,7 @@ class Vertical_Menu_Walker extends \Walker_Nav_Menu {
 				$this->styles_to_enqueue = wp_parse_args( $mega_template_styles, $this->styles_to_enqueue );
 				$this->scripts_to_enqueue = wp_parse_args( $mega_template_scripts, $this->scripts_to_enqueue );
 
-				ob_start();
-				$render_status = $render_instance->render();
-				$template_content = ob_get_clean();
+				$template_content = $render_data['content'];
 
 				$this->maybe_enqueue_styles();
 				$this->maybe_enqueue_scripts();

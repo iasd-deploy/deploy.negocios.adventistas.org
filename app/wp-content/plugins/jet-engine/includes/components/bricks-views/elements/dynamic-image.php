@@ -1,5 +1,4 @@
 <?php
-
 namespace Jet_Engine\Bricks_Views\Elements;
 
 use Jet_Engine\Bricks_Views\Helpers\Controls_Hook_Bridge;
@@ -10,7 +9,16 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
+if ( ! trait_exists( 'Jet_Engine_Get_Data_Sources_Trait' ) ) {
+	require_once jet_engine()->plugin_path( 'includes/traits/get-data-sources.php' );
+}
+
 class Dynamic_Image extends Base {
+
+	use \Jet_Engine_Get_Data_Sources_Trait;
+
+	public static $dynamic_sources = [];
+
 	// Element properties
 	public $category = 'jetengine'; // Use predefined element category 'general'
 	public $name = 'jet-engine-listing-dynamic-image'; // Make sure to prefix your elements
@@ -42,6 +50,14 @@ class Dynamic_Image extends Base {
 				'tab'   => 'style',
 			]
 		);
+
+		$this->register_jet_control_group(
+			'section_caption_style',
+			[
+				'title' => esc_html__( 'Caption', 'jet-engine' ),
+				'tab'   => 'style',
+			]
+		);
 	}
 
 
@@ -50,7 +66,7 @@ class Dynamic_Image extends Base {
 
 		$this->start_jet_control_group( 'content' );
 
-		$dynamic_image_source = $this->get_dynamic_sources( 'media' );
+		$dynamic_image_source = $this->get_formatted_dynamic_sources( 'media' );
 
 		if ( ! empty( $dynamic_image_source ) ) {
 
@@ -91,7 +107,7 @@ class Dynamic_Image extends Base {
 			'dynamic_image_source_custom',
 			[
 				'tab'         => 'content',
-				'label'       => esc_html__( 'Custom meta field/repeater key', 'jet-engine' ),
+				'label'       => esc_html__( 'Custom field/repeater key/component control', 'jet-engine' ),
 				'type'        => 'text',
 				'description' => esc_html__( 'Note: this field will override Source value', 'jet-engine' ),
 			]
@@ -119,6 +135,48 @@ class Dynamic_Image extends Base {
 		);
 
 		$this->register_jet_control(
+			'image_alignment',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'Alignment', 'jet-engine' ),
+				'type'     => 'select',
+				'default'  => 'start',
+				'options'  => [
+					'start'   => 'Start',
+					'center'  => 'Center',
+					'end'     => 'End',
+					'stretch' => 'Stretch',
+				],
+				'css'      => [
+					[
+						'property' => 'justify-content',
+						'selector' => $this->css_selector() . ', a',
+					],
+					[
+						'property' => 'align-items',
+						'selector' => $this->css_selector( '__figure' ),
+					],
+					[
+						'property' => 'display',
+						'value'    => 'flex',
+						'selector' => 'div.jet-listing-dynamic-image, a',
+					],
+					[
+						'property' => 'width',
+						'value'    => 'auto',
+						'selector' => '.jet-listing-dynamic-image .jet-listing-dynamic-image__img',
+					],
+				],
+				'exclude' => [
+					'space-between',
+					'space-around',
+					'space-evenly',
+				],
+				'description' => esc_html__( 'For this setting to work properly element width should be set to 100%.', 'jet-engine' ),
+			]
+		);
+
+		$this->register_jet_control(
 			'dynamic_avatar_size',
 			[
 				'tab'         => 'content',
@@ -132,6 +190,41 @@ class Dynamic_Image extends Base {
 		);
 
 		$this->register_jet_control(
+			'add_image_caption',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'Add image caption', 'jet-engine' ),
+				'type'     => 'checkbox',
+				'default'  => false,
+			]
+		);
+
+		$this->register_jet_control(
+			'image_caption_position',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'Image Caption Position', 'jet-engine' ),
+				'type'     => 'select',
+				'options'  => [
+					'after'  => esc_html__( 'After' ),
+					'before' => esc_html__( 'Before' ),
+				],
+				'default'  => 'after',
+				'required' => [ 'add_image_caption', '=', true ],
+			]
+		);
+
+		$this->register_jet_control(
+			'image_caption',
+			[
+				'tab'         => 'content',
+				'label'       => esc_html__( 'Image Caption Text', 'jet-engine' ),
+				'type'        => 'text',
+				'required'    => [ 'add_image_caption', '=', true ],
+			]
+		);
+
+		$this->register_jet_control(
 			'linked_image',
 			[
 				'tab'     => 'content',
@@ -141,7 +234,7 @@ class Dynamic_Image extends Base {
 			]
 		);
 
-		$image_link_source = $this->get_dynamic_sources( 'plain' );
+		$image_link_source = $this->get_formatted_dynamic_sources( 'plain' );
 
 		if ( ! empty( $image_link_source ) ) {
 
@@ -188,7 +281,7 @@ class Dynamic_Image extends Base {
 			'image_link_source_custom',
 			[
 				'tab'         => 'content',
-				'label'       => esc_html__( 'Custom meta field/repeater key', 'jet-engine' ),
+				'label'       => esc_html__( 'Custom field/repeater key/component control', 'jet-engine' ),
 				'type'        => 'text',
 				'description' => esc_html__( 'Note: this field will override Meta Field value', 'jet-engine' ),
 				'required'    => [ 'linked_image', '=', true ],
@@ -289,6 +382,72 @@ class Dynamic_Image extends Base {
 
 		$this->end_jet_control_group();
 
+		$this->start_jet_control_group( 'section_caption_style' );
+
+		$this->register_jet_control(
+			'caption_typography',
+			[
+				'tab'      => 'style',
+				'label'    => esc_html__( 'Typography', 'jet-engine' ),
+				'type'     => 'typography',
+				'css'      => [
+					[
+						'selector' => $this->css_selector('__caption'),
+					],
+				],
+			]
+		);
+
+		$this->register_jet_control(
+			'caption_max_width',
+			[
+				'tab'      => 'style',
+				'label'    => esc_html__( 'Max Width', 'jet-engine' ),
+				'type'     => 'number',
+				'units'    => true,
+				'css'      => [
+					[
+						'property' => 'max-width',
+						'selector' => $this->css_selector('__caption'),
+					],
+				],
+			]
+		);
+
+		$this->register_jet_control(
+			'caption_alignment',
+			[
+				'tab'      => 'style',
+				'label'    => esc_html__( 'Caption Alignment', 'jet-engine' ),
+				'type'     => 'align-items',
+				'units'    => true,
+				'css'      => [
+					[
+						'property' => 'align-self',
+						'selector' => $this->css_selector('__caption'),
+					],
+				],
+				'description' => esc_html__( 'Takes effect only if caption Max Width is greater than 0 and less than 100%', 'jet-engine' ),
+			]
+		);
+
+		$this->register_jet_control(
+			'caption_text_alignment',
+			[
+				'tab'      => 'style',
+				'label'    => esc_html__( 'Caption Text Alignment', 'jet-engine' ),
+				'type'     => 'text-align',
+				'css'      => [
+					[
+						'property' => 'text-align',
+						'selector' => $this->css_selector('__caption'),
+					],
+				],
+			]
+		);
+
+		$this->end_jet_control_group();
+
 	}
 
 	// Enqueue element styles and scripts
@@ -332,48 +491,32 @@ class Dynamic_Image extends Base {
 	}
 
 	// Get meta fields for post type
-	public function get_dynamic_sources( $for = 'media' ) {
+	public function get_formatted_dynamic_sources( $for = 'media' ) {
 
-		if ( 'media' === $for ) {
-			$default = array(
-				'label'   => esc_html__( 'General', 'jet-engine' ),
-				'options' => array(
-					'post_thumbnail' => esc_html__( 'Post thumbnail', 'jet-engine' ),
-					'user_avatar'    => esc_html__( 'User avatar', 'jet-engine' ),
-				),
-			);
-		} else {
-			$default = array(
-				'label'   => esc_html__( 'General', 'jet-engine' ),
-				'options' => array(
-					'_permalink' => esc_html__( 'Permalink', 'jet-engine' ),
-				),
-			);
+		if ( ! isset( self::$dynamic_sources[ $for ] ) ) {
 
-			if ( jet_engine()->modules->is_module_active( 'profile-builder' ) ) {
-				$default['options']['profile_page'] = esc_html__( 'Profile Page', 'jet-engine' );
+			$raw = $this->get_dynamic_sources( $for );
+			$formatted = [];
+
+			foreach ( $raw as $group ) {
+				$formatted[] = [
+					'label'   => $group['label'],
+					'options' => array_combine(
+						array_map( function( $item ) {
+							return $item['value'];
+						}, $group['values'] ),
+						array_map( function( $item ) {
+							return $item['label'];
+						}, $group['values'] )
+					),
+				];
 			}
 
+			self::$dynamic_sources[ $for ] = $formatted;
+
 		}
 
-		$result      = array();
-		$meta_fields = array();
-
-		if ( jet_engine()->meta_boxes ) {
-			$meta_fields = jet_engine()->meta_boxes->get_fields_for_select( $for );
-		}
-
-		if ( jet_engine()->options_pages ) {
-			$default['options']['options_page'] = esc_html__( 'Options', 'jet-engine' );
-		}
-
-		$result = apply_filters(
-			'jet-engine/listings/dynamic-image/fields',
-			array_merge( array( $default ), $meta_fields ),
-			$for
-		);
-
-		return $result;
+		return self::$dynamic_sources[ $for ];
 
 	}
 

@@ -21,6 +21,13 @@ if ( ! class_exists( 'Jet_Elements_Shortcode_Base' ) ) {
 		public $atts = array();
 
 		/**
+		 * CSS Classes
+		 *
+		 * @var array
+		 */
+		public $css_classes = array();
+
+		/**
 		 * Initialize post type
 		 *
 		 * @return void

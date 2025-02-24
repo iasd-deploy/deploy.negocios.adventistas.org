@@ -152,15 +152,16 @@ if ( ! class_exists( 'Jet_Smart_Filters_Indexer_Manager' ) ) {
 							}
 
 							if ( $value === 'true' ) {
-								$meta_row['item_value'] = $key;
+								$meta_row['item_value'] = addslashes( $key );
 							} else {
-								$meta_row['item_value'] = $value;
+								$meta_row['item_value'] = addslashes( $value );
 							}
 
 							$indexed_data[] = $meta_row;
 						}
 					} else {
-						$indexed_data[] = $meta_row;
+						$meta_row['item_value'] = addslashes( $meta_row['item_value'] );
+						$indexed_data[]         = $meta_row;
 					}
 				}
 			}
@@ -255,7 +256,9 @@ if ( ! class_exists( 'Jet_Smart_Filters_Indexer_Manager' ) ) {
 
 						if ( in_array( $meta_type, ['serialized', 'normal'] ) ) {
 							foreach ( $meta_value as $value ) {
-								if ( $meta_type === 'serialized' && ! preg_match( '/[\'"]?;s:4:"true"|:[\'"]?' . $value . '[\'"]?;[^s]/', $item_meta ) ) {
+								// if ( $meta_type === 'serialized' && ! preg_match( '/[\'"]?;s:4:"true"|:[\'"]?' . $value . '[\'"]?;[^s]/', $item_meta ) ) {
+								// if ( $meta_type === 'serialized' && unserialize($item_meta)[$value] != 'true' ) {
+								if ( $meta_type === 'serialized' && ! preg_match( '/[\'"]?' . $value . '[\'"]?;s:4:"true"|:[\'"]?' . $value . '[\'"]?;[^s]/', $item_meta ) ) {
 									continue;
 								}
 
@@ -358,10 +361,10 @@ if ( ! class_exists( 'Jet_Smart_Filters_Indexer_Manager' ) ) {
 			global $wpdb;
 			$sql = "
 			SELECT $wpdb->term_relationships.object_id as post_id
-				FROM $wpdb->term_relationships, $wpdb->term_taxonomy
-					WHERE $wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id
-						AND $wpdb->term_taxonomy.taxonomy = '$tax'
-						AND $wpdb->term_relationships.term_taxonomy_id = '$term_id'";
+				FROM $wpdb->term_taxonomy
+				INNER JOIN $wpdb->term_relationships ON $wpdb->term_relationships.term_taxonomy_id = $wpdb->term_taxonomy.term_taxonomy_id
+					WHERE $wpdb->term_taxonomy.taxonomy = '$tax'
+						AND $wpdb->term_taxonomy.term_id = '$term_id'";
 			$result = $wpdb->get_results( $sql, ARRAY_A );
 
 			return array_map( function ( $post ) {
@@ -447,6 +450,10 @@ if ( ! class_exists( 'Jet_Smart_Filters_Indexer_Manager' ) ) {
 				foreach ( $metadata[$data_type] as $query_var => $data ) {
 					$meta_keys = explode( ',', $query_var );
 
+					foreach ( $data as &$value ) {
+						$value = addslashes( $value );
+					}
+
 					foreach ($meta_keys as $meta_key) {
 						$meta_key = trim( $meta_key );
 
@@ -455,7 +462,10 @@ if ( ! class_exists( 'Jet_Smart_Filters_Indexer_Manager' ) ) {
 						}
 
 						if ( 'serialized' === $data_type ) {
-							$metadata_sql_and .= "( meta_key = '$meta_key' AND meta_value REGEXP '[\'\"]?;s:4:\"true\"|\:[\'\"]?(" . implode( '|', $data ) . ")[\'\"]?;[^s]' )";
+							// Escaping the + and * characters with double backslashes
+							$imploded_values = preg_replace( '/([+*])/', '\\\\\\\\$1', implode( '|', $data ) );
+
+							$metadata_sql_and .= "( meta_key = '$meta_key' AND meta_value REGEXP '[\'\"]?;s:4:\"true\"|\:[\'\"]?(" . $imploded_values . ")[\'\"]?;[^s]' )";
 						}
 
 						if ( 'normal' === $data_type ) {
@@ -520,7 +530,8 @@ if ( ! class_exists( 'Jet_Smart_Filters_Indexer_Manager' ) ) {
 			// parse result
 			foreach ( $result as $row ) {
 				$filter_id = $row['ID'];
-				$data = array_combine( explode( '<-nv->', $row['meta_key'] ), explode( '<-nv->', $row['meta_value'] ) );
+				// indexing filter data before writing to the data table
+				$data = apply_filters( 'jet-smart-filters/indexer/indexing-filter-data', array_combine( explode( '<-nv->', $row['meta_key'] ), explode( '<-nv->', $row['meta_value'] ) ) );
 
 				if ( ! in_array( $data['_filter_type'], array( 'select', 'checkboxes', 'check-range', 'radio', 'color-image' ) ) ) {
 					continue;

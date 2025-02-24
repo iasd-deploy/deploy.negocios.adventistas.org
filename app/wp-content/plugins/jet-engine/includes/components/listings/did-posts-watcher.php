@@ -20,6 +20,12 @@ class Jet_Engine_Did_Posts_Watcher {
 	private $did_posts = array();
 
 	/**
+	 * Property to store all posts get by query builder
+	 * @var int[]
+	 */
+	private $shown_posts = array();
+
+	/**
 	 * Property to store current listing posts fired post_content prop
 	 * @var array
 	 */
@@ -67,6 +73,35 @@ class Jet_Engine_Did_Posts_Watcher {
 		}
 
 		$this->currently_did_posts = array();
+	}
+
+	/**
+	 * Add post to the list of shown posts
+	 *
+	 * @param  int $post_id
+	 */
+	public function set_post_as_shown( $post_id = null ) {
+		if ( $post_id && ! $this->is_post_shown( $post_id ) ) {
+			$this->shown_posts[] = ( int ) $post_id;
+		}
+	}
+
+	/**
+	 * Check if current post has already been shown
+	 * 
+	 * @param  [type] $post_id [description]
+	 * @return [type]          [description]
+	 */
+	public function is_post_shown( $post_id ) {
+		return in_array( $post_id, $this->shown_posts );
+	}
+
+	/**
+	 * Get shown posts
+	 * @return int[] Shown posts
+	 */
+	public function get_shown_posts() {
+		return $this->shown_posts;
 	}
 
 }

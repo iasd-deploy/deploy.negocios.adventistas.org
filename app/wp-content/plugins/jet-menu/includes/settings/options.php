@@ -189,6 +189,42 @@ class Options_Manager {
 	}
 
 	/**
+	 * Process reset options
+	 */
+	public function service_actions_handler() {
+
+		if ( ! isset( $_GET['jet-action'] ) ) {
+			return false;
+		}
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			die();
+		}
+
+		$current_options = $this->get_option();
+
+		if ( ! $current_options || ! isset( $current_options['plugin-nextgen-edition'] ) ) {
+			return false;
+		}
+
+		switch ( $_GET['jet-action'] ) {
+			case 'revamp-on':
+				$current_options['plugin-nextgen-edition'] = 'true';
+				break;
+			case 'revamp-off':
+				$current_options['plugin-nextgen-edition'] = 'false';
+				break;
+		}
+
+		update_option( $this->options_slug, $current_options );
+
+		wp_redirect( admin_url('admin.php?page=jet-dashboard-settings-page&subpage=jet-menu-general-settings') );
+
+		die;
+	}
+
+
+	/**
 	 * Process settings export
 	 *
 	 * @return void
@@ -905,7 +941,7 @@ class Options_Manager {
 		$rest_api_url = apply_filters( 'jet-menu/rest/admin/url', get_rest_url() );
 
 		return array(
-			'optionsApiUrl'    => $rest_api_url . 'jet-menu-api/v2/plugin-settings',
+			'optionsApiUrl'    => '/jet-menu-api/v2/plugin-settings',
 			'rawOptionsData'   => $this->get_option(),
 			'optionPresetList' => jet_menu()->settings_manager->options_manager->get_presets_select_options(),
 			'importUrl'        => add_query_arg( array( 'jet-action' => 'import-options' ), esc_url( admin_url( 'admin.php' ) ) ),
@@ -1363,6 +1399,10 @@ class Options_Manager {
 	 * Init Options Modules
 	 */
 	public function init_options() {
+
+		$this->service_actions_handler();
+
+
 		$options_modules = array(
 			'general' => array(
 				'class'    => '\\Jet_Menu\\Options_Manager\\General_Options',
@@ -1375,7 +1415,8 @@ class Options_Manager {
 			),
 		);
 
-		if ( ! filter_var( $this->get_option( 'plugin-nextgen-edition', 'false' ), FILTER_VALIDATE_BOOLEAN ) ) {
+		if ( ! filter_var( $this->get_option( 'plugin-nextgen-edition', 'true' ), FILTER_VALIDATE_BOOLEAN ) ) {
+
 			$options_modules['desktop-menu'] = array(
 				'class'    => '\\Jet_Menu\\Options_Manager\\Desktop_Menu_Options',
 				'path'     => jet_menu()->plugin_path( 'includes/settings/options-modules/desktop-menu-options.php' ),
@@ -1422,6 +1463,8 @@ class Options_Manager {
 		add_action( 'admin_init', array( $this, 'process_export' ) );
 
 		add_action( 'admin_init', array( $this, 'process_reset' ) );
+
+		//add_action( 'admin_init', array( $this, 'service_actions_handler' ) );
 
 		add_action( 'wp_ajax_jet_menu_import_options', array( $this, 'process_import' ) );
 

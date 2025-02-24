@@ -49,6 +49,14 @@ class Jet_Elements_Posts extends Jet_Elements_Base {
 		return true;
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-posts', 'jet-carousel', 'jet-carousel-skin' ); 
+	}
+
 	public function get_script_depends() {
 		return array( 'jet-slick' );
 	}

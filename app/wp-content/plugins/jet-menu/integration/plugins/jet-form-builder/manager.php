@@ -21,9 +21,6 @@ class Jet_Form_Builder {
 		if ( ! defined( 'JET_FORM_BUILDER_VERSION' ) ) {
 			return false;
 		}
-
-		$this->load_files();
-
 	}
 
 }

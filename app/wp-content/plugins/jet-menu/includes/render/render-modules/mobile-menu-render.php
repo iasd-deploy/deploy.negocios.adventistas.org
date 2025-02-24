@@ -55,14 +55,19 @@ class Mobile_Menu_Render extends Base_Render {
             }
 		}
 
-		$menu_uniqid    = uniqid();
-		$mobile_menu_id = $this->get( 'mobile-menu-id', false );
+		$menu_uniqid             = uniqid();
+		$render_menu_id          = $menu_id;
+		$mobile_menu_id          = $this->get( 'mobile-menu-id', false );
 		$item_header_template_id = $this->get( 'item-header-template', '' );
 		$item_before_template_id = $this->get( 'item-before-template', '' );
-		$item_after_template_id = $this->get( 'item-after-template', '' );
+		$item_after_template_id  = $this->get( 'item-after-template', '' );
+		$is_mobile_render        = $this->is_mobile_render();
 
-		$menu_raw_data = jet_menu()->render_manager->generate_menu_raw_data( $menu_id );
-		// var_dump($menu_raw_data);
+		if ( $is_mobile_render && ! empty( $mobile_menu_id ) ) {
+			$render_menu_id = $mobile_menu_id;
+		}
+
+		$menu_raw_data = jet_menu()->render_manager->generate_menu_raw_data( $render_menu_id );
 
 		$menu_options = array(
 			'menuUniqId'         => $menu_uniqid,
@@ -88,6 +93,7 @@ class Mobile_Menu_Render extends Base_Render {
 			'subTrigger'         => $this->get( 'sub-menu-trigger', 'item' ),
 			'subOpenLayout'      => $this->get( 'sub-open-layout', 'slide-in' ),
 			'closeAfterNavigate' => $this->get( 'close-after-navigate', false ),
+			'fillSvgIcon'         => $this->get( 'fill-svg-icon', true ),
 		);
 
 		$toggle_closed_icon_html = $this->get( 'toggle-closed-icon-html', '' );
@@ -211,6 +217,24 @@ class Mobile_Menu_Render extends Base_Render {
 		foreach ( $menu_items as $key => $item ) {
 			jet_menu_tools()->add_menu_css( $item->ID, '#jet-mobile-menu-item-' . $item->ID );
 		}
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function is_mobile_render() {
+
+		$current_device = jet_menu_tools()->get_current_device();
+
+		if ( 'desktop' === $current_device ) {
+			return false;
+		}
+
+		if ( 'tablet' === $current_device || 'mobile' === $current_device ) {
+			return true;
+		}
+
+		return false;
 	}
 
 

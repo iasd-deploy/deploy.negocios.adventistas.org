@@ -237,7 +237,6 @@ if ( ! class_exists( 'Jet_Menu_Tools' ) ) {
 		 * @param string $wrapper [description]
 		 */
 		public function add_menu_css( $item_id = 0, $wrapper = '' ) {
-
 			$settings = jet_menu()->settings_manager->get_item_settings( $item_id );
 
 			$css_scheme = apply_filters( 'jet-menu/item-css/scheme', array (
@@ -256,7 +255,6 @@ if ( ! class_exists( 'Jet_Menu_Tools' ) ) {
 						'> a .jet-menu-icon:before'                             => 'font-size',
 						'> a .jet-menu-icon svg'                                => 'width',
 						'> .jet-mobile-menu__item-inner > a .jet-menu-icon'     => 'font-size',
-						'> .jet-mobile-menu__item-inner > a .jet-menu-icon svg' => 'width',
 					),
 					'rule'     => 'font-size',
 					'value'    => '%1$spx !important;',
@@ -281,6 +279,7 @@ if ( ! class_exists( 'Jet_Menu_Tools' ) ) {
 					'selector' => array (
 						'> a .jet-mega-menu-item__badge svg'                     => 'width',
 						'> .jet-mobile-menu__item-inner > a .jet-menu-badge svg' => 'width',
+						'> a .jet-menu-badge svg'                                => 'width',
 					),
 					'rule'     => 'width',
 					'value'    => '%1$spx !important;',
@@ -501,7 +500,7 @@ if ( ! class_exists( 'Jet_Menu_Tools' ) ) {
 		public function is_nextgen_mode() {
 			$is_nextgen = ! get_option( jet_menu()->settings_manager->options_manager->options_slug ) ? 'true' : 'false';
 
-			return filter_var( jet_menu()->settings_manager->options_manager->get_option( 'plugin-nextgen-edition', $is_nextgen ), FILTER_VALIDATE_BOOLEAN );
+			return filter_var( jet_menu()->settings_manager->options_manager->get_option( 'plugin-nextgen-edition', true ), FILTER_VALIDATE_BOOLEAN );
 		}
 
 		/**

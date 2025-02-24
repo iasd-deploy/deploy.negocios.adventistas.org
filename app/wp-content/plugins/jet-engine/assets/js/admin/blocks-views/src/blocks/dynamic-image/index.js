@@ -73,6 +73,15 @@ registerBlockType( 'jet-engine/dynamic-image', {
 				};
 			}
 
+			// Unset component controls do avoid request overloading
+			if ( listing.component_controls_list ) {
+				delete listing.component_controls_list;
+			}
+
+			if ( listing.component_style_controls_list ) {
+				delete listing.component_style_controls_list;
+			}
+
 			return [
 				props.isSelected && (
 						<InspectorControls
@@ -114,7 +123,8 @@ registerBlockType( 'jet-engine/dynamic-image', {
 
 								<TextControl
 									type="text"
-									label={ __("Or enter post meta field key/repeater key") }
+									label={ __("Or set manually") }
+									help={ __("Here you can set the custom/meta field name, repeater key, component control name, etc. Please note that in the case of the custom/meta field name, this option overrides the value selected above.") }
 									value={attributes.dynamic_image_source_custom}
 									onChange={ newValue =>
 										props.setAttributes({
@@ -136,6 +146,7 @@ registerBlockType( 'jet-engine/dynamic-image', {
 								/>
 
 							</PanelBody>
+
 							<PanelBody title={ __( 'Layout' ) }>
 								{ 'user_avatar' !== attributes.dynamic_image_source &&
 									<SelectControl
@@ -232,7 +243,8 @@ registerBlockType( 'jet-engine/dynamic-image', {
 									<div>
 										<TextControl
 											type="text"
-											label={ __("Or enter post meta field key/repeater key") }
+											label={ __("Or set manually") }
+											help={ __("Here you can set the custom/meta field name, repeater key, component control name, etc. Please note that in the case of the custom/meta field name, this option overrides the value selected above.") }
 											value={attributes.image_link_source_custom}
 											onChange={ newValue =>
 												props.setAttributes({
@@ -380,6 +392,47 @@ registerBlockType( 'jet-engine/dynamic-image', {
 										});
 									} }
 								/>
+							</PanelBody>
+
+							<PanelBody title={ __( 'Caption' ) }>
+								<ToggleControl
+									label={ __( 'Add Image Caption' ) }
+									checked={ attributes.add_image_caption }
+									onChange={ () => {
+										props.setAttributes({ add_image_caption: ! attributes.add_image_caption });
+									} }
+								/>
+								{ true === attributes.add_image_caption &&
+									<SelectControl
+										label={ __( 'Image Caption Position' ) }
+										value={ attributes.image_caption_position }
+										options={ [
+											{
+												value: 'after',
+												label: __( 'After' ),
+											},
+											{
+												value: 'before',
+												label: __( 'Before' ),
+											},
+										] }
+										onChange={ newValue => {
+											props.setAttributes({ image_caption_position: newValue });
+										}}
+									/>
+								}
+								{ true === attributes.add_image_caption &&
+									<TextControl
+										type="text"
+										label={ __( 'Image Caption Text' ) }
+										value={attributes.image_caption}
+										onChange={ newValue =>
+											props.setAttributes({
+												image_caption: newValue
+											})
+										}
+									/>
+								}
 							</PanelBody>
 						</InspectorControls>
 				),

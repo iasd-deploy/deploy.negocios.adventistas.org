@@ -3,6 +3,8 @@
  * Register and hadle jet-engine related shortcodes
  */
 
+use Jet_Engine\Modules\Dynamic_Visibility;
+
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
 	die;
@@ -67,7 +69,7 @@ class Jet_Engine_Shortcodes {
 		}
 		
 		$renderer = jet_engine()->listings->get_render_instance( 'dynamic-field', $atts );
-		
+
 		ob_start();
 		$renderer->render_field_content( $renderer->get_settings() );
 		$content = ob_get_clean();
@@ -97,6 +99,17 @@ class Jet_Engine_Shortcodes {
 		);
 	}
 
+	/**
+	 * Get shortcode types isn't allowed to create with generator.
+	 *
+	 * @return array
+	 */
+	public function get_shortcode_types() {
+		return apply_filters( 'jet-engine/shortcodes/generator-shortcode-types', [
+			'jet_engine_data' => 'JetEngine Data',
+		] );
+	}
+
 	public function get_generator_config() {
 
 		$sources = jet_engine()->listings->data->get_field_sources();
@@ -107,8 +120,27 @@ class Jet_Engine_Shortcodes {
 		}
 
 		$sources = \Jet_Engine_Tools::prepare_list_for_js( $sources, ARRAY_A );
+		$shortcode_types = [];
 
-		return array(
+		foreach ( $this->get_shortcode_types() as $shortcode => $shortcode_name ) {
+			$shortcode_types[] = [
+				'value' => $shortcode,
+				'label' => $shortcode_name,
+			];
+		}
+
+		return apply_filters( 'jet-engine/shortcodes/generator-config', [
+			'shortcode_types' => $shortcode_types,
+			'tag_type' => [
+				[
+					'value' => 'enclosed',
+					'label' => 'Enclosing (e.g. [shortcode attrs]content...[/shortcode])'
+				],
+				[
+					'value' => 'selfclosed',
+					'label' => 'Selfclosing (e.g. [shortcode attrs])'
+				],
+			],
 			'sources'       => $sources,
 			'object_fields' => jet_engine()->listings->data->get_object_fields( 'blocks', 'options' ),
 			'source_args'   => $this->catch_source_controls(),
@@ -121,7 +153,7 @@ class Jet_Engine_Shortcodes {
 			'cb_args'       => jet_engine()->listings->get_callbacks_args(),
 			'context_list'  => jet_engine()->listings->allowed_context_list( 'blocks' ),
 			'labels'        => $this->get_controls_labels(),
-		);
+		] );
 	}
 
 	public function get_controls_labels() {
@@ -175,6 +207,14 @@ class Jet_Engine_Shortcodes {
 			),
 			'object_context' => array(
 				'label' => __( 'Context', 'jet-engine' ),
+			),
+			'shortcode_types' => array(
+				'label' => __( 'Shortcode', 'jet-engine' ),
+				'description' => __( 'Select a shortcode you want to generate' ),
+			),
+			'tag_type' => array(
+				'label' => __( 'Tag Enclosing Type', 'jet-engine' ),
+				'description' => __( 'Does the shortcode have an enclosing tag or not' ),
 			),
 		);
 	}

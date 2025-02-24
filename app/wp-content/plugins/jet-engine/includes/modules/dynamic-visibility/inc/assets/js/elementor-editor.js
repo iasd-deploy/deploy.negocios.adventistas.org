@@ -32,7 +32,7 @@
 						}
 
 						if ( mutationsList[0].addedNodes.length
-							&& mutationsList[0].addedNodes[0].classList.contains( 'elementor-navigator__element__jedv-icon' )
+							&& mutationsList[0].addedNodes[0].classList?.contains( 'elementor-navigator__element__jedv-icon' )
 						) {
 							return;
 						}

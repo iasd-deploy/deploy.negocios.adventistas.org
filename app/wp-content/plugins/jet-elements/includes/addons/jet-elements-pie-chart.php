@@ -53,6 +53,14 @@ class Jet_Elements_Pie_Chart extends Jet_Elements_Base {
 		return 'https://crocoblock.com/knowledge-base/articles/jetelements-pie-chart-widget-how-to-display-your-statistical-data-with-a-chart/';
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-charts' ); 
+	}
+
 	/**
 	 * Retrieve the list of scripts the widget depended on.
 	 *

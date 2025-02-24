@@ -39,6 +39,14 @@ class Jet_Elements_Lottie extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	protected function is_dynamic_content(): bool {
+		return false;
+	}
+
+	public function get_style_depends() { 
+		return array( 'jet-lottie' ); 
+	}
+
 	public function get_script_depends() {
 		return array( 'jet-lottie' );
 	}

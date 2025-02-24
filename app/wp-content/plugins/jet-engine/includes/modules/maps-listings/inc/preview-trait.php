@@ -16,7 +16,7 @@ trait Preview_Trait {
 		$provider->public_assets( null, array( 'marker_clustering' => true ), null );
 
 		wp_enqueue_script( 'jet-maps-listings' );
-		
+
 	}
 
 }

@@ -38,6 +38,20 @@ return array(
 				'_filter_type' => array( 'date-range', 'date-period' ),
 			),
 		),
+		'_date_type' => array(
+			'title'   => __( 'Date Type', 'jet-smart-filters' ),
+			'type'    => 'select',
+			'element' => 'control',
+			'default' => 'date',
+			'options' => array(
+				'date'   => __( 'Posted', 'jet-smart-filters' ),
+				'm_date' => __( 'Modified', 'jet-smart-filters' ),
+			),
+			'conditions'  => array(
+				'_filter_type' => array( 'date-range', 'date-period' ),
+				'_date_source' => 'date_query',
+			),
+		),
 		'_is_hierarchical' => array(
 			'title'      => __( 'Is hierarchical', 'jet-smart-filters' ),
 			'type'       => 'switcher',
@@ -77,6 +91,49 @@ return array(
 					'options' => $this->taxonomy_options,
 					'class'   => 'source-map-control tax-control',
 				),
+			),
+			'conditions' => array(
+				'_is_hierarchical' => array( true ),
+				'_filter_type'     => array( 'select' ),
+			),
+		),
+		'_ih_terms_orderby' => array(
+			'title'   => __( 'Items Order By', 'jet-smart-filters' ),
+			'type'    => 'select',
+			'element' => 'control',
+			'default' => 'name',
+			'options' => array(
+				'name'           => __( 'Name', 'jet-smart-filters' ),
+				'slug'           => __( 'Slug', 'jet-smart-filters' ),
+				'id'             => __( 'ID', 'jet-smart-filters' ),
+				'count'          => __( 'Count', 'jet-smart-filters' ),
+				'description'    => __( 'Description', 'jet-smart-filters' ),
+				'meta_value'     => __( 'Meta Key', 'jet-smart-filters' ),
+				'meta_value_num' => __( 'Meta Key Numeric', 'jet-smart-filters' ),
+			),
+			'conditions' => array(
+				'_is_hierarchical' => array( true ),
+				'_filter_type'     => array( 'select' ),
+			),
+		),
+		'_ih_terms_orderby_meta_value' => array(
+			'title'      => __( 'Meta Key', 'jet-smart-filters' ),
+			'type'       => 'text',
+			'element'    => 'control',
+			'conditions' => array(
+				'_is_hierarchical' => array( true ),
+				'_filter_type'     => array( 'select' ),
+				'_ih_terms_orderby' => array( 'meta_value', 'meta_value_num' ),
+			),
+		),
+		'_ih_terms_order' => array(
+			'title'   => __( 'Items Order', 'jet-smart-filters' ),
+			'type'    => 'select',
+			'element' => 'control',
+			'default' => 'ASC',
+			'options' => array(
+				'ASC'  => __( 'ASC', 'jet-smart-filters' ),
+				'DESC' => __( 'DESC', 'jet-smart-filters' ),
 			),
 			'conditions' => array(
 				'_is_hierarchical' => array( true ),
@@ -130,6 +187,52 @@ return array(
 				'_is_hierarchical' => array( false, '' ),
 			),
 		),
+		'_terms_orderby' => array(
+			'title'   => __( 'Terms Order By', 'jet-smart-filters' ),
+			'type'    => 'select',
+			'element' => 'control',
+			'default' => 'name',
+			'options' => array(
+				'name'           => __( 'Name', 'jet-smart-filters' ),
+				'slug'           => __( 'Slug', 'jet-smart-filters' ),
+				'id'             => __( 'ID', 'jet-smart-filters' ),
+				'count'          => __( 'Count', 'jet-smart-filters' ),
+				'description'    => __( 'Description', 'jet-smart-filters' ),
+				'meta_value'     => __( 'Meta Key', 'jet-smart-filters' ),
+				'meta_value_num' => __( 'Meta Key Numeric', 'jet-smart-filters' ),
+			),
+			'conditions' => array(
+				'_filter_type'     => array( 'checkboxes', 'select', 'radio' ),
+				'_data_source'     => 'taxonomies',
+				'_is_hierarchical' => array( false, '' ),
+			),
+		),
+		'_terms_orderby_meta_value' => array(
+			'title'      => __( 'Meta Key', 'jet-smart-filters' ),
+			'type'       => 'text',
+			'element'    => 'control',
+			'conditions' => array(
+				'_filter_type'     => array( 'checkboxes', 'select', 'radio' ),
+				'_data_source'     => 'taxonomies',
+				'_is_hierarchical' => array( false, '' ),
+				'_terms_orderby'   => array( 'meta_value', 'meta_value_num' ),
+			),
+		),
+		'_terms_order' => array(
+			'title'   => __( 'Terms Order', 'jet-smart-filters' ),
+			'type'    => 'select',
+			'element' => 'control',
+			'default' => 'ASC',
+			'options' => array(
+				'ASC'  => __( 'ASC', 'jet-smart-filters' ),
+				'DESC' => __( 'DESC', 'jet-smart-filters' ),
+			),
+			'conditions' => array(
+				'_filter_type'     => array( 'checkboxes', 'select', 'radio' ),
+				'_data_source'     => 'taxonomies',
+				'_is_hierarchical' => array( false, '' ),
+			),
+		),
 		'_terms_relational_operator' => array(
 			'title'            => __( 'Relational Operator', 'jet-smart-filters' ),
 			'type'             => 'select',
@@ -140,7 +243,7 @@ return array(
 			),
 			'conditions'       => array(
 				'_filter_type' => array( 'checkboxes' ),
-				'_data_source' => 'taxonomies',
+				//'_data_source' => 'taxonomies',
 				'_is_hierarchical' => array( false, '' ),
 			),
 		),
@@ -207,6 +310,16 @@ return array(
 			'conditions' => array(
 				'_filter_type' => array( 'checkboxes', 'radio' ),
 				'_data_source' => 'taxonomies',
+			),
+		),
+		'_group_collapsible' => array(
+			'title'   => __( 'Сollapsible', 'jet-smart-filters' ),
+			'type'    => 'switcher',
+			'element' => 'control',
+			'conditions' => array(
+				'_filter_type'     => array( 'checkboxes', 'radio' ),
+				'_data_source'     => 'taxonomies',
+				'_group_by_parent' => true,
 			),
 		),
 		'_source_custom_field' => array(
@@ -346,6 +459,40 @@ return array(
 				'_color_image_type' => array( 'color', 'image' ),
 			),
 		),
+		'_color_image_add_all_option' => array(
+			'type'       => 'switcher',
+			'title'      => __( 'Add all option', 'jet-smart-filters' ),
+			'conditions' => array(
+				'_filter_type'          => array( 'color-image' ),
+				'_color_image_behavior' => 'radio',
+			),
+		),
+		'_color_image_add_all_option_lael' => array(
+			'type'       => 'text',
+			'title'      => __( 'All option label', 'jet-smart-filters' ),
+			'value'      => __( 'All', 'jet-smart-filters' ),
+			'conditions' => array(
+				'_filter_type'                => array( 'color-image' ),
+				'_color_image_behavior'       => 'radio',
+				'_color_image_add_all_option' => true,
+			),
+		),
+		'_color_image_add_all_option_image' => array(
+			'type'       => 'media',
+			'conditions' => array(
+				'_filter_type'                => array( 'color-image' ),
+				'_color_image_behavior'       => 'radio',
+				'_color_image_add_all_option' => true,
+			),
+		),
+		'_color_image_ability_deselect_radio' => array(
+			'type'       => 'switcher',
+			'title'      => __( 'Ability to deselect radio buttons', 'jet-smart-filters' ),
+			'conditions' => array(
+				'_filter_type'          => array( 'color-image' ),
+				'_color_image_behavior' => 'radio',
+			),
+		),
 		'_source_manual_input_range' => array(
 			'title'       => __( 'Options List', 'jet-smart-filters' ),
 			'element'     => 'control',
@@ -392,9 +539,23 @@ return array(
 				'_filter_type' => 'search',
 			),
 		),
+		'_terms_relational_operator' => array(
+			'title'            => __( 'Relational Operator', 'jet-smart-filters' ),
+			'type'             => 'select',
+			'element'          => 'control',
+			'options' => array(
+				'OR'  => __( 'Union', 'jet-smart-filters' ),
+				'AND' => __( 'Intersection', 'jet-smart-filters' ),
+			),
+			'conditions'       => array(
+				'_filter_type' => array( 'checkboxes' ),
+				//'_data_source' => 'taxonomies',
+				'_is_hierarchical' => array( false, '' ),
+			),
+		),
 		'_is_custom_checkbox' => array(
-			'title'   => __( 'Is Checkbox Meta Field (Jet Engine)', 'jet-smart-filters' ),
-			'description' => __( 'This option should to be enabled if you need to filter data from Checkbox meta fields type, created with JetEngine plugin.', 'jet-smart-filters' ),
+			'title'   => __( 'Is Checkbox Meta Field', 'jet-smart-filters' ),
+			'description' => __( 'This option should be enabled if the meta field data is a serialized object, as this is done in the Checkbox meta field type created using the JetEngine or ACF plugins.', 'jet-smart-filters' ),
 			'type'    => 'switcher',
 			'element' => 'control',
 			'conditions' => array(
@@ -468,34 +629,41 @@ return array(
 				'_filter_type' => 'date-period',
 			),
 		),
-		'_min_max_date_period_enabled' => array(
-			'title'      => __( 'Min/Max Dates Enabled', 'jet-smart-filters' ),
-			'type'       => 'switcher',
-			'element'    => 'control',
-			'value'      => false,
+		'_date_available_range' => array(
+			'title'   => __( 'Available dates range', 'jet-smart-filters' ),
+			'type'    => 'select',
+			'element' => 'control',
+			'default' => 'all',
+			'options' => array(
+				'all'    => __( 'All dates', 'jet-smart-filters' ),
+				'future' => __( 'Future dates', 'jet-smart-filters' ),
+				'past'   => __( 'Past dates', 'jet-smart-filters' ),
+				'custom' => __( 'Custom dates', 'jet-smart-filters' ),
+			),
 			'conditions' => array(
-				'_filter_type' => 'date-period',
+				'_filter_type' => array( 'date-range', 'date-period' )
 			),
 		),
-		'_min_date_period' => array(
-			'title'       => __( 'Minimum possible date to select', 'jet-smart-filters' ),
-			'type'        => 'text',
-			'element'     => 'control',
-			'description' => __( 'To set the limit by the current date, fill in', 'jet-smart-filters' ). ' - "today"',
-			'conditions'  => array(
-				'_filter_type'                 => 'date-period',
-				'_min_max_date_period_enabled' => true
+		'_date_available_range_custom_min' => array(
+			'title'   => __( 'Minimum possible date to select', 'jet-smart-filters' ),
+			'type'    => 'text',
+			'value'   => '',
+			'element' => 'control',
+			'conditions' => array(
+				'_filter_type'          => array( 'date-range', 'date-period' ),
+				'_date_available_range' => 'custom'
 			),
 		),
-		'_max_date_period' => array(
-			'type'        => 'text',
-			'title'       => __( 'Maximum possible date to select', 'jet-smart-filters' ),
-			'description' => __( 'To set the limit by the current date, fill in', 'jet-smart-filters' ). ' - "today"',
-			'element'     => 'control',
-			'conditions'  => array(
-				'_filter_type'                 => 'date-period',
-				'_min_max_date_period_enabled' => true
+		'_date_available_range_custom_max' => array(
+			'title'   => __( 'Maximum possible date to select', 'jet-smart-filters' ),
+			'type'    => 'text',
+			'value'   => '',
+			'element' => 'control',
+			'conditions' => array(
+				'_filter_type'          => array( 'date-range', 'date-period' ),
+				'_date_available_range' => 'custom'
 			),
+			'description' => jet_smart_filters()->utils->get_file_html( 'admin/templates/info-blocks/min-max-date-period-info.php' ),
 		),
 		'_date_period_start_end_enabled' => array(
 			'title'   => __( 'Start/End Date Period Enabled', 'jet-smart-filters' ),
@@ -558,13 +726,22 @@ return array(
 			),
 		), */
 		'_range_inputs_enabled' => array(
-			'title'       => __( 'Inputs enabled', 'jet-smart-filters' ),
-			'type'        => 'switcher',
-			'description' => $this->range_inputs_info,
-			'element'     => 'control',
-			'value'       => false,
-			'conditions'  => array(
+			'title'      => __( 'Inputs enabled', 'jet-smart-filters' ),
+			'type'       => 'switcher',
+			'element'    => 'control',
+			'value'      => false,
+			'conditions' => array(
 				'_filter_type' => 'range',
+			),
+		),
+		'_range_inputs_separators_enabled' => array(
+			'title'       => __( 'Inputs separators enabled', 'jet-smart-filters' ),
+			'type'        => 'switcher',
+			'description' => __( 'Apply thousands and decimal separators to inputs', 'jet-smart-filters' ),
+			'element'     => 'control',
+			'conditions'  => array(
+				'_filter_type'          => 'range',
+				'_range_inputs_enabled' => true
 			),
 		),
 		'_values_prefix' => array(
@@ -586,12 +763,11 @@ return array(
 			),
 		),
 		'_values_thousand_sep' => array(
-			'title'       => __( 'Thousands separator', 'jet-smart-filters' ),
-			'type'        => 'text',
-			'description' => __( 'Use &amp;nbsp; for space', 'jet-smart-filters' ),
-			'value'       => '',
-			'element'     => 'control',
-			'conditions'  => array(
+			'title'      => __( 'Thousands separator', 'jet-smart-filters' ),
+			'type'       => 'text',
+			'value'      => '',
+			'element'    => 'control',
+			'conditions' => array(
 				'_filter_type' => array( 'range', 'check-range' ),
 			),
 		),
@@ -716,6 +892,37 @@ return array(
 			'description' => __( 'Use comma to separate options', 'jet-smart-filters' ),
 			'conditions'  => array(
 				'_filter_type' => 'alphabet'
+			),
+		),
+		// default filter value
+		'_is_default_filter_value' => array(
+			'title'      => __( 'Use Default Filter Value', 'jet-smart-filters' ),
+			'type'       => 'switcher',
+			'value'      => true,
+			'element'    => 'control',
+			'conditions' => array(
+				'_filter_type' => array(
+					'checkboxes',
+					'select',
+					'range',
+					'check-range',
+					'date-range',
+					'date-period',
+					'radio',
+					'rating',
+					'alphabet',
+					'search',
+					'color-image'
+				)
+			),
+		),
+		'_default_filter_value' => array(
+			'title'       => __( 'Default Filter Value', 'jet-smart-filters' ),
+			'type'        => 'text',
+			'element'     => 'control',
+			'description' => __( 'The value will be applied to the provider once via an Ajax request when the filter is added to the page', 'jet-smart-filters' ),
+			'conditions'  => array(
+				'_is_default_filter_value' => true
 			),
 		),
 	),

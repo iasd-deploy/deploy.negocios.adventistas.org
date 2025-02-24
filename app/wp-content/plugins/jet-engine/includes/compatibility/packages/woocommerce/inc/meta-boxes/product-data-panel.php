@@ -53,13 +53,13 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 
 		$this->args = $meta_box['args'];
 
-		if ( ! jet_engine()->meta_boxes->conditions->check_conditions( '', $this->args ) ) {
-			return;
-		}
-
 		$object_name = $this->args['name'] . ' ' . __( '( WC product data fields)', 'jet-engine' );
 
 		jet_engine()->meta_boxes->store_fields( $object_name, $meta_box['meta_fields'], 'woocommerce_product_data' );
+
+		if ( ! jet_engine()->meta_boxes->conditions->check_conditions( '', $this->args ) ) {
+			return;
+		}
 
 		if ( ! empty( $this->args['show_edit_link'] ) ) {
 			$this->add_edit_link( add_query_arg(
@@ -111,7 +111,7 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 			],
 		] );
 
-		self::$wrappers_hooked = false;
+		//self::$wrappers_hooked = false;
 
 	}
 
@@ -125,7 +125,11 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 	 *
 	 * @return void
 	 */
-	public function register_fields() {
+	public function register_fields( $hook ) {
+
+		if ( ! $this->is_allowed_on_current_admin_hook( $hook ) ) {
+			return;
+		}
 
 		$this->init_builder();
 
@@ -168,10 +172,14 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 		}
 
 		$name = $this->args['name'] ?? __( 'JetEngine Meta Box', 'jet-engine' );
-		$id   = preg_replace( '/[\s+\-]/', '_', strtolower( $name ) );
+
+		// Replace empty spaces and dashes with underscores.
+		$id = preg_replace( '/[\s+\-]/', '_', strtolower( $name ) );
+		// Remove brackets.
+		$id = preg_replace( '/[()]/', '', $id );
 
 		$tabs[ $id ] = [
-			'label'    => esc_attr( $name ),
+			'label'    => esc_html( $name ),
 			'target'   => esc_attr( $id ),
 			'class'    => $classes,
 			'priority' => $this->args['wc_product_data_priority'] ?? 80,
@@ -192,7 +200,11 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 	public function creat_meta_box_product_data_panel() {
 
 		$name = $this->args['name'] ?? __( 'JetEngine Meta Box', 'jet-engine' );
-		$id   = preg_replace( '/[\s+\-]/', '_', strtolower( $name ) );
+
+		// Replace empty spaces and dashes with underscores.
+		$id = preg_replace( '/[\s+\-]/', '_', strtolower( $name ) );
+		// Remove brackets.
+		$id = preg_replace( '/[()]/', '', $id );
 		?>
 
 		<div id="<?php echo esc_attr( $id ); ?>" class="panel woocommerce_options_panel hidden">
@@ -230,7 +242,7 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 	 * Save product meta values for JetEngine meta fields in product data panels.
 	 *
 	 * @since  3.2.0
-	 * @access public
+	 * @since  3.3.6 Fixed meta field reset in WC product data panel area.
 	 *
 	 * @param int $post_id WP post id.
 	 *
@@ -238,12 +250,10 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 	 */
 	public function save_meta_box_option_fields( $post_id ) {
 		foreach ( $this->fields as $key => $field ) {
-			if ( isset( $_POST[ $key ] ) ) {
-				if ( $this->to_timestamp( $field ) ) {
-					$_POST[ $key ] = apply_filters( 'cx_post_meta/strtotime', strtotime( $_POST[ $key ] ), $_POST[ $key ] );
-				}
-
-				update_post_meta( $post_id, $key, $_POST[ $key ] );
+			if ( ! empty( $_POST[ $key ] ) ) {
+				update_post_meta( $post_id, $key, $this->sanitize_meta( $field, $_POST[ $key ] ) );
+			} else {
+				delete_post_meta( $post_id, $key);
 			}
 		}
 	}
@@ -254,6 +264,7 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 	 * Register fields in interface builder.
 	 *
 	 * @since  3.2.0
+	 * @since  3.2.7 Added checkbox save as array option handle.
 	 * @access public
 	 *
 	 * @param string|int $post_id WP post ID.
@@ -290,7 +301,28 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 					$value = date( 'Y-m-d\TH:i', $value );
 				}
 				break;
+			case 'checkbox':
+				if ( ! empty( $field['is_array'] ) ) {
 
+					if ( ! is_array( $value ) ) {
+						$value = [ $value ];
+					}
+
+					$result = [];
+
+					foreach ( $value as $val ) {
+						$result[ $val ] = 'true';
+					}
+
+					foreach ( $field['options'] as $opt_val => $opt_label ) {
+						if ( ! in_array( $opt_val, $value ) ) {
+							$result[ $opt_val ] = 'false';
+						}
+					}
+
+					$value = $result;
+				}
+				break;
 		}
 
 		if ( ! empty( $value ) ) {
@@ -332,6 +364,70 @@ class Product_Data_Panel extends \Jet_Engine_CPT_Meta {
 
 		return ( true === $field['is_timestamp'] );
 
+	}
+
+	/**
+	 * Sanitize meta.
+	 *
+	 * Sanitize product meta values for JetEngine meta fields.
+	 *
+	 * @since  3.2.7
+	 * @access public
+	 *
+	 * @param array $field       Fields option list.
+	 * @param mixed $field_value Field value.
+	 *
+	 * @return mixed
+	 */
+	public function sanitize_meta( $field, $field_value ) {
+
+		if ( $this->to_timestamp( $field ) ) {
+			return apply_filters( 'cx_post_meta/strtotime', strtotime( $field_value ), $field_value );
+		}
+
+		if ( 'checkbox' === $field['type'] && ! empty( $field['is_array'] ) ) {
+			$result = [];
+
+			if ( in_array( 'true', $field_value ) || in_array( 'false', $field_value ) ) {
+				foreach ( $field_value as $raw_key => $raw_value ) {
+					$value = filter_var( $raw_value, FILTER_VALIDATE_BOOLEAN );
+
+					if ( $value ) {
+						$result[] = $raw_key;
+					}
+				}
+			}
+
+			return $result;
+		}
+
+		return $field_value;
+
+	}
+
+	public function is_allowed_on_current_admin_hook( $hook ) {
+
+		if ( null !== $this->is_allowed_on_admin_hook ) {
+			return $this->is_allowed_on_admin_hook;
+		}
+
+		$allowed_hooks = array(
+			'post-new.php',
+			'post.php',
+		);
+
+		if ( ! in_array( $hook, $allowed_hooks ) ) {
+			$this->is_allowed_on_admin_hook = false;
+			return $this->is_allowed_on_admin_hook;
+		}
+
+		if ( 'product' !== get_post_type() ) {
+			$this->is_allowed_on_admin_hook = false;
+			return $this->is_allowed_on_admin_hook;
+		}
+
+		$this->is_allowed_on_admin_hook = true;
+		return $this->is_allowed_on_admin_hook;
 	}
 
 }

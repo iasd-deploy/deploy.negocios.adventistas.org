@@ -3,7 +3,7 @@
  * Plugin Name: JetSmartFilters
  * Plugin URI:  https://crocoblock.com/plugins/jetsmartfilters/
  * Description: Adds easy-to-use AJAX filters to the pages built with Elementor which contain the dynamic listings.
- * Version:     3.2.0
+ * Version:     3.6.2
  * Author:      Crocoblock
  * Author URI:  https://crocoblock.com/
  * Text Domain: jet-smart-filters
@@ -27,7 +27,7 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 		/**
 		 * Plugin version
 		 */
-		private $version = '3.2.0';
+		private $version = '3.6.2';
 
 		/**
 		 * Holder for base plugin URL
@@ -62,12 +62,15 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 		public $data;
 		public $filter_types;
 		public $providers;
+		public $provider_preloader;
 		public $widgets;
 		public $query;
 		public $render;
 		public $services;
 		public $settings;
 		public $indexer;
+		public $seo;
+		public $URL_aliases;
 		public $rest_api;
 		public $blocks;
 		public $bricks;
@@ -75,6 +78,7 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 		public $admin_bar;
 		public $admin;
 
+		// Props
 		public $filters_not_used = true;
 
 		/**
@@ -148,19 +152,22 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 
 			$this->load_files();
 
-			$this->services     = new Jet_Smart_Filters_Services();
-			$this->settings     = new Jet_Smart_Filters_Settings();
-			$this->post_type    = new Jet_Smart_Filters_Post_Type();
-			$this->query        = new Jet_Smart_Filters_Query_Manager();
-			$this->render       = new Jet_Smart_Filters_Render();
-			$this->data         = new Jet_Smart_Filters_Data();
-			$this->filter_types = new Jet_Smart_Filters_Filter_Manager();
-			$this->providers    = new Jet_Smart_Filters_Providers_Manager();
-			$this->blocks       = new Jet_Smart_Filters_Blocks_Manager();
-			$this->bricks       = new \Jet_Smart_Filters\Bricks_Views\Manager();
-			$this->indexer      = new Jet_Smart_Filters_Indexer_Manager();
-			$this->utils        = new Jet_Smart_Filters_Utils();
-			$this->admin_bar    = Jet_Admin_Bar::get_instance();
+			$this->services           = new Jet_Smart_Filters_Services();
+			$this->settings           = new Jet_Smart_Filters_Settings();
+			$this->data               = new Jet_Smart_Filters_Data();
+			$this->post_type          = new Jet_Smart_Filters_Post_Type();
+			$this->query              = new Jet_Smart_Filters_Query_Manager();
+			$this->render             = new Jet_Smart_Filters_Render();
+			$this->utils              = new Jet_Smart_Filters_Utils();
+			$this->filter_types       = new Jet_Smart_Filters_Filter_Manager();
+			$this->providers          = new Jet_Smart_Filters_Providers_Manager();
+			$this->provider_preloader = new Jet_Smart_Filters_Provider_Preloader();
+			$this->blocks             = new Jet_Smart_Filters_Blocks_Manager();
+			$this->bricks             = new \Jet_Smart_Filters\Bricks_Views\Manager();
+			$this->indexer            = new Jet_Smart_Filters_Indexer_Manager();
+			$this->seo                = new Jet_Smart_Filters_SEO();
+			$this->URL_aliases        = new Jet_Smart_Filters_URL_Aliases();
+			$this->admin_bar          = Jet_Admin_Bar::get_instance();
 
 			//Init Rest Api
 			$this->rest_api     = new \Jet_Smart_Filters\Rest_Api();
@@ -168,10 +175,10 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 			new Jet_Smart_Filters_Elementor_Manager();
 
 			new Jet_Smart_Filters_Rewrite_Rules();
-			new Jet_Smart_Filters_URL_Aliases();
-			new Jet_Smart_Filters_Compatibility();
+			new Jet_Smart_Filters_Compatibility_Manager();
 			new Jet_Smart_Filters_Referrer_Manager();
 			new Jet_Smart_Filters_Tax_Query_Manager();
+			new Jet_Smart_Filters_Plain_Query_Manager();
 
 			$admin_mode             = $this->settings->get( 'admin_mode', '$mode' );
 			$this->is_classic_admin = $admin_mode === 'classic' ? true : false;
@@ -196,14 +203,17 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 			require $this->plugin_path( 'includes/referrer.php' );
 			require $this->plugin_path( 'includes/filters/manager.php' );
 			require $this->plugin_path( 'includes/providers/manager.php' );
+			require $this->plugin_path( 'includes/provider-preloader.php' );
 			require $this->plugin_path( 'includes/settings.php' );
 			require $this->plugin_path( 'includes/services/services.php' );
 			require $this->plugin_path( 'includes/rewrite.php' );
 			require $this->plugin_path( 'includes/url-aliases.php' );
-			require $this->plugin_path( 'includes/compatibility.php' );
+			require $this->plugin_path( 'includes/compatibility/manager.php' );
 			require $this->plugin_path( 'includes/indexer/manager.php' );
+			require $this->plugin_path( 'includes/SEO/manager.php' );
 			require $this->plugin_path( 'includes/utils.php' );
 			require $this->plugin_path( 'includes/tax-query/manager.php' );
+			require $this->plugin_path( 'includes/plain-query/manager.php' );
 		}
 
 		/**
@@ -222,7 +232,7 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 				'jet-plugins',
 				jet_smart_filters()->plugin_url( 'assets/lib/jet-plugins/jet-plugins.js' ),
 				array( 'jquery' ),
-				'1.1.0',
+				$this->get_version(),
 				true
 			);
 
@@ -240,13 +250,46 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 				array(),
 				'2.2.3'
 			);
+
+			/**
+			 * Enqueue filter styles
+			 */
+			wp_register_style(
+				'jet-smart-filters',
+				jet_smart_filters()->plugin_url( 'assets/css/public.css' ),
+				array(),
+				$this->get_version()
+			);
+
+			// Filter inline styles
+			$tabindex_color = jet_smart_filters()->settings->get( 'tabindex_color', '#0085f2' );
+
+			$filter_inline_styles = "
+				.jet-filter {
+					--tabindex-color: $tabindex_color;
+					--tabindex-shadow-color: " . jet_smart_filters()->utils->hex2rgba( $tabindex_color, 0.4 ) . ";
+				}
+			";
+
+			if ( jet_smart_filters()->provider_preloader->is_enabled ) {
+				$filter_inline_styles .= jet_smart_filters()->provider_preloader->css;
+			}
+
+			wp_add_inline_style( 'jet-smart-filters', $filter_inline_styles );
 		}
 
 		/**
 		 * Set that filters are used
 		 */
 		public function set_filters_used() {
+
+			if ( ! $this->filters_not_used ) {
+				return;
+			}
+
 			$this->filters_not_used = false;
+
+			$this->print_registered_style( 'jet-smart-filters' );
 		}
 
 		/**
@@ -396,6 +439,24 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 		}
 
 		/**
+		 * Print template.
+		 */
+		public function print_template( $name = null ) {
+
+			$template_path = $this->get_template( $name );
+
+			if ( ! $template_path ) {
+				return '';
+			}
+
+			ob_start();
+			include $template_path;
+			$template = ob_get_clean();
+
+			return $template;
+		}
+
+		/**
 		 * Print component x-template
 		 */
 		public function print_x_templates( $id, $path ) {
@@ -415,6 +476,41 @@ if ( ! class_exists( 'Jet_Smart_Filters' ) ) {
 				$template,
 				$id
 			);
+		}
+
+		/**
+		 * Print a registered style at a specific location in the HTML code
+		 */
+		public function print_registered_style( $handle ) {
+
+			if ( ! wp_style_is( $handle, 'registered' ) ) {
+				return;
+			}
+
+			wp_enqueue_style( $handle );
+			wp_print_styles( $handle );
+		}
+
+		/**
+		 * Get upload dir path
+		 */
+		public function get_upload_dir_path( $dir = '' ) {
+
+			$path = wp_upload_dir()['basedir'] . '/jet-smart-filters/' . $dir;
+
+			if ( ! file_exists( $path ) ) {
+				wp_mkdir_p( $path );
+			}
+
+			return trailingslashit( $path );
+		}
+
+		/**
+		 * Get upload dir url
+		 */
+		public function get_upload_dir_url( $dir = '' ) {
+
+			return trailingslashit( wp_upload_dir()['baseurl'] . '/jet-smart-filters/' . $dir );
 		}
 
 		/**

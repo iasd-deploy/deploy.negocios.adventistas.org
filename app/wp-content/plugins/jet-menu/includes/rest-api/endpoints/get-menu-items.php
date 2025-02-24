@@ -70,4 +70,13 @@ class Get_Menu_Items extends Base {
 		return rest_ensure_response( $items_data );
 	}
 
+	/**
+	 * Is public end-point
+	 *
+	 * @return bool
+	 */
+	public function permission_callback() {
+		return true;
+	}
+
 }

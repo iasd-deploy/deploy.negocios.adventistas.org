@@ -314,7 +314,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => esc_html__( 'Item Width', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 15,
@@ -335,7 +335,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => esc_html__( 'Item Height', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 15,
@@ -446,7 +446,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Border Radius', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__item > *' ) => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -466,7 +466,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Padding', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__item > *' ) => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -481,7 +481,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Margin', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__item > *' ) => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -523,7 +523,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Margin', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__delimiter' ) => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -558,7 +558,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => esc_html__( 'Item Width', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 15,
@@ -619,7 +619,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Border Radius', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__counter' ) => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -639,7 +639,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Padding', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__counter' ) => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -654,7 +654,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => __( 'Margin', 'jet-engine' ),
 				'type'       => Controls_Manager::DIMENSIONS,
-				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%' ) ),
+				'size_units' => jet_engine()->elementor_views->add_custom_size_unit( array( 'px', '%', 'em', 'custom' ) ),
 				'selectors'  => array(
 					$this->css_selector( '__counter' ) => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 				),
@@ -666,7 +666,7 @@ class Jet_Listing_Dynamic_Repeater_Widget extends Widget_Base {
 			array(
 				'label'      => esc_html__( 'Counter depth', 'jet-engine' ),
 				'type'       => Controls_Manager::SLIDER,
-				'size_units' => array( 'px' ),
+				'size_units' => array( 'px', '%', 'em', 'custom' ),
 				'range'      => array(
 					'px' => array(
 						'min' => 0,

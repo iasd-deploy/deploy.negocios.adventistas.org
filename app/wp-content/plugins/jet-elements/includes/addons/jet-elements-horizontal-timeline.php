@@ -42,6 +42,10 @@ class Jet_Elements_Horizontal_Timeline extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	public function get_style_depends() { 
+		return array( 'jet-horizontal-timeline' ); 
+	}
+
 	protected function register_controls() {
 		$css_scheme = apply_filters(
 			'jet-elements/horizontal-timeline/css-scheme',

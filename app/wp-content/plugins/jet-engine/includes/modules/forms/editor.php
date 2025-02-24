@@ -589,7 +589,7 @@ Order details:
 				jet_engine()->admin_page,
 				esc_html__( 'Forms', 'jet-engine' ),
 				esc_html__( 'Forms', 'jet-engine' ),
-				'edit_pages',
+				'manage_options',
 				'edit.php?post_type=' . $this->manager->slug()
 			);
 
@@ -657,6 +657,17 @@ Order details:
 				'rewrite'             => false,
 				'capability_type'     => 'post',
 				'supports'            => array( 'title' ),
+				'capabilities' => array(
+					'publish_posts'       => 'manage_options',
+					'edit_posts'          => 'manage_options',
+					'edit_others_posts'   => 'manage_options',
+					'delete_posts'        => 'manage_options',
+					'delete_others_posts' => 'manage_options',
+					'read_private_posts'  => 'manage_options',
+					'edit_post'           => 'manage_options',
+					'delete_post'         => 'manage_options',
+					'read_post'           => 'manage_options',
+				),
 			);
 
 			$post_type = register_post_type(

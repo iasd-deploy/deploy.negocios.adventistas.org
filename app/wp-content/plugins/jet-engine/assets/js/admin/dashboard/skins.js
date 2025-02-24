@@ -122,6 +122,7 @@
 				relations: exportConfig.relations,
 				optionsPages: exportConfig.options_pages,
 				listingItems: exportConfig.listing_items,
+				componentsList: exportConfig.components,
 				glossariesList: exportConfig.glossaries,
 				queriesList: exportConfig.queries,
 				skin: exportConfig.skin_vars,
@@ -167,6 +168,9 @@
 				file: null,
 				error: null,
 				log: false,
+				showPopup: false,
+				existingPostTypes: [],
+				existingTaxonomies: [],
 			};
 		},
 		methods: {
@@ -193,6 +197,76 @@
 			logItems: function( items ) {
 				return items.join( ", " );
 			},
+			validateImport: function() {
+				var self = this,
+					formData,
+					xhr;
+
+				self.isLoading = true;
+
+				formData = new FormData();
+				formData.append( '_skin', self.file );
+				formData.append( 'action', 'jet_engine_validate_skin' );
+				formData.append( '_nonce', window.JetEngineDashboardConfig._nonce );
+
+				xhr = new XMLHttpRequest();
+
+				xhr.open( 'POST', ajaxurl, true );
+
+				xhr.onload = function( e, r ) {
+
+					if ( xhr.status == 200 ) {
+
+						var response = e.currentTarget.response;
+
+						response = JSON.parse( response );
+
+						if ( ! response.success ) {
+							return;
+						} else {
+							if ( ! Object.keys( response.data || {} ).length ) {
+								self.processImport();
+								return;
+							} else {
+								self.existingPostTypes  = response.data?.post_types?.items ?? [];
+								self.existingTaxonomies = response.data?.taxonomies?.items ?? [];
+
+								self.existingPostTypes.map( function( item ) {
+									return item.action ??= 'copy';
+								} );
+
+								self.existingTaxonomies.map( function( item ) {
+									return item.action ??= 'copy';
+								} );
+
+								self.showPopup = true;
+							}
+
+							self.isLoading = false;
+						}
+
+					} else {
+						self.error = xhr.status;
+					}
+
+				};
+
+				xhr.send( formData );
+			},
+			setAction: function( value, type, index ) {
+				this[ type ][index]['action'] = value;
+			},
+			newImport: function() {
+				this.log = false;
+				this.readyToImport = false;
+				this.isLoading = false;
+				this.existingPostTypes  = [];
+				this.existingTaxonomies = [];
+			},
+			closePopup: function() {
+				self.showPopup = false;
+				self.isLoading = false;
+			},
 			processImport: function() {
 
 				var self = this,
@@ -205,7 +279,15 @@
 				formData.append( '_skin', self.file );
 				formData.append( 'action', 'jet_engine_import_skin' );
 				formData.append( '_nonce', window.JetEngineDashboardConfig._nonce );
-
+				formData.append(
+					'duplicates',
+					JSON.stringify(
+						{
+							'post_types': self.existingPostTypes,
+							'taxonomies': self.existingTaxonomies,
+						}
+					),
+				);
 
 				xhr = new XMLHttpRequest();
 

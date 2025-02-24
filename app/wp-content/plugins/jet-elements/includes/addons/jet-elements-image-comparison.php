@@ -49,7 +49,7 @@ class Jet_Elements_Image_Comparison extends Jet_Elements_Base {
 	}
 
 	public function get_style_depends() {
-		return array( 'jet-juxtapose-css' );
+		return array( 'jet-juxtapose-css', 'jet-image-comparison', 'jet-image-comparison-skin' );
 	}
 
 	protected function register_controls() {
@@ -251,6 +251,29 @@ class Jet_Elements_Image_Comparison extends Jet_Elements_Base {
 					'slides_to_show!' => '1',
 				),
 			)
+		);
+
+		$this->_add_control(
+			'slides_gap',
+			array(
+				'label' => esc_html__( 'Slides Gap', 'jet-elements' ),
+				'type' => Controls_Manager::SLIDER,
+				'default' => array(
+					'size' => 0,
+					'unit' => 'px',
+				),
+				'range' => array(
+					'px' => array(
+						'min' => 0,
+						'max' => 100,
+					),
+				),
+				'selectors' => array(
+					'{{WRAPPER}} .slick-slide' => 'margin-left: {{SIZE}}{{UNIT}}; margin-right: {{SIZE}}{{UNIT}}',
+					'{{WRAPPER}} .slick-list'  => 'margin-left: -{{SIZE}}{{UNIT}}; margin-right: -{{SIZE}}{{UNIT}}',
+				),
+			),
+			25
 		);
 
 		$this->add_control(

@@ -43,6 +43,11 @@ class Jet_Elements_Timeline extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+
+	public function get_style_depends() { 
+		return array( 'jet-timeline', 'jet-timeline-skin' ); 
+	}
+
 	protected function register_controls() {
 		$css_scheme = apply_filters(
 			'jet-elements/timeline/css-scheme',
@@ -1897,6 +1902,7 @@ class Jet_Elements_Timeline extends Jet_Elements_Base {
 				),
 				'selectors'  => array(
 					'{{WRAPPER}} ' . $css_scheme['line'] => 'width: {{SIZE}}{{UNIT}};',
+					'{{WRAPPER}} .jet-timeline--align-right ' . $css_scheme['line']  => 'right: -{{SIZE}}{{UNIT}};',
 				),
 			),
 			25

@@ -94,10 +94,27 @@
 			const templateData = {
 				height:      this.fieldSettings.height,
 				fieldPrefix: this.fieldSettings.field_prefix,
-				isRepeater:  this.isRepeaterField
+				isRepeater:  this.isRepeaterField,
+				valueFormat: this.fieldSettings.format,
 			};
 
 			this.$container.append( fieldTemplate( templateData ) );
+
+			this.$editButton  = this.$container.find( '.jet-engine-map-field__edit_address' );
+			this.$resetButton = this.$container.find( '.jet-engine-map-field__reset' );
+
+			this.$addressWrapper = this.$container.find( '.jet-engine-map-field__address-wrapper' );
+			this.$addressEditWrapper = this.$container.find( '.jet-engine-map-field__address-edit-wrapper' );
+
+			this.$newAddressInput = this.$container.find( 'input.jet-engine-map-field__new_address' );
+
+			this.$newAddressInput.on( 'focus', function() {
+				$( this ).removeClass( 'error' );
+			} );
+
+			if ( this.$input.val() ) {
+				this.$editButton.addClass( 'show' );
+			}
 
 			this.$preview      = this.$container.find( '.jet-engine-map-field__preview' );
 			this.$position     = this.$container.find( '.jet-engine-map-field__position' );
@@ -162,6 +179,7 @@
 			}
 
 			this.mapProvider.markerOnClick( this.map, this.markerDefaults, ( marker ) => {
+				this.$editButton.removeClass( 'show' );
 
 				if ( this.marker ) {
 					this.mapProvider.removeMarker( this.marker );
@@ -220,6 +238,7 @@
 								self.updateHashFieldPromise( response.data ).then( function() {
 									self.$input.val( response.data ).trigger( 'change' );
 									self.setPreview( response.data );
+									self.$editButton.addClass( 'show' );
 								} );
 
 							} else {
@@ -264,6 +283,9 @@
 		}
 
 		events() {
+			this.$container.on( 'click', '.jet-engine-map-field__edit_address', this.startEdit.bind( this ) );
+			this.$container.on( 'click', '.jet-engine-map-field__confirm_edit', this.setNewAddress.bind( this ) );
+			this.$container.on( 'click', '.jet-engine-map-field__cancel_edit', this.endEdit.bind( this ) );
 			this.$container.on( 'click', '.jet-engine-map-field__reset', this.resetLocation.bind( this ) );
 			this.$input.on( 'change', this.changeInputHandler.bind( this ) );
 
@@ -293,6 +315,39 @@
 			}
 
 			this.$searchInput.val( null );
+
+			this.endEdit();
+		}
+
+		startEdit() {
+			this.$addressWrapper.removeClass( 'show' );
+			this.$addressEditWrapper.addClass( 'show' );
+			this.$newAddressInput.val( this.$input.val() );
+			this.$resetButton.removeClass( 'show' );
+		}
+
+		setNewAddress() {
+			const newVal = this.$newAddressInput.val();
+
+			if ( ! newVal ) {
+				this.$newAddressInput.addClass( 'error' );
+				return;
+			}
+
+			this.$input.val( newVal ).trigger( 'change' );
+			this.setPreview( newVal );
+			this.endEdit();
+		}
+
+		endEdit() {
+			this.$addressWrapper.addClass( 'show' );
+			this.$addressEditWrapper.removeClass( 'show' );
+			this.$resetButton.addClass( 'show' );
+			this.$newAddressInput.removeClass( 'error' );
+
+			if ( ! this.$input.val() ) {
+				this.$editButton.removeClass( 'show' );
+			}
 		}
 
 		changeInputHandler( event ) {
@@ -461,6 +516,8 @@
 		}
 
 		searchItemClickHandler( event ) {
+
+			this.$editButton.removeClass( 'show' );
 
 			const $searchItem = $( event.target );
 

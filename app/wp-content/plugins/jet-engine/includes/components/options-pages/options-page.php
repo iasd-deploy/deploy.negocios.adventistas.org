@@ -96,11 +96,11 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 			$this->page['fields'] = $this->prepare_meta_fields( $page['fields'] );
 
 			if ( ! empty( $this->show_in_rest ) ) {
-				
+
 				if ( ! class_exists( 'Jet_Engine_Rest_Settings' ) ) {
 					require jet_engine()->options_pages->component_path( 'rest-api/fields/site-settings.php' );
 				}
-				
+
 				foreach ( $this->show_in_rest as $field ) {
 					new Jet_Engine_Rest_Settings( $field, $this->slug, $this );
 				}
@@ -110,7 +110,7 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 				$this->page['position'] = null;
 			}
 
-			add_action( 'admin_menu', array( $this, 'register_menu_page' ) );
+			add_action( 'admin_menu', array( $this, 'register_menu_page' ), 99 );
 
 			if ( $this->is_page_now() ) {
 				add_action( 'admin_enqueue_scripts', array( $this, 'init_builder' ), 0 );
@@ -118,7 +118,6 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 				add_action( 'admin_init', array( $this, 'save' ), 40 );
 				add_action( 'admin_notices', array( $this, 'saved_notice' ) );
 			}
-
 		}
 
 		/**
@@ -139,7 +138,6 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 			}
 
 			return $this->is_page_now;
-
 		}
 
 		/**
@@ -168,7 +166,6 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 					$this->page['icon'],
 					$this->page['position']
 				);
-
 			}
 		}
 
@@ -191,6 +188,16 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 
 			$this->update_options( $_REQUEST );
 
+			/**
+			 * Global hook fires after saving options of the page
+			 */
+			do_action( 'jet-engine/options-pages/after-save', $this );
+
+			/**
+			 * Page-specific hook fires after saving options of the page
+			 */
+			do_action( 'jet-engine/options-pages/after-save/' . $this->page['slug'], $this );
+
 			$redirect = add_query_arg(
 				array(
 					'page'         => $this->slug,
@@ -201,7 +208,6 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 
 			wp_redirect( $redirect );
 			die();
-
 		}
 
 		/**
@@ -253,6 +259,29 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 			if ( 'default' === $this->storage_type && isset( $current ) ) {
 				update_option( $this->slug, $current );
 			}
+
+			/**
+			 * Reset internal cache after options update.
+			 * https://github.com/Crocoblock/suggestions/issues/7774
+			 */
+			$this->options = null;
+
+			/**
+			 * Fires after the values of a specific options page has been successfully updated.
+			 * The dynamic portion of the hook name, `$slug`, refers to the slug of options page.
+			 *
+			 * @since 3.2.7
+			 * @param Jet_Engine_Options_Page_Factory $page The options page instance.
+			 */
+			do_action( 'jet-engine/options-pages/updated/' . $this->slug, $this );
+
+			/**
+			 * Fires after the values of an options page has been successfully updated.
+			 *
+			 * @since 3.2.7
+			 * @param Jet_Engine_Options_Page_Factory $page The options page instance.
+			 */
+			do_action( 'jet-engine/options-pages/updated', $this );
 		}
 
 		/**
@@ -453,6 +482,10 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 
 			if ( 'separate' === $this->storage_type ) {
 
+				if ( null === $this->options ) {
+					$this->options = array();
+				}
+
 				if ( isset( $this->options[ $option ] ) ) {
 					return $this->options[ $option ];
 				}
@@ -520,6 +553,10 @@ if ( ! class_exists( 'Jet_Engine_Options_Page_Factory' ) ) {
 				if ( ! empty( $field_args['element'] ) && 'control' === $field_args['element'] ) {
 					$result[ $field_name ]['id']   = $field_name;
 					$result[ $field_name ]['name'] = $field_name;
+
+					if ( isset( $result[ $field_name ]['options_callback'] ) && is_callable( $result[ $field_name ]['options_callback'] ) ) {
+						$result[ $field_name ]['options'] = call_user_func( $result[ $field_name ]['options_callback'] );
+					}
 
 					$result[ $field_name ]['value'] = $this->get(
 						$field_name,

@@ -22,6 +22,20 @@ class Posts extends Base {
 
 	}
 
+	/**
+	 * Public function get geoquery from give query
+	 *
+	 * @param  [type] $query [description]
+	 * @return [type]        [description]
+	 */
+	public function get_geo_query( $query ) {
+
+		$geo_query = $query->get( 'geo_query' );
+
+		return apply_filters(
+			'jet-engine/maps-listings/geosearch/posts/get-geo-query', $geo_query, $query );
+	}
+
 	public function add_distance_field( $fields ) {
 		$fields[ $this->distance_term ] = __( 'Distance (for Geo queries)', 'jet-engine' );
 		return $fields;
@@ -32,7 +46,7 @@ class Posts extends Base {
 		
 		global $wpdb;
 		
-		$geo_query = $query->get( 'geo_query' );
+		$geo_query = $this->get_geo_query( $query );
 		
 		if ( $geo_query ) {
 
@@ -51,7 +65,7 @@ class Posts extends Base {
 		
 		global $wpdb;
 		
-		$geo_query = $query->get('geo_query');
+		$geo_query = $this->get_geo_query( $query );
 		
 		if ( $geo_query ) {
 
@@ -71,26 +85,41 @@ class Posts extends Base {
 		
 		global $wpdb;
 		
-		$geo_query = $query->get( 'geo_query' );
+		$geo_query = $this->get_geo_query( $query );
 		
 		if ( $geo_query ) {
-			$lat_field = 'latitude';
-			if ( !empty( $geo_query['lat_field'] ) ) {
-				$lat_field =  $geo_query['lat_field'];
-			}
-			$lng_field = 'longitude';
-			if ( !empty( $geo_query['lng_field'] ) ) {
-				$lng_field =  $geo_query['lng_field'];
-			}
-			$distance = 20;
+
+			$lat_field = $this->lat_field( $geo_query, 'query' );
+			$lng_field = $this->lng_field( $geo_query, 'query' );
+			$distance  = 20;
+
 			if ( isset( $geo_query['distance'] ) ) {
 				$distance = $geo_query['distance'];
 			}
 			if ( $sql ) {
 				$sql .= " AND ";
 			}
-			$haversine = $this->haversine_term( $geo_query );
-			$new_sql = "( geo_query_lat.meta_key = %s AND geo_query_lng.meta_key = %s AND " . $haversine . " <= %f )";
+			
+			$new_sql = '';
+			
+			//if bounds empty or incomplete - don't limit by bounds
+			if ( $this->must_apply_bounds( $geo_query ) ) {
+				$bounds = $geo_query['bounds'];
+
+				$new_sql .= "( geo_query_lat.meta_key = %s AND geo_query_lng.meta_key = %s ) AND ";
+				$new_sql .= "( geo_query_lat.meta_value BETWEEN {$bounds['south']} AND {$bounds['north']}";
+
+				//if map includes 180deg meridian and western bound is greater than eastern
+				if ( $bounds['west'] >= $bounds['east'] ) {
+					$new_sql .= " AND ( geo_query_lng.meta_value >= {$bounds['west']} OR geo_query_lng.meta_value <= {$bounds['east']} ) )";
+				} else {
+					$new_sql .= " AND geo_query_lng.meta_value BETWEEN {$bounds['west']} AND {$bounds['east']} )";
+				}
+			} else {
+				$haversine = $this->haversine_term( $geo_query );
+				$new_sql  .= "( geo_query_lat.meta_key = %s AND geo_query_lng.meta_key = %s AND " . $haversine . " <= %f )";
+			}
+
 			$sql .= $wpdb->prepare( $new_sql, $lat_field, $lng_field, $distance );
 		}
 
@@ -101,20 +130,42 @@ class Posts extends Base {
 	// handle ordering
 	public function posts_orderby( $sql, $query ) {
 	
-		$geo_query = $query->get( 'geo_query' );
+		$geo_query = $this->get_geo_query( $query );
 		
 		if ( $geo_query ) {
-			
+
 			$orderby = $query->get('orderby');
 			$order   = $query->get('order');
-			
-			if ( $orderby == 'distance' ) {
-				
+
+			if ( $orderby == 'distance' || ( is_array( $orderby ) && isset( $orderby['distance'] ) ) ) {
+
 				if ( ! $order ) {
 					$order = 'ASC';
 				}
 
-				$sql = $this->distance_term . ' ' . $order;
+				$order = ( is_array( $orderby ) && ! empty( $orderby['distance'] ) ) ? $orderby['distance'] : $order;
+
+				$distance_orderby = $this->distance_term . ' ' . $order;
+
+				if ( is_array( $orderby ) && 1 < count( $orderby ) ) {
+					$sql_array      = ! empty( $sql ) ? explode( ', ', $sql ) : array();
+					$distance_index = array_search( 'distance', array_keys( $orderby ) );
+
+					if ( 0 == $distance_index ) {
+						array_unshift( $sql_array, $distance_orderby );
+					} else {
+						$sql_array = array_merge(
+							array_slice( $sql_array, 0, $distance_index ),
+							array( $distance_orderby ),
+							array_slice( $sql_array, $distance_index, null )
+						);
+					}
+
+					$sql = implode( ', ', $sql_array );
+
+				} else {
+					$sql = $distance_orderby;
+				}
 			}
 		}
 

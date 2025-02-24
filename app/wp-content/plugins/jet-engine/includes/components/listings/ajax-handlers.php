@@ -121,6 +121,10 @@ if ( ! class_exists( 'Jet_Engine_Listings_Ajax_Handlers' ) ) {
 				$post = get_post( $queried_id );
 			}
 
+			if ( $queried_id ) {
+				jet_engine()->listings->data->set_current_object_by_id( $queried_id, $queried_obj_type );
+			}
+
 			$widget_settings = false;
 
 			if ( $post_id && $element_id ) {
@@ -139,6 +143,7 @@ if ( ! class_exists( 'Jet_Engine_Listings_Ajax_Handlers' ) ) {
 						if ( $widget ) {
 							$widget_instance = $elementor->elements_manager->create_element_instance( $widget );
 							$widget_settings = $widget_instance->get_settings_for_display();
+							$widget_settings['_id'] = $element_id;
 							//$_REQUEST['query'] = null;
 						}
 
@@ -200,14 +205,15 @@ if ( ! class_exists( 'Jet_Engine_Listings_Ajax_Handlers' ) ) {
 
 			ob_start();
 
-			$base_class       = 'jet-listing-grid';
-			$equal_cols_class = '';
+			$base_class        = 'jet-listing-grid';
+			$equal_cols_class  = '';
+			$equal_cols_height = ! empty( $widget_settings['equal_columns_height'] ) ? filter_var( $widget_settings['equal_columns_height'], FILTER_VALIDATE_BOOLEAN ) : false;
 
-			if ( ! empty( $widget_settings['equal_columns_height'] ) ) {
+			if ( $equal_cols_height ) {
 				$equal_cols_class = 'jet-equal-columns';
 			}
 
-			jet_engine()->listings->data->set_listing_by_id( $widget_settings['lisitng_id'] );
+			jet_engine()->listings->data->set_listing_by_id( absint( $widget_settings['lisitng_id'] ) );
 
 			$listing_source = jet_engine()->listings->data->get_listing_source();
 			$page           = ! empty( $_REQUEST['page'] ) ? absint( $_REQUEST['page'] ) : 1;
@@ -311,17 +317,15 @@ if ( ! class_exists( 'Jet_Engine_Listings_Ajax_Handlers' ) ) {
 
 			$query            = ! empty( $_REQUEST['query'] ) ? $_REQUEST['query'] : array();
 			$widget_settings  = ! empty( $_REQUEST['widget_settings'] ) ? $_REQUEST['widget_settings'] : array();
-			$post_id          = ! empty( $_REQUEST['post_id'] ) ? absint( $_REQUEST['post_id'] ) : false;
-			$queried_obj_data = ! empty( $_REQUEST['queried_id'] ) ? explode( '|', $_REQUEST['queried_id'] ) : false;
-			$queried_id       = ! empty( $queried_obj_data[0] ) ? absint( $queried_obj_data[0] ) : false;
-			$queried_obj_type = ! empty( $queried_obj_data[1] ) ? $queried_obj_data[1] : 'WP_Post';
-			$element_id       = ( ! empty( $_REQUEST['element_id'] ) && 'false' !== $_REQUEST['element_id'] ) ? $_REQUEST['element_id'] : false;
 			$response         = array();
 
+			/*
+			This code has been moved to the `add_settings_to_request` method.
 			if ( $queried_id && 'WP_Post' === $queried_obj_type ) {
 				global $post;
 				$post = get_post( $queried_id );
 			}
+			*/
 
 			$_widget_settings = $widget_settings;
 			$is_lazy_load     = ! empty( $widget_settings['lazy_load'] ) ? filter_var( $widget_settings['lazy_load'], FILTER_VALIDATE_BOOLEAN ) : false;
@@ -345,6 +349,8 @@ if ( ! class_exists( 'Jet_Engine_Listings_Ajax_Handlers' ) ) {
 
 			$render_instance = jet_engine()->listings->get_render_instance( 'listing-grid', $widget_settings );
 
+			/*
+			The setup of current object has been moved to the `add_settings_to_request` method.
 			if ( $is_lazy_load && $queried_id ) {
 				switch ( $queried_obj_type ) {
 					case 'WP_Post':
@@ -355,8 +361,8 @@ if ( ! class_exists( 'Jet_Engine_Listings_Ajax_Handlers' ) ) {
 						break;
 				}
 			}
-
-			if ( $is_lazy_load && ! empty( $query ) ) { // for Archive pages
+			*/
+			if ( $is_lazy_load && ! empty( $query ) && empty( $query['query_id'] ) ) { // for Archive pages
 
 				jet_engine()->listings->data->set_listing_by_id( $widget_settings['lisitng_id'] );
 

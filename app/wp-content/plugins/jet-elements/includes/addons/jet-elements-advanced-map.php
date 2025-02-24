@@ -44,6 +44,10 @@ class Jet_Elements_Advanced_Map extends Jet_Elements_Base {
 		return array( 'cherry' );
 	}
 
+	public function get_style_depends() { 
+		return array( 'jet-map' ); 
+	}
+
 	public function get_script_depends() {
 
 		$api_disabled = jet_elements_settings()->get( 'disable_api_js', [ 'disable' => 'false' ] );

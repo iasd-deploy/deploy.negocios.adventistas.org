@@ -33,7 +33,7 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 		/**
 		 * Macros manager instance
 		 *
-		 * @var null
+		 * @var \Jet_Engine_Listings_Macros
 		 */
 		public $macros = null;
 
@@ -47,14 +47,14 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 		/**
 		 * Filters manager instance
 		 *
-		 * @var null
+		 * @var \Jet_Engine_Listings_Filters
 		 */
 		public $filters = null;
 
 		/**
 		 * Data manager instance
 		 *
-		 * @var null
+		 * @var \Jet_Engine_Listings_Data
 		 */
 		public $data = null;
 
@@ -89,14 +89,14 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 		/**
 		 * Holder for Did posts instance.
 		 *
-		 * @var null
+		 * @var \Jet_Engine_Did_Posts_Watcher
 		 */
 		public $did_posts = null;
 
 		/**
 		 * Holder for objects stack instance.
 		 *
-		 * @var null
+		 * @var \Jet_Engine_Objects_Stack
 		 */
 		public $objects_stack = null;
 
@@ -110,15 +110,21 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 		/**
 		 * Holder for ajax handlers instance.
 		 *
-		 * @var null
+		 * @var \Jet_Engine_Listings_Ajax_Handlers
 		 */
 		public $ajax_handlers = null;
 
 		/**
 		 * Holds Jet_Engine_Listings_Callbacks instance
-		 * @var null
+		 * @var \Jet_Engine_Listings_Callbacks
 		 */
 		public $callbacks = null;
+
+		/**
+		 * Holds instance of components manager
+		 * @var null
+		 */
+		public $components = null;
 
 		/**
 		 * Constructor for the class
@@ -135,8 +141,10 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 			require jet_engine()->plugin_path( 'includes/components/listings/legacy.php' );
 			require jet_engine()->plugin_path( 'includes/components/listings/preview.php' );
 			require jet_engine()->plugin_path( 'includes/classes/url-shemes-manager.php' );
+			require jet_engine()->plugin_path( 'includes/components/listings/components/manager.php' );
 
 			$this->post_type     = new Jet_Engine_Listings_Post_Type();
+			$this->components    = new \Jet_Engine\Listings\Components\Manager();
 			$this->macros        = new Jet_Engine_Listings_Macros();
 			$this->filters       = new Jet_Engine_Listings_Filters();
 			$this->data          = new Jet_Engine_Listings_Data();
@@ -158,6 +166,21 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 			add_action( 'init', array( $this, 'register_renderers' ) );
 			add_action( 'init', array( $this, 'register_callbacks' ) );
 
+			add_action( 'jet-engine/listing/grid-items/before', array( $this, 'add_frontend_query_editor' ), 10, 2 );
+			add_action( 'jet-engine/listing/grid/not-found/before', array( $this, 'not_found_add_frontend_query_editor' ), 10 );
+
+		}
+
+		public function not_found_add_frontend_query_editor( $render ) {
+			$this->add_frontend_query_editor( array(), $render );
+		}
+
+		public function add_frontend_query_editor( $settings, $render ) {
+			if ( ! isset( \Jet_Engine\Query_Builder\Manager::instance()->frontend_editor ) ) {
+				return;
+			}
+	
+			\Jet_Engine\Query_Builder\Manager::instance()->frontend_editor->render_edit_buttons( $render );
 		}
 
 		public function register_callbacks() {
@@ -180,6 +203,12 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 			) );
 		}
 
+		public function ensure_listing_doc_class() {
+			if ( ! class_exists( 'Jet_Engine_Listings_Document' ) ) {
+				require jet_engine()->plugin_path( 'includes/components/listings/document.php' );
+			}
+		}
+
 		/**
 		 * Returns new listing document
 		 *
@@ -188,9 +217,7 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 		 */
 		public function get_new_doc( $setting = array(), $id = null ) {
 
-			if ( ! class_exists( 'Jet_Engine_Listings_Document' ) ) {
-				require jet_engine()->plugin_path( 'includes/components/listings/document.php' );
-			}
+			$this->ensure_listing_doc_class();
 
 			return new Jet_Engine_Listings_Document( $setting, $id );
 		}
@@ -207,8 +234,20 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 					'post_type'      => jet_engine()->post_type->slug(),
 					'post_status'    => 'publish',
 					'posts_per_page' => -1,
-					'orderby'        => 'ID',
+					'orderby'        => 'date',
 					'order'          => 'DESC',
+					'meta_query'     => [
+						'relation' => 'or',
+						[
+							'key'     => '_entry_type',
+							'value'   => '',
+							'compare' => 'NOT EXISTS',
+						],
+						[
+							'key'     => '_entry_type',
+							'value'   => 'listing',
+						],
+					],
 				) );
 			}
 
@@ -286,7 +325,7 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 		 * @return [type] [description]
 		 */
 		public function get_id() {
-			return $this->_id;
+			return apply_filters( 'jet-engine/listings/document-id', $this->_id );
 		}
 
 		/**
@@ -493,6 +532,7 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 				'queried_user'        => __( 'Queried User', 'jet-engine' ),
 				'current_post_author' => __( 'Current Post Author', 'jet-engine' ),
 				'wp_object'           => __( 'Default WordPress Object (for current page)', 'jet-engine' ),
+				'parent_object'       => __( 'Parent Object', 'jet-engine' ),
 			) );
 
 			if ( 'blocks' === $for ) {
@@ -528,6 +568,8 @@ if ( ! class_exists( 'Jet_Engine_Listings' ) ) {
 			);
 
 			$meta_fields = array();
+
+			$default['options']['object_prop'] = __( 'Post/Term/User/Object Data', 'jet-engine' );
 
 			if ( jet_engine()->options_pages ) {
 				$default['options']['options_page'] = __( 'Options', 'jet-engine' );

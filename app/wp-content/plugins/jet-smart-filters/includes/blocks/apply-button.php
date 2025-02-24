@@ -71,7 +71,7 @@ if ( ! class_exists( 'Jet_Smart_Filters_Block_Apply_Button' ) ) {
 			$this->controls_manager->add_control([
 				'id'       => 'filter_apply_button_normal_color',
 				'type'     => 'color-picker',
-				'label'     => esc_html__( 'Color', 'jet-smart-filters' ),
+				'label'     => esc_html__( 'Text Color', 'jet-smart-filters' ),
 				'separator'  => 'after',
 				'css_selector' => array(
 					'{{WRAPPER}} ' . $this->css_scheme['apply-filters-button'] => 'color: {{VALUE}}',
@@ -123,6 +123,72 @@ if ( ! class_exists( 'Jet_Smart_Filters_Block_Apply_Button' ) ) {
 				'label'     => esc_html__( 'Border Color', 'jet-smart-filters' ),
 				'css_selector' => array(
 					'{{WRAPPER}} ' . $this->css_scheme['apply-filters-button'] . ':hover' => 'border-color: {{VALUE}}',
+				),
+			]);
+
+			$this->controls_manager->end_tab();
+
+			$this->controls_manager->start_tab(
+				'style_controls',
+				[
+					'id'    => 'filter_apply_button_disabled_styles',
+					'title' => esc_html__( 'Disabled', 'jet-smart-filters' ),
+				]
+			);
+
+			$this->controls_manager->add_control([
+				'id'        => 'filter_apply_button_disabled_opacity',
+				'type'      => 'range',
+				'label'     => esc_html__( 'Opacity', 'jet-smart-filters' ),
+				'css_selector' => [
+					'{{WRAPPER}} ' . $this->css_scheme[ 'apply-filters-button' ] . ':disabled' => 'opacity: {{VALUE}}{{UNIT}}'
+				],
+				'attributes' => [
+					'default' => [
+						'value' => [
+							'value' => 50,
+							'unit' => '%'
+						]
+					]
+				],
+				'units' => [
+					[
+						'value' => '%',
+						'intervals' => [
+							'step' => 1,
+							'min'  => 0,
+							'max'  => 100,
+						]
+					],
+				],
+			]);
+
+			$this->controls_manager->add_control([
+				'id'       => 'filter_apply_button_disabled_color',
+				'type'     => 'color-picker',
+				'label'     => esc_html__( 'Text Color', 'jet-smart-filters' ),
+				'separator'  => 'after',
+				'css_selector' => array(
+					'{{WRAPPER}} ' . $this->css_scheme[ 'apply-filters-button' ] . ':disabled' => 'color: {{VALUE}}',
+				),
+			]);
+
+			$this->controls_manager->add_control([
+				'id'       => 'filter_apply_button_disabled_background_color',
+				'type'     => 'color-picker',
+				'label'     => esc_html__( 'Background Color', 'jet-smart-filters' ),
+				'separator'  => 'after',
+				'css_selector' => array(
+					'{{WRAPPER}} ' . $this->css_scheme['apply-filters-button'] . ':disabled' => 'background-color: {{VALUE}}',
+				),
+			]);
+
+			$this->controls_manager->add_control([
+				'id'       => 'filter_apply_button_disabled_border_color',
+				'type'     => 'color-picker',
+				'label'     => esc_html__( 'Border Color', 'jet-smart-filters' ),
+				'css_selector' => array(
+					'{{WRAPPER}} ' . $this->css_scheme['apply-filters-button'] . ':disabled' => 'border-color: {{VALUE}}',
 				),
 			]);
 
@@ -203,22 +269,24 @@ if ( ! class_exists( 'Jet_Smart_Filters_Block_Apply_Button' ) ) {
 		 */
 		public function render_callback( $settings = array() ) {
 
-			jet_smart_filters()->set_filters_used();
-
 			if ( empty( $settings['content_provider'] ) || $settings['content_provider'] === 'not-selected' ) {
 				return $this->is_editor() ? __( 'Please select a provider', 'jet-smart-filters' ) : false;
 			}
 
-			$base_class   = 'jet-smart-filters-' . $this->get_name();
-			$data_atts    = '';
-			$redirect     = ! empty( $settings['apply_redirect'] ) ? $settings['apply_redirect'] : false;
-			$redirectPath = ! empty( $settings['redirect_path'] ) ? $settings['redirect_path'] : false;
-			$query_id     = ! empty( $settings['query_id'] ) ? $settings['query_id'] : 'default';
-			$atts         = array(
-				'data-content-provider' => $settings['content_provider'],
-				'data-apply-type'       => $settings['apply_type'],
-				'data-query-id'         => $query_id,
-				'data-redirect'         => $redirect
+			jet_smart_filters()->set_filters_used();
+
+			$base_class           = 'jet-smart-filters-' . $this->get_name();
+			$data_atts            = '';
+			$redirect             = ! empty( $settings['apply_redirect'] ) ? $settings['apply_redirect'] : false;
+			$redirectPath         = ! empty( $settings['redirect_path'] ) ? $settings['redirect_path'] : false;
+			$query_id             = ! empty( $settings['query_id'] ) ? $settings['query_id'] : 'default';
+			$additional_providers = jet_smart_filters()->utils->get_additional_providers( $settings );
+			$atts                 = array(
+				'data-content-provider'     => $settings['content_provider'],
+				'data-apply-type'           => $settings['apply_type'],
+				'data-query-id'             => $query_id,
+				'data-additional-providers' => $additional_providers,
+				'data-redirect'             => $redirect
 			);
 
 			if ( $redirect && $redirectPath ) {
@@ -230,6 +298,12 @@ if ( ! class_exists( 'Jet_Smart_Filters_Block_Apply_Button' ) ) {
 			}
 
 			$settings['apply_button'] = true;
+			$settings['apply_on']     = 'submit';
+
+			if ( ! empty( $_REQUEST['context'] ) && $_REQUEST['context'] === 'edit' ) {
+				unset( $settings['active_state'] );
+				unset( $settings['if_inactive'] );
+			}
 
 			ob_start();
 

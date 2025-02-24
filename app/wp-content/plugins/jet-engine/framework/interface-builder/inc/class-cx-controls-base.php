@@ -58,6 +58,8 @@ if ( ! class_exists( 'CX_Controls_Base' ) ) {
 
 			add_action( 'wp_enqueue_scripts', array( $this, 'register_depends' ) );
 			add_action( 'admin_enqueue_scripts', array( $this, 'register_depends' ) );
+
+			do_action( 'cx-interface-builder/control/construct', $this );
 		}
 
 		/**
@@ -78,7 +80,7 @@ if ( ! class_exists( 'CX_Controls_Base' ) ) {
 		public function get_required() {
 
 			if ( $this->settings['required'] ) {
-				return 'required="required"';
+				return 'data-required="1"';
 			}
 
 			return '';

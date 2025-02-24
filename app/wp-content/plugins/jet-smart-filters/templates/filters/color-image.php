@@ -25,10 +25,12 @@ $current = $this->get_current_filter_value( $args );
 
 	if ( $scroll_height_style ) {echo '<div class="jet-filter-items-scroll" ' . $scroll_height_style . '><div class="jet-filter-items-scroll-container">'; }
 
-	echo '<fieldset class="jet-color-image-list-wrapper">';
+	echo '<form class="jet-color-image-list-wrapper">';
+	echo '<fieldset>';
 	echo '<legend style="display:none;">' . $accessibility_label . '</legend>';
-	foreach ( $options as $value => $option ) {
+	foreach ( $options as $optionKey => $optionData ) {
 		$checked = '';
+		extract( jet_smart_filters()->utils->сreate_option_data( $optionKey, $optionData ), EXTR_OVERWRITE );
 
 		if ( $current ) {
 			if ( is_array( $current ) && in_array( $value, $current ) ) {
@@ -40,11 +42,12 @@ $current = $this->get_current_filter_value( $args );
 			}
 		}
 
-		if( '' !== $value ){
+		if ( '' !== $value ) {
 			include jet_smart_filters()->get_template( 'filters/color-image-item.php' );
 		}
 	}
 	echo '</fieldset>';
+	echo '</form>';
 
 	if ( $scroll_height_style ) { echo '</div></div>'; }
 

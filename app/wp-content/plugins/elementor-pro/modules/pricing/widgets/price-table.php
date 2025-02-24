@@ -12,6 +12,7 @@ use Elementor\Icons_Manager;
 use Elementor\Repeater;
 use Elementor\Utils;
 use ElementorPro\Base\Base_Widget;
+use ElementorPro\Plugin;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -39,6 +40,10 @@ class Price_Table extends Base_Widget {
 		return false;
 	}
 
+	public function has_widget_inner_wrapper(): bool {
+		return ! Plugin::elementor()->experiments->is_feature_active( 'e_optimized_markup' );
+	}
+
 	/**
 	 * Get style dependencies.
 	 *
@@ -50,7 +55,7 @@ class Price_Table extends Base_Widget {
 	 * @return array Widget style dependencies.
 	 */
 	public function get_style_depends(): array {
-		return [ 'widget-pricing' ];
+		return [ 'widget-price-table' ];
 	}
 
 	protected function register_controls() {

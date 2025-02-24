@@ -79,9 +79,14 @@ class Filters {
 		foreach ( $relations as $relation_item ) {
 			$relations_options[$relation_item->get_id()] = $relation_item->get_relation_name();
 		}
-		
+
 		foreach ( $relations_list as $relation_key => $relation_label ) {
 			$relation_dynamic_query_item = new class( $relation_key, $relation_label, $relations_options ) {
+
+				public $key;
+				public $label;
+				public $options;
+
 				public function __construct( $key, $label, $options ) {
 					$this->key     = $key;
 					$this->label   = $label;
@@ -295,6 +300,13 @@ class Filters {
 			if ( ! empty( $data['key'] ) && $this->is_relation_filter( $data['key'] ) ) {
 				$args  = $this->add_relation_args( $args, $data );
 				$found = true;
+			} elseif ( ! empty( $data['relation'] ) ) {
+				foreach ( $data as $inner_key => $inner_data ) {
+					if ( is_array( $inner_data ) && ! empty( $inner_data['key'] ) && $this->is_relation_filter( $inner_data['key'] ) ) {
+						$args  = $this->add_relation_args( $args, $inner_data, true );
+						$found = true;
+					}
+				}
 			}
 		}
 
@@ -302,6 +314,12 @@ class Filters {
 			foreach ( $args['meta_query'] as $key => $data ) {
 				if ( ! empty( $data['key'] ) && $this->is_relation_filter( $data['key'] ) ) {
 					unset( $args['meta_query'][ $key ] );
+				} elseif ( ! empty( $data['relation'] ) ) {
+					foreach ( $data as $inner_key => $inner_data ) {
+						if ( is_array( $inner_data ) && ! empty( $inner_data['key'] ) && $this->is_relation_filter( $inner_data['key'] ) ) {
+							unset( $args['meta_query'][ $key ][ $inner_key ] );
+						}
+					}
 				}
 			}
 		}
@@ -450,7 +468,7 @@ class Filters {
 	 * @param [type] $args [description]
 	 * @param [type] $data [description]
 	 */
-	public function add_relation_args( $args, $data ) {
+	public function add_relation_args( $args, $data, $is_inner = false ) {
 
 		$key    = $data['key'];
 		$key    = explode( '*', $key );
@@ -493,14 +511,22 @@ class Filters {
 
 		$new_args = jet_engine()->relations->types_helper->filtered_query_args( $object, $rel_ids );
 
-		if ( ! empty( $args['post__in'] ) && ! empty( $new_args['post__in'] ) ) {
-			$args['post__in'] = array_intersect( $args['post__in'], $new_args['post__in'] );
+		$props_found = false;
 
-			// Not found posts.
-			if ( empty( $args['post__in'] ) ) {
-				$args['post__in'] = array( PHP_INT_MAX );
+		foreach ( array( 'post__in', 'include' ) as $key ) {
+			if ( ! empty( $args[ $key ] ) && ! empty( $new_args[ $key ] ) && ! $is_inner ) {
+				$props_found = true;
+
+				$args[ $key ] = array_intersect( $args[ $key ], $new_args[ $key ] );
+	
+				// Not found items.
+				if ( empty( $args[ $key ] ) ) {
+					$args[ $key ] = array( PHP_INT_MAX );
+				}
 			}
+		}
 
+		if ( $props_found ) {
 			$result = $args;
 		} else {
 			$result = array_merge_recursive( $args, $new_args );

@@ -2,7 +2,9 @@
 
 namespace Jet_Smart_Filters\Bricks_Views\Elements;
 
+use Bricks\Database;
 use Bricks\Element;
+use Bricks\Helpers;
 use Jet_Engine\Bricks_Views\Helpers\Options_Converter;
 
 // If this file is called directly, abort.
@@ -61,6 +63,23 @@ class Jet_Smart_Filters_Bricks_Search extends Jet_Smart_Filters_Bricks_Base {
 
 	public function register_general_controls() {
 		$this->start_jet_control_group( 'section_general' );
+
+		$this->register_jet_control(
+			'notice_cache_query_loop',
+			[
+				'tab'         => 'content',
+				'type'        => 'info',
+				'content'     => esc_html__( 'You have enabled the "Cache query loop" option.', 'jet-smart-filters' ),
+				'description' => sprintf(
+					esc_html__( 'This option will break the filters functionality. You can disable this option or use "JetEngine Query Builder" query type. Go to: %s > Cache query loop', 'jet-smart-filters' ),
+					'<a href="' . Helpers::settings_url( '#tab-performance' ) . '" target="_blank">Bricks > ' . esc_html__( 'Settings', 'jet-smart-filters' ) . ' > Performance</a>'
+				),
+				'required'    => [
+					[ 'content_provider', '=', 'bricks-query-loop' ],
+					[ 'cacheQueryLoops', '=', true, 'globalSettings' ],
+				],
+			]
+		);
 
 		$this->register_jet_control(
 			'filter_id',
@@ -136,7 +155,10 @@ class Jet_Smart_Filters_Bricks_Search extends Jet_Smart_Filters_Bricks_Base {
 				'type'           => 'text',
 				'hasDynamicData' => false,
 				'default'        => esc_html__( 'Apply filter', 'jet-smart-filters' ),
-				'required'       => [ 'apply_type', '=', [ 'ajax', 'reload', 'mixed' ] ],
+				'required'       => [
+					[ 'apply_type', '=', [ 'ajax', 'reload', 'mixed' ] ],
+					[ 'hide_apply_button', '=', false ],
+				],
 			]
 		);
 
@@ -146,6 +168,20 @@ class Jet_Smart_Filters_Bricks_Search extends Jet_Smart_Filters_Bricks_Base {
 				'tab'      => 'content',
 				'label'    => esc_html__( 'Search button icon', 'jet-smart-filters' ),
 				'type'     => 'icon',
+				'required'       => [
+					[ 'apply_type', '=', [ 'ajax', 'reload', 'mixed' ] ],
+					[ 'hide_apply_button', '=', false ],
+				],
+			]
+		);
+
+		$this->register_jet_control(
+			'hide_apply_button',
+			[
+				'tab'      => 'content',
+				'label'    => esc_html__( 'Hide apply button', 'jet-smart-filters' ),
+				'type'     => 'checkbox',
+				'default'  => false,
 				'required' => [ 'apply_type', '=', [ 'ajax', 'reload', 'mixed' ] ],
 			]
 		);
@@ -549,10 +585,6 @@ class Jet_Smart_Filters_Bricks_Search extends Jet_Smart_Filters_Bricks_Base {
 		$apply_type = ! empty( $settings['apply_type'] ) ? $settings['apply_type'] : 'ajax';
 		$apply_on   = ! empty( $settings['apply_on'] ) ? $settings['apply_on'] : 'value';
 
-		if ( 'submit' === $apply_on && in_array( $apply_type, [ 'ajax', 'mixed' ] ) ) {
-			$apply_type = $apply_type . '-reload';
-		}
-
 		$query_id             = ! empty( $settings['query_id'] ) ? $settings['query_id'] : 'default';
 		$show_label           = ! empty( $settings['show_label'] ) ? filter_var( $settings['show_label'], FILTER_VALIDATE_BOOLEAN ) : false;
 		$additional_providers = jet_smart_filters()->utils->get_additional_providers( $settings );
@@ -566,16 +598,19 @@ class Jet_Smart_Filters_Bricks_Search extends Jet_Smart_Filters_Bricks_Base {
 
 		$typing_min_letters_count = ! empty( $settings['typing_min_letters_count'] ) ? $settings['typing_min_letters_count'] : 3;
 		$apply_button_text        = ! empty( $settings['apply_button_text'] ) ? $settings['apply_button_text'] : '';
+		$hide_apply_button        = ! empty( $settings['hide_apply_button'] ) ? $settings['hide_apply_button'] : '';
 
 		$filter_template_args = [
 			'filter_id'            => $filter_id,
 			'content_provider'     => $provider,
-			'additional_providers' => $additional_providers,
+			'query_id'             => $query_id,
 			'apply_type'           => $apply_type,
+			'apply_on'             => $apply_on,
 			'min_letters_count'    => $typing_min_letters_count,
 			'button_text'          => $apply_button_text,
 			'button_icon'          => $icon,
-			'query_id'             => $query_id,
+			'hide_apply_button'    => $hide_apply_button,
+			'additional_providers' => $additional_providers,
 		];
 
 		jet_smart_filters()->admin_bar_register_item( $filter_id );

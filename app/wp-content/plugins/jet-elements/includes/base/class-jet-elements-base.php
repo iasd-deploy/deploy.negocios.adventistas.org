@@ -165,6 +165,8 @@ abstract class Jet_Elements_Base extends Widget_Base {
 			include $templates['start'];
 		}
 
+		do_action( 'jet-engine-query-gateway/before-loop', $setting, $this );
+
 		foreach ( $loop as $item ) {
 
 			do_action( 'jet-engine-query-gateway/do-item', $item );

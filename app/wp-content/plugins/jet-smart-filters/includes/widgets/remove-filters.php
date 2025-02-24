@@ -4,7 +4,7 @@ namespace Elementor;
 
 use Elementor\Plugin;
 use Elementor\Group_Control_Border;
-use Elementor\Core\Schemes\Typography as Scheme_Typography;
+use Elementor\Core\Kits\Documents\Tabs\Global_Typography as Global_Typography;
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
@@ -124,7 +124,9 @@ class Jet_Smart_Filters_Remove_Filters_Widget extends Widget_Base {
 			Group_Control_Typography::get_type(),
 			array(
 				'name'     => 'remove_filters_button_typography',
-				'scheme'   => Scheme_Typography::TYPOGRAPHY_1,
+				'global'   => array(
+					'default' => Global_Typography::TYPOGRAPHY_PRIMARY,
+				),
 				'selector' => '{{WRAPPER}} ' . $css_scheme['remove-filters-button'],
 			)
 		);

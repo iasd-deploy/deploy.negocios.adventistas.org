@@ -26,7 +26,7 @@ class Terms extends Base {
 
 	public function update_field_value( $obj, $field, $value ) {
 
-		$hash = md5( $field );
+		$hash = $this->get_field_prefix( $field );
 
 		update_term_meta( $obj->term_id, $hash . '_hash', $value['key'] );
 		update_term_meta( $obj->term_id, $hash . '_lat', $value['coord']['lat'] );

@@ -201,9 +201,23 @@
 							url = this.navSettings.editURL.replace( '%id%', this.itemId );
 							url = url.replace( '%menuid%', this.navSettings.currentMenuId );
 
-							if ( this.preparedItemSettings.content_type ) {
-								url = url.replace( '%content%', this.preparedItemSettings.content_type );
-							}
+						const {
+							content_type: contentType,
+							content_name: contentName,
+							content_id: contentID,
+						} = this.preparedItemSettings;
+
+						if ( contentType ) {
+							url = url.replace( '%content%', contentType );
+						}
+
+						if ( contentName ) {
+							url += `&content_name=${ contentName }`;
+						}
+
+						if ( contentID ) {
+							url += `&content_id=${ contentID }`;
+						}
 
 						return url;
 					},
@@ -215,6 +229,12 @@
 					defaultActiveTab: function() {
 						//return 0 === this.itemDepth ? 'mega-menu-tab' : 'icon-tab';
 						return 'mega-menu-tab';
+					},
+
+					getTemplatesByContentType() {
+						const { content_type: contentType } = this.preparedItemSettings;
+
+						return this.controlData['content_id']['options'][contentType];
 					}
 
 				},

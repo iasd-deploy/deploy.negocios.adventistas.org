@@ -38,8 +38,6 @@ class Query {
 
 		add_filter( 'jet-smart-filters/pre-get-indexed-data', array( $this, 'get_indexed_data' ), 10, 4 );
 
-		
-
 		add_action( 'jet-engine/custom-content-types/after-register-instances', function( $manager ) {
 
 			$post_types = $manager->get_post_types_map();
@@ -58,8 +56,8 @@ class Query {
 	}
 
 	public function format_filter_args( $query_args = array() ) {
-    
-    	$args = array();
+
+		$args = array();
 
 		if ( ! empty( $query_args['meta_query'] ) ) {
 			
@@ -151,7 +149,7 @@ class Query {
 			if ( ! empty( $counts ) ) {
 				$result['meta_query'][ $key ] = array();
 				foreach ( $counts as $count ) {
-					$result['meta_query'][ $key ][ strtolower( $count->$key ) ] = $count->items_num;
+					$result['meta_query'][ $key ][ $count->$key ] = $count->items_num;
 				}
 			}
 		}
@@ -287,11 +285,11 @@ class Query {
 				foreach ( $chunk as $key => $value ) {
 					if ( isset( $result['meta_query'][ $key ] ) ) {
 
-						if ( ! isset( $result['meta_query'][ $key ][ strtolower( $value ) ] ) ) {
-							$result['meta_query'][ $key ][ strtolower( $value ) ] = 0;
+						if ( ! isset( $result['meta_query'][ $key ][ $value ] ) ) {
+							$result['meta_query'][ $key ][ $value ] = 0;
 						}
 
-						$result['meta_query'][ $key ][ strtolower( $value ) ] += $chunk[ '__count_' . $key ];
+						$result['meta_query'][ $key ][ $value ] += $chunk[ '__count_' . $key ];
 
 					}
 				}

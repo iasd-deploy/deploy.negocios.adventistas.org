@@ -153,6 +153,8 @@ if ( ! class_exists( 'Jet_Engine_CPT_Admin_Filters' ) ) {
 		 */
 		public function apply_meta_filter( $query, $meta_key, $value, $settings = array() ) {
 
+			$value = is_string( $value ) ? stripslashes( $value ) : $value;
+
 			if ( empty( $query->query_vars['meta_query'] ) ) {
 				$query->query_vars['meta_query'] = array();
 			}
@@ -214,14 +216,14 @@ if ( ! class_exists( 'Jet_Engine_CPT_Admin_Filters' ) ) {
 							$option_all = ! empty( $filter['title'] ) ? $filter['title'] : '';
 						}
 
-						$args = array(
+						$args = apply_filters( 'jet-engine/post-types/admin-filters/taxonomy/args', array(
 							'show_option_all' => $option_all,
 							'name'            => $this->get_filter_name( $index ),
 							'taxonomy'        => $filter['tax'],
 							'selected'        => $this->get_active_filter_value( $index ),
 							'hierarchical'    => ! empty( $filter['show_hierarchy'] ) ? true : false,
 							'show_count'      => ! empty( $filter['show_count'] ) ? true : false,
-						);
+						) );
 
 						if ( ! empty( $filter['tax_order_by'] ) ) {
 							$args['orderby'] = $filter['tax_order_by'];
@@ -320,6 +322,10 @@ if ( ! class_exists( 'Jet_Engine_CPT_Admin_Filters' ) ) {
 
 			$result = array();
 
+			if ( empty( $filter['options_source'] ) ) {
+				return $result;
+			}
+
 			switch ( $filter['options_source'] ) {
 
 				case 'field_options':
@@ -384,11 +390,28 @@ if ( ! class_exists( 'Jet_Engine_CPT_Admin_Filters' ) ) {
 
 						$sql = "SELECT DISTINCT pm.meta_value FROM $postmeta AS pm INNER JOIN $posts AS p ON p.ID = pm.post_id WHERE pm.meta_key = '%s' AND p.post_type = '%s'";
 
-						if ( ! empty( $filter['meta_order'] ) ) {
-							$sql .= " ORDER BY pm.meta_value " . $filter['meta_order'];
+						$post_types = jet_engine()->cpt->get_items();
+
+						$is_custom = false;
+
+						foreach ( $post_types as $type ) {
+							if ( ! empty( $type['custom_storage'] ) && $this->post_type === $type['slug'] ) {
+								$table     = \Jet_Engine\CPT\Custom_Tables\Manager::instance()->get_db_instance( $this->post_type )->table();
+								$sql       = "SELECT DISTINCT pm.$field FROM $table AS pm";
+								$is_custom = true;
+								break;
+							}
 						}
 
-						$result   = $wpdb->get_results(
+						if ( ! empty( $filter['meta_order'] ) ) {
+							if ( ! $is_custom ) {
+								$sql .= " ORDER BY pm.meta_value " . $filter['meta_order'];
+							} else {
+								$sql .= " ORDER BY pm.$field " . $filter['meta_order'];
+							}	
+						}
+
+						$result = $wpdb->get_results(
 							$wpdb->prepare(
 								$sql,
 								$field,
@@ -410,6 +433,11 @@ if ( ! class_exists( 'Jet_Engine_CPT_Admin_Filters' ) ) {
 					if ( isset( $value['value'] ) && isset( $value['label'] ) ) {
 						$formatted_result[] = array(
 							'value' => apply_filters( 'jet-engine/admin-filters/filter-value', $value['value'], $filter, $this ),
+							'label' => apply_filters( 'jet-engine/admin-filters/filter-label', $value['label'], $filter, $this ),
+						);
+					} elseif ( ! isset( $value['value'] ) && isset( $value['label'] ) ) { // condition for radio fields.
+						$formatted_result[] = array(
+							'value' => apply_filters( 'jet-engine/admin-filters/filter-value', $key, $filter, $this ),
 							'label' => apply_filters( 'jet-engine/admin-filters/filter-label', $value['label'], $filter, $this ),
 						);
 					} else {

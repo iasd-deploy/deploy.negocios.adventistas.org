@@ -90,7 +90,7 @@
 
 	<cx-vui-input
 		name="insta-access-token"
-		label="<?php _e( 'Access Token', 'jet-elements' ); ?>"
+		label="<?php _e( 'Business Access Token', 'jet-elements' ); ?>"
 		description="<?php
 			echo sprintf( esc_html__( 'Read more about how to get Instagram Access Token %1$s', 'jet-elements' ),
 				htmlspecialchars( '<a href="https://crocoblock.com/knowledge-base/articles/how-to-create-instagram-access-token-for-jetelements-instagram-widget/" target="_blank">here</a>', ENT_QUOTES )
@@ -98,6 +98,8 @@
 		:wrapper-css="[ 'equalwidth' ]"
 		size="fullwidth"
 		v-model="pageOptions.insta_access_token.value"></cx-vui-input>
+
+	<?php /*
 
 	<cx-vui-input
 		name="insta-business-access-token"
@@ -120,6 +122,8 @@
 		:wrapper-css="[ 'equalwidth' ]"
 		size="fullwidth"
 		v-model="pageOptions.insta_business_user_id.value"></cx-vui-input>
+
+	 */ ?>
 
 	<div
 		class="cx-vui-subtitle"

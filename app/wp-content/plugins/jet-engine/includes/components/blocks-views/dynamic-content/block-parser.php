@@ -6,8 +6,12 @@ namespace Jet_Engine\Blocks_Views\Dynamic_Content;
  */
 class Dynamic_Block_Parser {
 
-	private $block;
-	private $attrs;
+	/**
+	 * @var Blocks\Base
+	 */
+	public $block;
+	public $attrs;
+	public $data;
 
 	public function __construct( $block, $attrs, $data ) {
 		$this->block = $block;
@@ -28,7 +32,9 @@ class Dynamic_Block_Parser {
 			$dynamic_value = $this->data->get_dynamic_value( $this->attrs[ $attr_name ], $attr, $parsed_attrs );
 
 			if ( ! empty( $attr['rewrite'] ) ) {
-				$content = str_replace( '%%' . $attr_name . '%%', $dynamic_value, $content );
+				if ( is_scalar( $dynamic_value ) ) {
+					$content = str_replace( '%%' . $attr_name . '%%', $dynamic_value, $content );
+				}
 			} else {
 				$content = $this->block->replace_attr_content( $attr_name, $dynamic_value, $content, $this->attrs, $parsed_attrs );
 			}

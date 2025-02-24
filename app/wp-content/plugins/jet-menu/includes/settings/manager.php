@@ -139,8 +139,8 @@ class Settings_Manager {
 			'buttons'     => [
 				[
 					'type'  => 'accent',
-					'label' => __( 'Go to Revamp JetMenu', 'jet-menu' ),
-					'url'   => \Jet_Dashboard\Dashboard::get_instance()->get_dashboard_page_url( 'settings-page', 'jet-menu-general-settings' ),
+					'label' => __( 'Switch to Revamp JetMenu', 'jet-menu' ),
+					'url'   => \Jet_Dashboard\Dashboard::get_instance()->get_dashboard_page_url( 'settings-page', 'jet-menu-general-settings', [ 'jet-action' => 'revamp-on' ] ),
 				]
 			],
 			'customClass' => 'jet-menu-alert',
@@ -475,6 +475,44 @@ class Settings_Manager {
 	}
 
 	/**
+	 * @return mixed|void
+	 */
+	public function get_magamenu_templates() {
+		$options       = [];
+		$content_types = [
+			'default',
+			'elementor',
+		];
+
+		$args = array(
+			'post_type'      => 'jet-menu',
+			'post_status'    => 'publish',
+			'meta_key'       => '_jet_menu_content_type',
+			'meta_compare'   => '=',
+			'posts_per_page' => - 1,
+		);
+
+		foreach ( $content_types as $content_type ) {
+			$args['meta_value'] = $content_type;
+			$posts              = get_posts( $args );
+
+			$options[ $content_type ][] = [
+				'label' => 'Select...',
+				'value' => '',
+			];
+
+			foreach ( $posts as $post ) {
+				$options[ $content_type ][] = [
+					'label' => get_the_title( $post->ID ),
+					'value' => $post->ID,
+				];
+			}
+		}
+
+		return $options;
+	}
+
+	/**
 	 * [get_controls_localize_data description]
 	 * @return [type] [description]
 	 */
@@ -500,6 +538,13 @@ class Settings_Manager {
 					)
 				),
 			),
+			/*'content_name' => array(
+				'value'   => '',
+			),
+			'content_id' => array(
+				'value'   => '',
+				'options' => $this->get_magamenu_templates(),
+			),*/
 			'custom_mega_menu_width' => array(
 				'value' => '',
 			),
@@ -686,40 +731,33 @@ class Settings_Manager {
 	 */
 	public function get_nav_item_settings() {
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'You are not allowed to do this', 'jet-menu' ),
-			) );
+		// Check if the current user has 'manage_options' capability
+		if ( ! $this->is_valid_user() ) {
+			$this->send_error_response('You are not allowed to do this');
 		}
 
-		$nonce = ! empty( $_POST['nonce'] ) ? $_POST['nonce'] : false;
-
-		if ( ! $nonce || ! wp_verify_nonce( $nonce, $this->nonce_key ) ) {
-			wp_send_json_error( array(
-				'message' => __( 'Nonce validation failed', 'jet-menu' )
-			) );
+		// Verify the nonce for security.
+		if ( ! $this->is_valid_nonce() ) {
+			$this->send_error_response('Nonce validation failed');
 		}
 
+		// Get the data from the POST request.
 		$data = isset( $_POST['data'] ) ? $_POST['data'] : false;
 
-		if ( ! $data ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'Incorrect input data', 'jet-menu' ),
-			) );
+		// Ensure the data is valid and is an array.
+		if ( ! $this->is_valid_data( $data ) ) {
+			$this->send_error_response('Incorrect input data');
 		}
 
 		if ( ! isset( $data['itemId'] ) ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'itemId is empty', 'jet-menu' ),
-			) );
+			$this->send_error_response('itemId is empty');
 		}
 
+		// Get the current settings for the item.
 		$current_settings = $this->get_menu_item_settings( $data['itemId'] );
 
-		wp_send_json_success( array(
-			'message'  => esc_html__( 'Success!', 'jet-menu' ),
-			'settings' => $current_settings,
-		) );
+		// Send a success response.
+		$this->send_success_response( 'Menu settings have been saved', $current_settings );
 	}
 
 	/**
@@ -744,10 +782,16 @@ class Settings_Manager {
 
 		$template_content_type = get_post_meta( $menu_item_id, '_content_type', true );
 		$mega_elementor_template_id = get_post_meta( $menu_item_id, 'jet-menu-item', true );
+		$mega_block_editor_template_id = get_post_meta( $menu_item_id, 'jet-menu-item-block-editor', true );
 
 		if ( ( $mega_elementor_template_id && empty( $template_content_type ) ) || 'elementor' === $template_content_type ) {
 			$current_settings['content_type'] = 'elementor';
+//			$current_settings['content_id'] = $mega_elementor_template_id;
 		}
+
+		/*if ( ( $mega_block_editor_template_id && empty( $template_content_type ) ) || 'default' === $template_content_type ) {
+			$current_settings['content_id'] = $mega_block_editor_template_id;
+		}*/
 
 		return $current_settings;
 
@@ -759,49 +803,97 @@ class Settings_Manager {
 	 */
 	public function save_nav_item_settings() {
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'You are not allowed to do this', 'jet-menu' ),
-			) );
+		// Check if the current user has 'manage_options' capability
+		if ( ! $this->is_valid_user() ) {
+			$this->send_error_response( 'You are not allowed to do this' );
 		}
 
-		$nonce = ! empty( $_POST['nonce'] ) ? $_POST['nonce'] : false;
-
-		if ( ! $nonce || ! wp_verify_nonce( $nonce, $this->nonce_key ) ) {
-			wp_send_json_error( array(
-				'message' => __( 'Nonce validation failed', 'jet-menu' )
-			) );
+		// Verify the nonce for security.
+		if ( ! $this->is_valid_nonce() ) {
+			$this->send_error_response( 'Nonce validation failed' );
 		}
 
+		// Get the data from the POST request.
 		$data = isset( $_POST['data'] ) ? $_POST['data'] : false;
 
-		if ( ! $data ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'Incorrect input data', 'jet-menu' ),
-			) );
+		// Ensure the data is valid and is an array.
+		if ( ! $this->is_valid_data( $data ) ) {
+			$this->send_error_response( 'Incorrect input data' );
 		}
 
-		$item_id = $data['itemId'];
+		// Extract item ID and item settings from the data.
+		$item_id  = $data['itemId'];
 		$settings = $data['itemSettings'];
 
+		// Attach a template to a menu item
+		$this->attach_template_to_menu_item( $item_id, $settings );
+
+		// Sanitize the item settings.
+		$sanitized_settings = $this->sanitize_settings( $settings );
+
+		// Get the current settings for the item.
+		$current_settings = $this->get_item_settings( $item_id );
+
+		// Merge the sanitized settings with the current settings.
+		$new_settings = array_merge( $current_settings, $sanitized_settings );
+
+		// Update the item settings.
+		$this->set_item_settings( $item_id, $new_settings );
+
+		// Trigger an action after item settings are saved.
+		do_action( 'jet-menu/item-settings/save' );
+
+		// Send a success response.
+		$this->send_success_response( 'Item settings have been saved' );
+	}
+
+
+	/**
+	 * Attach a template to a menu item based on content type and content ID.
+	 *
+	 * @param int $menu_item_id The ID of the menu item.
+	 * @param array $settings   An array of settings that includes 'content_type' and 'content_id'.
+	 */
+	public function attach_template_to_menu_item( $menu_item_id, $settings ) {
+		// Extract content type and content ID from settings.
+		$content_type = $settings['content_type'] ?? '';
+		$content_id = $settings['content_id'] ?? '';
+
+		// If content ID is empty, there's nothing to attach, so return early.
+		if ( empty( $content_id ) ) {
+			return;
+		}
+
+		// Define the meta key based on the content type.
+		if ( $content_type === 'elementor' ) {
+			$meta_key = 'jet-menu-item';
+		} else {
+			$meta_key = 'jet-menu-item-block-editor';
+		}
+
+		// Get the current template id of the meta key.
+		$current_template_id = get_post_meta( $menu_item_id, $meta_key, true );
+
+		// If the content ID matches the current value, no update is needed, so return early.
+		if ( $content_id === $current_template_id ) {
+			return;
+		}
+
+		// Update the post meta with the new content ID.
+		update_post_meta( $menu_item_id, $meta_key, $content_id );
+	}
+
+	public function sanitize_settings( $settings ) {
+		// Sanitize each setting in the settings array.
 		$sanitized_settings = array();
 
 		foreach ( $settings as $key => $value ) {
 			$sanitized_settings[ $key ] = $this->sanitize_field( $key, $value );
 		}
 
-		$current_settings = $this->get_item_settings( $item_id );
-
-		$new_settings = array_merge( $current_settings, $sanitized_settings );
-
-		$this->set_item_settings( $item_id, $new_settings );
-
-		do_action( 'jet-menu/item-settings/save' );
-
-		wp_send_json_success( array(
-			'message' => esc_html__( 'Item settings have been saved', 'jet-menu' ),
-		) );
+		return $sanitized_settings;
 	}
+
 
 	/**
 	 * Save menu settings
@@ -810,27 +902,24 @@ class Settings_Manager {
 	 */
 	public function save_menu_settings() {
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'You are not allowed to do this', 'jet-menu' ),
-			) );
+		// Check if the current user has 'manage_options' capability
+		if ( ! $this->is_valid_user() ) {
+			$this->send_error_response('You are not allowed to do this');
 		}
 
+		// Get the data from the POST request.
 		$data = isset( $_POST['data'] ) ? $_POST['data'] : false;
 
-		if ( ! $data ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'Incorrect input data', 'jet-menu' ),
-			) );
+		// Ensure the data is valid and is an array.
+		if ( ! $this->is_valid_data( $data ) ) {
+			$this->send_error_response('Incorrect input data');
 		}
 
 		$menu_id = isset( $data['menuId'] ) ? absint( $data['menuId'] ) : false;
 		$settings = isset( $data['settings'] ) ? $data['settings'] : false;
 
 		if ( ! $menu_id || ! $settings ) {
-			wp_send_json_error( array(
-				'message' => esc_html__( 'Required data is missed', 'jet-menu' ),
-			) );
+			$this->send_error_response('Required data is missed');
 		}
 
 		$current_settings = $this->get_settings( $menu_id );
@@ -843,11 +932,44 @@ class Settings_Manager {
 
 		$this->update_settings( $menu_id, $new_settings );
 
-		wp_send_json_success( array(
-			'message' => esc_html__( 'Menu settings have been saved', 'jet-menu' ),
+		// Send a success response.
+		$this->send_success_response( 'Menu settings have been saved' );
+	}
+
+	private function is_valid_user() {
+		// Check if the current user has 'manage_options' capability
+		return current_user_can( 'manage_options' );
+	}
+
+	private function is_valid_nonce() {
+		// Verify the nonce for security.
+		return check_ajax_referer( $this->nonce_key, 'nonce' );
+	}
+
+	public function is_valid_data( $data ) {
+		// Ensure the data is not empty and is an array.
+		return $data && is_array( $data );
+	}
+
+	public function send_error_response( $message ) {
+		// Send a JSON error response with the specified message.
+		wp_send_json_error( array(
+			'message' => esc_html__( $message, 'jet-menu' ),
 		) );
 	}
 
+	public function send_success_response( $message, $settings = null ) {
+		// Prepare the response data with the specified message and optional settings.
+		$response_data = array(
+			'message' => esc_html( $message ),
+		);
 
+		if ( ! is_null( $settings ) ) {
+			$response_data['settings'] = $settings;
+		}
+
+		// Send a JSON success response with the response data.
+		wp_send_json_success( $response_data );
+	}
 }
 

@@ -57,7 +57,19 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 						'handler' => 'JetListings',
 					),
 					'query'         => array(
-						'post_type' => jet_engine()->post_type->slug(),
+						'post_type'  => jet_engine()->post_type->slug(),
+						'meta_query' => [
+							'relation' => 'or',
+							[
+								'key'     => '_entry_type',
+								'value'   => '',
+								'compare' => 'NOT EXISTS',
+							],
+							[
+								'key'     => '_entry_type',
+								'value'   => 'listing',
+							],
+						],
 					),
 					'prevent_looping' => true,
 				)
@@ -210,6 +222,9 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 					'type'        => Controls_Manager::TEXT,
 					'default'     => __( 'No data was found', 'jet-engine' ),
 					'label_block' => true,
+					'dynamic'     => array(
+						'active' => true,
+					),
 				)
 			);
 
@@ -318,6 +333,9 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 					'condition'   => array(
 						'use_load_more'  => 'yes',
 						'load_more_type' => 'click',
+					),
+					'dynamic' => array(
+						'active' => true,
 					),
 				)
 			);
@@ -445,7 +463,7 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 				'custom_query_id',
 				array(
 					'label'   => __( 'Custom Query', 'jet-engine' ),
-					'type'    => Controls_Manager::SELECT,
+					'type'    => Controls_Manager::SELECT2,
 					'default' => '',
 					'options' => \Jet_Engine\Query_Builder\Manager::instance()->get_queries_for_options(),
 					'condition' => array(
@@ -1574,10 +1592,10 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 							'max' => 100,
 						),
 					),
-					'size_units' => array( 'px', 'em', 'rem' ),
+					'size_units' => array( 'px', 'em', 'rem', 'custom' ),
 					'selectors' => array(
 						':is( {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__items, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__slider > .jet-listing-grid__items > .slick-list > .slick-track, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__scroll-slider > .jet-listing-grid__items ) > .jet-listing-grid__item' => 'padding-left: calc({{SIZE}}{{UNIT}} / 2); padding-right: calc({{SIZE}}{{UNIT}} / 2);',
-						':is( {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__slider, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__scroll-slider ) > .jet-listing-grid__items' => 'margin-left: calc(-{{SIZE}}{{UNIT}} / 2); margin-right: calc(-{{SIZE}}{{UNIT}} / 2); width: calc(100% + {{SIZE}}{{UNIT}});',
+						':is( {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__slider, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__scroll-slider ) > .jet-listing-grid__items' => 'margin-left: calc( {{SIZE}}{{UNIT}} / -2); margin-right: calc( {{SIZE}}{{UNIT}} / -2); width: calc(100% + {{SIZE}}{{UNIT}});',
 					),
 				)
 			);
@@ -1593,10 +1611,24 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 							'max' => 100,
 						),
 					),
-					'size_units' => array( 'px', 'em', 'rem' ),
+					'size_units' => array( 'px', 'em', 'rem', 'custom' ),
 					'selectors' => array(
 						':is( {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__items, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__slider > .jet-listing-grid__items > .slick-list > .slick-track, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__scroll-slider > .jet-listing-grid__items ) > .jet-listing-grid__item' => 'padding-top: calc({{SIZE}}{{UNIT}} / 2); padding-bottom: calc({{SIZE}}{{UNIT}} / 2);',
+						':is( {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__slider, {{WRAPPER}} > .elementor-widget-container > .jet-listing-grid > .jet-listing-grid__scroll-slider ) > .jet-listing-grid__items.grid-collapse-gap' => 'margin-top: calc( {{SIZE}}{{UNIT}} / -2); margin-bottom: calc( {{SIZE}}{{UNIT}} / -2);',
 					),
+				)
+			);
+
+			$this->add_control(
+				'collapse_first_last_gap',
+				array(
+					'label'        => __( 'Correct first/last row gap', 'jet-engine' ),
+					'type'         => Controls_Manager::SWITCHER,
+					'description'  => esc_html__( 'Correct first/last row Ensure that the first and last rows do not have unnecessary gap on top/bottom.', 'jet-engine' ),
+					'label_on'     => __( 'Yes', 'jet-engine' ),
+					'label_off'    => __( 'No', 'jet-engine' ),
+					'return_value' => 'true',
+					'default'      => '',
 				)
 			);
 
@@ -1863,6 +1895,23 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 			);
 
 			$this->add_control(
+				'pause_on_hover',
+				array(
+					'label'        => __( 'Pause On Hover', 'jet-engine' ),
+					'type'         => Controls_Manager::SWITCHER,
+					'label_on'     => __( 'Yes', 'jet-engine' ),
+					'label_off'    => __( 'No', 'jet-engine' ),
+					'return_value' => 'true',
+					'default'      => 'true',
+					'condition'    => array(
+						'autoplay' => 'true',
+						'is_masonry!' => 'yes',
+						'carousel_enabled' => 'yes',
+					),
+				)
+			);
+
+			$this->add_control(
 				'infinite',
 				array(
 					'label'        => __( 'Infinite Loop', 'jet-engine' ),
@@ -2048,6 +2097,27 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 					'condition' => array(
 						'carousel_enabled' => 'yes',
 						'is_masonry!' => 'yes',
+					),
+				)
+			);
+
+			$this->add_responsive_control(
+				'center_mode_padding',
+				array(
+					'label'      => __( 'Center Mode Padding', 'jet-engine' ),
+					'type'       => Controls_Manager::SLIDER,
+					'size_units' => array( 'px', '%' ),
+					'range'      => array(
+						'px' => array(
+							'min' => 0,
+							'max' => 200,
+						),
+					),
+					'selectors'  => array(
+						'{{WRAPPER}} .jet-listing-grid__slider > .jet-listing-grid__items > .slick-list' => 'padding: 0 {{SIZE}}{{UNIT}} !important;',
+					),
+					'condition' => array(
+						'center_mode' => 'true',
 					),
 				)
 			);
@@ -2648,7 +2718,7 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Grid_Widget' ) ) {
 				array(
 					'label'      => esc_html__( 'Border Radius', 'jet-engine' ),
 					'type'       => Controls_Manager::DIMENSIONS,
-					'size_units' => array( 'px', '%' ),
+					'size_units' => array( 'px', '%', 'custom' ),
 					'selectors'  => array(
 						'{{WRAPPER}} .jet-listing-grid__scroll-slider::-webkit-scrollbar' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
 						'{{WRAPPER}} .jet-listing-grid__scroll-slider::-webkit-scrollbar-thumb' => 'border-radius: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',

@@ -1,53 +1,65 @@
-const path = require('path');
-const webpack = require('webpack');
+const path    = require( 'path' );
+const webpack = require( 'webpack' );
+
+const WPExtractorPlugin   = require(
+	'@wordpress/dependency-extraction-webpack-plugin',
+);
 
 module.exports = {
 	name: 'js_bundle',
-	context: path.resolve(__dirname, 'src'),
+	context: path.resolve( __dirname, 'src' ),
 	entry: {
 		'blocks.js': './blocks.js',
-		'jet-forms.js': './jet-forms.action.js'
+		'jet-forms.js': './jet-forms.action.js',
+		'jet-forms-v2.js': './jet-forms-v2/index.js',
 	},
 	output: {
-		path: __dirname,
-		filename: '[name]'
+		path: path.resolve( __dirname, 'build' ),
+		filename: '[name]',
+		devtoolNamespace: 'jet-engine-rest-api-listings',
 	},
+	devtool: 'source-map',
 	resolve: {
 		modules: [
-			path.resolve(__dirname, 'src'),
-			'node_modules'
+			path.resolve( __dirname, 'src' ),
+			'node_modules',
 		],
-		extensions: ['.js'],
+		extensions: [ '.js', '.jsx' ],
 		alias: {
-			'@': path.resolve(__dirname, 'src'),
-			'bases': path.resolve(__dirname, 'src/js/bases/'),
-			'filters': path.resolve(__dirname, 'src/js/filters/'),
-			'modules': path.resolve(__dirname, 'src/js/modules/'),
-			'includes': path.resolve(__dirname, 'src/js/includes/'),
-			'blocks': path.resolve(__dirname, 'src/js/blocks/')
-		}
-	},
-	externals: {
-		jquery: 'jQuery'
+			'@': path.resolve( __dirname, 'src' ),
+			'bases': path.resolve( __dirname, 'src/js/bases/' ),
+			'filters': path.resolve( __dirname, 'src/js/filters/' ),
+			'modules': path.resolve( __dirname, 'src/js/modules/' ),
+			'includes': path.resolve( __dirname, 'src/js/includes/' ),
+			'blocks': path.resolve( __dirname, 'src/js/blocks/' ),
+		},
 	},
 	plugins: [
-		new webpack.ProvidePlugin({
+		new webpack.ProvidePlugin( {
 			jQuery: 'jquery',
-			$: 'jquery'
-		})
+			$: 'jquery',
+		} ),
+		new WPExtractorPlugin(),
 	],
 	optimization: {
 		splitChunks: {
-			chunks: 'all'
-		}
+			chunks: 'all',
+		},
 	},
 	module: {
 		rules: [
 			{
-				test: /\.js$/,
+				test: /\.jsx?$/,
 				loader: 'babel-loader',
-				exclude: /node_modules/
-			}
-		]
-	}
-}
+				exclude: /node_modules/,
+			},
+		],
+	},
+	externalsType: 'window',
+	externals: {
+		'jet-form-builder-components': [ 'jfb', 'components' ],
+		'jet-form-builder-data': [ 'jfb', 'data' ],
+		'jet-form-builder-actions': [ 'jfb', 'actions' ],
+		'jet-form-builder-blocks-to-actions': [ 'jfb', 'blocksToActions' ],
+	},
+};

@@ -20,6 +20,7 @@
 
 		sectionActivated: function( sectionName, editor ) {
 			let mainSections = [
+				'section_layout',
 				'section_main_menu_styles',
 				'section_dropdown_menu_styles',
 			],
@@ -35,16 +36,8 @@
 			}
 
 			if ( 'jet-mega-menu' == currentElement.model.get( 'widgetType' ) ) {
-
-				let widgetId = currentElement.model.get( 'id' );
-
 				JetMenuEditor.prevSection = JetMenuEditor.currentSection;
 				JetMenuEditor.currentSection = sectionName;
-
-				if ( 'section_layout' === sectionName && JetMenuEditor.isMobileRender ) {
-					currentElement.model.setSetting( 'force-mobile-render', false );
-					currentElement.model.renderRemoteServer();
-				}
 
 				if ( mainSections.includes( sectionName ) && JetMenuEditor.isMobileRender ) {
 					JetMenuEditor.isMobileRender = false;

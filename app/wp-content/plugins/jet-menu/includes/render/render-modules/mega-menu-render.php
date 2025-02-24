@@ -39,7 +39,8 @@ class Mega_Menu_Render extends Base_Render {
 		    'roll-up-item-svg-icon' => '',
 		    'dropdown-icon'         => '',
 		    'location'              => 'wp-nav', //wp-nav, elementor, block
-		    'ajax-loading'          => false
+		    'ajax-loading'          => false,
+            'fill-svg-icon'          => false,
         );
     }
 
@@ -79,9 +80,6 @@ class Mega_Menu_Render extends Base_Render {
 			'class' => array(
 				'jet-mega-menu-list',
 			),
-			'role' => array(
-				'navigation'
-            ),
 		) );
 
 		$list_attr_string = jet_menu_tools()->get_attr_string( $list_attributes );
@@ -95,20 +93,21 @@ class Mega_Menu_Render extends Base_Render {
 		//$dropdown_icon = ! empty( $dropdown_icon ) ? $dropdown_icon : jet_menu()->svg_manager->get_svg_html( 'arrow-down' );
 
 		$menu_args = array(
-			'menu'            => $menu_id,
-            'container'       => 'nav',
-			'container_class' => 'jet-mega-menu-container',
-			'menu_class'      => '',
-			'items_wrap'      => $items_wrap,
-			'before'          => '',
-			'after'           => '',
-			'fallback_cb'     => '',
-			'walker'          => new \Jet_Menu\Render\Mega_Menu_Walker(),
-			'settings' => array(
-				'roll-up'            => filter_var( $roll_up, FILTER_VALIDATE_BOOLEAN ),
-				'use-dropdown-icon'  => $this->get( 'use-dropdown-icon', true ),
-				'dropdown-icon'      => $dropdown_icon,
-				'ajax-loading'       => $ajax_loading,
+			'menu'                 => $menu_id,
+			'container'            => 'nav',
+			'container_class'      => 'jet-mega-menu-container',
+			'container_aria_label' => __( 'Main nav', 'jet-menu' ),
+			'menu_class'           => '',
+			'items_wrap'           => $items_wrap,
+			'before'               => '',
+			'after'                => '',
+			'fallback_cb'          => '',
+			'walker'               => new \Jet_Menu\Render\Mega_Menu_Walker(),
+			'settings'             => array(
+				'roll-up'           => filter_var( $roll_up, FILTER_VALIDATE_BOOLEAN ),
+				'use-dropdown-icon' => $this->get( 'use-dropdown-icon', true ),
+				'dropdown-icon'     => $dropdown_icon,
+				'ajax-loading'      => $ajax_loading,
 			)
 		);
 
@@ -140,6 +139,7 @@ class Mega_Menu_Render extends Base_Render {
 			$roll_up ? 'jet-mega-menu--roll-up' : '',
 			$ajax_loading ? 'jet-mega-menu--ajax-loading' : '',
 			filter_var( $is_iphone, FILTER_VALIDATE_BOOLEAN ) ? 'jet-mega-menu--iphone-mode' : '',
+			filter_var( $this->get( 'fill-svg-icon', true ), FILTER_VALIDATE_BOOLEAN ) ? 'jet-mega-menu--fill-svg-icons' : '',
 		) );
 
 		$instance_attributes = array(
@@ -201,7 +201,7 @@ class Mega_Menu_Render extends Base_Render {
 			$icons_html = sprintf( '<div class="jet-mega-menu-toggle-icon jet-mega-menu-toggle-icon--default-state">%1$s</div>', $default_icon );
 		}
 
-		$format = apply_filters( 'jet-menu/mega-menu-render/dropdown-toggle/format', '<div class="jet-mega-menu-toggle" tabindex="1" aria-label="Open/Close Menu">%1$s</div>' );
+		$format = apply_filters( 'jet-menu/mega-menu-render/dropdown-toggle/format', '<div class="jet-mega-menu-toggle" role="button" tabindex="0" aria-label="Open/Close Menu">%1$s</div>' );
 
 		return sprintf( $format, $icons_html );
 	}
@@ -247,7 +247,6 @@ class Mega_Menu_Render extends Base_Render {
 			'icon_size'              => array (
 				'selector' => array (
 					'> .jet-mega-menu-item__inner > a .jet-mega-menu-item__icon'     => 'font-size',
-					'> .jet-mega-menu-item__inner > a .jet-mega-menu-item__icon svg' => 'width',
 				),
 				'rule'     => 'font-size',
 				'value'    => '%1$spx !important;',

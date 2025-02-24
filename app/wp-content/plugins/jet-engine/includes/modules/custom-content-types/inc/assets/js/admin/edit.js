@@ -267,6 +267,12 @@
 				}
 
 			},
+			fixPermission: function( e ) {
+				if ( e.target && ! e.target.value?.length ) {
+					e.target.value = 'edit_posts';
+					e.target.dispatchEvent( new Event( 'input' ) );
+				}
+			},
 			save: function() {
 
 				var self      = this,

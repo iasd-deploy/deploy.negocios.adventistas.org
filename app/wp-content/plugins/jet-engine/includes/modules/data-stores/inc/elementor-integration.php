@@ -147,7 +147,7 @@ class Elementor_Integration {
 				'type'        => 'text',
 				'default'     => '',
 				'label_block' => true,
-				'description' => __( 'Here you need to set listing ID to reload. The same ID must be set in the Advanced settings of selected listing', 'jet-engine' ),
+				'description' => __( 'Here you need to set listing ID to reload. The same ID must be set in the Advanced settings of selected listing. Put comma-separated IDs to update multiple listings.', 'jet-engine' ),
 				'condition'   => array(
 					'dynamic_link_source'     => array( 'add_to_store' ),
 					'dynamic_link_synch_grid' => 'yes',
@@ -219,7 +219,8 @@ class Elementor_Integration {
 		}
 
 		if ( false === strpos( $args['condition_settings']['__dynamic__']['jedv_field'], 'name="jet-data-store-store-count"' ) &&
-			false === strpos( $args['condition_settings']['__dynamic__']['jedv_field'], 'name="jet-data-store-post-count"' )
+			false === strpos( $args['condition_settings']['__dynamic__']['jedv_field'], 'name="jet-data-store-post-count"' ) &&
+			false === strpos( $args['condition_settings']['__dynamic__']['jedv_field'], '"macros":"store_count"' )
 		) {
 			return $args;
 		}

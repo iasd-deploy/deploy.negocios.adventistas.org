@@ -14,8 +14,7 @@ function wpml_jet_menu( $links ) {
 	global $wp_query, $sitepress;
 
 	if ( wpml_is_ajax() ) {
-
-		$post_id = url_to_postid( $_SERVER['HTTP_REFERER'] );
+		$post_id = isset( $_SERVER['HTTP_REFERER'] ) ? url_to_postid( $_SERVER['HTTP_REFERER'] ) : false;
 
 		if ( $post_id ) {
 			$wp_query = new WP_Query( 'p=' . $post_id ); // set the global $wp_query manually

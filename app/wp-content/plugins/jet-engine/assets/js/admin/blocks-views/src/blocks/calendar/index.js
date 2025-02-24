@@ -1,4 +1,5 @@
 import JetEngineRepeater from "components/repeater-control.js";
+import { isIdUnique } from "common/functions";
 
 import {
 	clone
@@ -42,7 +43,7 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'calendar' ) ) {
 	const blockAttributes = window.JetEngineListingData.atts.listingCalendar;
 
 	registerBlockType( 'jet-engine/listing-calendar', {
-		title: __( 'Listing Calendar' ),
+		title: __( 'Dynamic Calendar' ),
 		icon: GIcon,
 		category: 'jet-engine',
 		attributes: blockAttributes,
@@ -51,7 +52,7 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'calendar' ) ) {
 
 			constructor( props ) {
 
-				if ( ! props.attributes._block_id ) {
+				if ( ! props.attributes._block_id || ! isIdUnique( props ) ) {
 					props.setAttributes( { _block_id: props.clientId } );
 				}
 
@@ -314,6 +315,65 @@ if ( -1 !== window.JetEngineListingData.activeModules.indexOf( 'calendar' ) ) {
 										props.setAttributes( { hide_past_events: ! attributes.hide_past_events } );
 									} }
 								/>
+								<ToggleControl
+									label={ __( 'Allow date select' ) }
+									checked={ attributes.allow_date_select }
+									onChange={ () => {
+										props.setAttributes( { allow_date_select: ! attributes.allow_date_select } );
+									} }
+								/>
+								{ attributes.allow_date_select && ! attributes.hide_past_events &&
+									<TextControl
+										type="text"
+										label={ __( 'Min select year' ) }
+										value={ attributes.start_year_select }
+										onChange={ newValue => {
+											props.setAttributes( { start_year_select: newValue } );
+										} }
+									/>
+								}
+								{ attributes.allow_date_select &&
+									<TextControl
+										type="text"
+										label={ __( 'Max select year' ) }
+										help={ __( 'You may use JetEngine macros in min/max select year. Also, you may use strings like \'+3years\', \'-1year\', \'this year\' to set year value relative to the curent year.' ) }
+										value={ attributes.end_year_select }
+										onChange={ newValue => {
+											props.setAttributes( { end_year_select: newValue } );
+										} }
+									/>
+								}
+								<ToggleControl
+									label={ __( 'Cache Calendar' ) }
+									checked={ attributes.cache_enabled }
+									onChange={ () => {
+										props.setAttributes( { cache_enabled: ! attributes.cache_enabled } );
+									} }
+								/>
+								{ attributes.cache_enabled && 
+								<TextControl
+									type="number"
+									label={ __( 'Cache Timeout' ) }
+									help={ __( 'Cache timeout in seconds. Set -1 for unlimited.' ) }
+									value={ attributes.cache_timeout }
+									min="-1"
+									max="86400"
+									onChange={ newValue => {
+										props.setAttributes( { cache_timeout: newValue } );
+									} }
+								/> }
+								{ attributes.cache_enabled && 
+								<TextControl
+									type="number"
+									label={ __( 'Maximum Cache Size' ) }
+									help={ __( 'Maximum cache size (months). If number of cached month exceeds this number - the oldest month will be deleted from cache.' ) }
+									value={ attributes.max_cache }
+									min="1"
+									max="120"
+									onChange={ newValue => {
+										props.setAttributes( { max_cache: newValue } );
+									} }
+								/> }
 								<SelectControl
 									label={ __( 'Caption Layout' ) }
 									value={ attributes.caption_layout }

@@ -16,11 +16,6 @@
 		<div class="jet-ai-query__content">
 			<div class="jet-ai-query__header">
 				<h3 class="cx-vui-subtitle">Generate query with AI</h3>
-				<div class="jet-ai-query__header-notice">
-					<b>
-						Beta. Limited {{ limit }} requests per month.
-					</b>
-				</div>
 				<span class="jet-ai-query__close" @click="switchIsActive()">
 					<svg width="20" height="20" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3.00671L8.00671 7L12 10.9933L10.9933 12L7 8.00671L3.00671 12L2 10.9933L5.99329 7L2 3.00671L3.00671 2L7 5.99329L10.9933 2L12 3.00671Z"></path></svg>
 				</span>
@@ -99,9 +94,9 @@
 						__( 'You need to %s your license to use AI functionality.', 'jet-engine' ),
 						'<a href="' . admin_url( 'admin.php?page=jet-dashboard-license-page&subpage=license-manager' ) . '" traget="_blank">' . __( 'activate', 'jet-engine' ) . '</a>'
 					); ?></p>
-					<p><?php _e( 'At the moment AI functionality works in beta mode and has restricted requests number.', 'jet-engine' ); ?></p>
-					<p><?php _e( '<b>All-inclusive Lifetime</b> and <b>Freelance Lifetime</b> Crocoblock subscription plans allows <b>30</b> AI requests per month.', 'jet-engine' ); ?></p>
-					<p><?php _e( '<b>JetEngine</b> and <b>Yearly</b> subscriptions allows <b>5</b> AI requests per month.', 'jet-engine' ); ?></p>
+					<p><?php _e( 'Usage restrictions:', 'jet-engine' ); ?></p>
+					<p><?php _e( '<b>All-inclusive Lifetime</b> and <b>Freelance Lifetime</b> Crocoblock subscription plans allows <b>90</b> AI requests per month.', 'jet-engine' ); ?></p>
+					<p><?php _e( '<b>JetEngine</b> and <b>Yearly</b> subscriptions allows <b>30</b> AI requests per month.', 'jet-engine' ); ?></p>
 					<cx-vui-button
 						@click="switchIsActive()"
 						button-style="accent-border"

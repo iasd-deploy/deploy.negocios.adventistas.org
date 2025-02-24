@@ -16,7 +16,8 @@ class Filters_Switch_Query extends Filters_Options_Source {
 		add_action( 'jet-smart-filters/admin/register-dynamic-query', array( $this, 'register_query_var' ) );
 		add_action( 'jet-smart-filters/query/final-query', array( $this, 'store_switched_query' ) );
 		add_action( 'jet-engine/query-builder/listings/query-id', array( $this, 'switch_query' ), 10, 3 );
-		
+		add_action( 'jet-engine/bricks-views/query-builder/query-id', array( $this, 'switch_query' ), 10 );
+
 		add_filter( 'jet-smart-filters/service/filter/serialized-keys', array( $this, 'add_key_to_serialize' ) );
 		add_filter( 'jet-smart-filters/filters/indexed-data/query-type-data', array( $this, 'index_data' ), 0, 4 );
 
@@ -74,20 +75,21 @@ class Filters_Switch_Query extends Filters_Options_Source {
 	 * @param  [type] $query_id [description]
 	 * @return [type]           [description]
 	 */
-	public function switch_query( $query_id, $listing_id, $settings ) {
+	public function switch_query( $query_id, $listing_id = 0, $settings = array() ) {
 
 		$query = Manager::instance()->get_query_by_id( $query_id );
 
 		if ( $this->new_query_id && Manager::instance()->listings->filters->is_filters_request( $query ) ) {
-			$query_id = $this->new_query_id;
+			$_query_id = $query_id;
+			$query_id  = $this->new_query_id;
 			$this->new_query_id = null;
 
 			$has_load_more = ! empty( $settings['use_load_more'] ) ? $settings['use_load_more'] : false;
 			$has_load_more = filter_var( $has_load_more, FILTER_VALIDATE_BOOLEAN );
 
 			if ( $has_load_more ) {
-				add_filter( 'jet-engine/listing/grid/query-args', function ( $args ) use ( $query_id ) {
-					$args['is_switched_query'] = true;
+				add_filter( 'jet-engine/listing/grid/query-args', function ( $args ) use ( $_query_id ) {
+					$args['switched_query_id'] = $_query_id;
 					return $args;
 				} );
 			}
@@ -95,7 +97,8 @@ class Filters_Switch_Query extends Filters_Options_Source {
 
 		if ( jet_engine()->listings->is_listing_ajax( 'listing_load_more' )
 			 && ! empty( $_REQUEST['query'] ) && ! empty( $_REQUEST['query']['query_id'] )
-			 && ! empty( $_REQUEST['query']['is_switched_query'] )
+			 && ! empty( $_REQUEST['query']['switched_query_id'] )
+			 && intval( $query_id ) === intval( $_REQUEST['query']['switched_query_id'] )
 		) {
 			$query_id = $_REQUEST['query']['query_id'];
 		}

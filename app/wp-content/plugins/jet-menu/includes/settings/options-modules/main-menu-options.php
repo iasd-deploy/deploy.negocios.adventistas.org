@@ -111,6 +111,28 @@ class Main_Menu_Options {
 			),
 		) );
 
+		jet_menu()->settings_manager->options_manager->add_option( 'jet-mega-menu-mega-width-type', array(
+			'value'   => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-mega-width-type', 'container' ),
+			'options' => array(
+				array(
+					'label' => esc_html__( 'Container', 'jet-menu' ),
+					'value' => 'container',
+				),
+				array(
+					'label' => esc_html__( 'Selector', 'jet-menu' ),
+					'value' => 'selector',
+				),
+				array(
+					'label' => esc_html__( 'Items', 'jet-menu' ),
+					'value' => 'items',
+				),
+			),
+		) );
+
+		jet_menu()->settings_manager->options_manager->add_option( 'jet-mega-menu-mega-width-selector', array(
+			'value' => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-mega-width-selector', '' ),
+		) );
+
 		jet_menu()->settings_manager->options_manager->add_option( 'jet-mega-menu-dropdown-breakpoint', array(
 			'value'   => jet_menu()->settings_manager->options_manager->get_option( 'jet-mega-menu-dropdown-breakpoint', 768 ),
 		) );

@@ -52,4 +52,14 @@ class Plugin_Settings extends Base {
 			'message' => __( 'Settings have been saved', 'jet-menu' ),
 		] );
 	}
+
+	/**
+	 * Check user access to current end-popint
+	 *
+	 * @return string|bool
+	 */
+	public function permission_callback() {
+		return current_user_can( 'manage_options' );
+	}
+	
 }

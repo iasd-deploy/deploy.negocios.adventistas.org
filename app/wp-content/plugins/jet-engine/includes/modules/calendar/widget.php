@@ -4,8 +4,6 @@ namespace Elementor;
 use Elementor\Group_Control_Border;
 use Elementor\Group_Control_Box_Shadow;
 use Elementor\Group_Control_Typography;
-use Elementor\Core\Schemes\Color as Scheme_Color;
-use Elementor\Core\Schemes\Typography as Scheme_Typography;
 use Elementor\Repeater;
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
@@ -30,7 +28,7 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Calendar_Widget' ) ) {
 		}
 
 		public function get_title() {
-			return __( 'Calendar', 'jet-engine' );
+			return __( 'Dynamic Calendar', 'jet-engine' );
 		}
 
 		public function get_icon() {
@@ -137,7 +135,7 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Calendar_Widget' ) ) {
 					'type'        => Controls_Manager::TEXT,
 					'default'     => '',
 					'label_block' => true,
-					'description' => __( 'This field must contain date when events ends. Works only if "Save as timestamp" option for meta field is active', 'jet-engine' ),
+					'description' => __( 'If you used "Advanced Datetime" meta field type you can leave this field empty. This field must contain date when events ends. Works only if "Save as timestamp" option for meta field is active.', 'jet-engine' ),
 					'condition'   => array(
 						'group_by'       => 'meta_date',
 						'allow_multiday' => 'yes',
@@ -245,6 +243,89 @@ if ( ! class_exists( 'Elementor\Jet_Listing_Calendar_Widget' ) ) {
 					'label_off'    => __( 'No', 'jet-engine' ),
 					'return_value' => 'yes',
 					'default'      => '',
+				)
+			);
+
+			$this->add_control(
+				'allow_date_select',
+				array(
+					'label'        => __( 'Allow date select', 'jet-engine' ),
+					'type'         => Controls_Manager::SWITCHER,
+					'label_on'     => __( 'Yes', 'jet-engine' ),
+					'label_off'    => __( 'No', 'jet-engine' ),
+					'return_value' => 'yes',
+					'default'      => '',
+				)
+			);
+
+			$this->add_control(
+				'start_year_select',
+				array(
+					'label'     => __( 'Min select year', 'jet-engine' ),
+					'type'      => Controls_Manager::TEXT,
+					'default'   => '1970',
+					'condition' => array(
+						'allow_date_select' => 'yes',
+						'hide_past_events!' => 'yes',
+					),
+				)
+			);
+
+			$this->add_control(
+				'end_year_select',
+				array(
+					'label'       => __( 'Max select year', 'jet-engine' ),
+					'type'        => Controls_Manager::TEXT,
+					'default'     => '2038',
+					'description' => __( 'You may use JetEngine macros in min/max select year. Also, you may use strings like \'+3years\', \'-1year\', \'this year\' to set year value relative to the curent year.' ),
+					'condition'   => array(
+						'allow_date_select' => 'yes',
+					),
+				)
+			);
+
+			$this->add_control(
+				'cache_enabled',
+				array(
+					'label'        => __( 'Cache Calendar', 'jet-engine' ),
+					'type'         => Controls_Manager::SWITCHER,
+					'label_on'     => __( 'Yes', 'jet-engine' ),
+					'label_off'    => __( 'No', 'jet-engine' ),
+					'separator'    => 'before',
+					'return_value' => 'yes',
+					'default'      => '',
+				)
+			);
+
+			$this->add_control(
+				'cache_timeout',
+				array(
+					'label'       => esc_html__( 'Cache Timeout', 'jet-engine' ),
+					'description' => __( 'Cache timeout in seconds. Set -1 for unlimited.', 'jet-engine' ),
+					'type'        => Controls_Manager::NUMBER,
+					'min'         => -1,
+					'max'         => 86400,
+					'step'        => 1,
+					'default'     => 60,
+					'condition'   => array(
+						'cache_enabled' => 'yes',
+					),
+				)
+			);
+
+			$this->add_control(
+				'max_cache',
+				array(
+					'label'       => esc_html__( 'Maximum Cache Size', 'jet-engine' ),
+					'description' => __( 'Maximum cache size (months). If number of cached month exceeds this number - the oldest month will be deleted from cache.', 'jet-engine' ),
+					'type'        => Controls_Manager::NUMBER,
+					'min'         => 1,
+					'max'         => 120,
+					'step'        => 1,
+					'default'     => 12,
+					'condition'   => array(
+						'cache_enabled' => 'yes',
+					),
 				)
 			);
 

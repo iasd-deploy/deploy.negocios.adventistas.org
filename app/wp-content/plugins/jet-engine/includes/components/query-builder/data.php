@@ -91,7 +91,11 @@ class Data extends \Jet_Engine_Base_Data {
 		$args          = array();
 		$request_args  = ! empty( $request['args'] ) ? $request['args'] : array();
 		$q_type        = ! empty( $request_args['query_type'] ) ? $request_args['query_type'] : false;
-		$allowed_types = array_keys( Manager::instance()->editor->get_types() );
+		$allowed_types = apply_filters(
+			'jet-engine/query-builder/data/allowed-query-types',
+			array_keys( Manager::instance()->editor->get_types() ),
+			$request
+		);
 
 		if ( in_array( $q_type, $allowed_types ) ) {
 			$dynamic = '__dynamic_';
@@ -102,6 +106,9 @@ class Data extends \Jet_Engine_Base_Data {
 
 		$bool_args = array(
 			'show_preview',
+			'cache_query',
+			'api_endpoint',
+			'avoid_duplicates',
 		);
 
 		foreach ( $bool_args as $key ) {
@@ -115,6 +122,13 @@ class Data extends \Jet_Engine_Base_Data {
 			'preview_query_string',
 			'query_id',
 			'description',
+			'api_namespace',
+			'api_path',
+			'api_access',
+			'api_access_cap',
+			'api_access_role',
+			'api_schema',
+			'cache_expires',
 		);
 
 		foreach ( $regular_args as $key ) {
@@ -151,6 +165,15 @@ class Data extends \Jet_Engine_Base_Data {
 		$labels       = maybe_unserialize( $item['labels'] );
 		$args['name'] = $labels['name'];
 		$result       = array_merge( $item, $args );
+
+		// Set default value for `cache_query` & `cache_expires` settings.
+		if ( ! isset( $result['cache_query'] ) ) {
+			$result['cache_query'] = true;
+		}
+
+		if ( ! isset( $result['cache_expires'] ) ) {
+			$result['cache_expires'] = 0;
+		}
 
 		unset( $result['args'] );
 		unset( $result['labels'] );

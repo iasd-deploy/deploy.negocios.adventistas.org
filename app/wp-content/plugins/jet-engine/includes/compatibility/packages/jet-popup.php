@@ -135,6 +135,24 @@ if ( ! class_exists( 'Jet_Engine_Popup_Package' ) ) {
 		}
 
 		/**
+		 * [render description]
+		 * @return [type] [description]
+		 */
+		public function maybe_get_blocks_css( $popup_id ) {
+			
+			if ( ! class_exists( '\JET_SM\Gutenberg\Style_Manager' ) ) {
+				return '';
+			}
+			
+			ob_start();
+
+			\JET_SM\Gutenberg\Style_Manager::get_instance()->render_blocks_style( $popup_id );
+			\JET_SM\Gutenberg\Style_Manager::get_instance()->render_blocks_fonts( $popup_id );
+
+			return ob_get_clean();
+		}
+
+		/**
 		 * Get dynamic content related to passed post ID
 		 *
 		 * @param  [type] $content    [description]
@@ -156,6 +174,31 @@ if ( ! class_exists( 'Jet_Engine_Popup_Package' ) ) {
 				return $content;
 			}
 
+			//https://github.com/Crocoblock/issues-tracker/issues/9853
+			//try setting queried object based on the current page URL
+			//filter `jet-engine/compatibility/popup-package/set-queried-object` may be used to prevent this
+			if ( ! empty( $popup_data['page_url'] ) && apply_filters( 'jet-engine/compatibility/popup-package/set-queried-object', true, $popup_data ) ) {
+				//https://github.com/Crocoblock/issues-tracker/issues/11887
+				//ensure that wp_redirect will not work when setting queried object
+				add_filter( 'wp_redirect', '__return_false', PHP_INT_MAX );
+
+				$_SERVER['REQUEST_URI'] = str_replace( site_url(), '', $popup_data['page_url'] );
+				$_SERVER['REQUEST_URI'] = preg_replace( '/#.+$/', '', $_SERVER['REQUEST_URI'] );
+				$_SERVER['PHP_SELF']    = '/index.php';
+
+				global $wp;
+	
+				$wp->parse_request();
+				$wp->query_posts();
+				wp_reset_postdata();
+
+				do_action( 'jet-engine/profile-builder/query/maybe-setup-props' );
+				
+				jet_engine()->listings->objects_stack->save_root();
+
+				remove_filter( 'wp_redirect', '__return_false', PHP_INT_MAX );
+			}
+			
 			do_action( 'jet-engine/compatibility/popup-package/get-content', $content, $popup_data );
 
 			$source   = ! empty( $popup_data['listingSource'] ) ? $popup_data['listingSource'] : 'posts';
@@ -186,8 +229,7 @@ if ( ! class_exists( 'Jet_Engine_Popup_Package' ) ) {
 								$query->final_query['object_id'] = $object_id;
 							}
 
-							$items = $query->get_items();
-
+							$items    = $query->get_items();
 							$post_obj = isset( $items[ $item_index ] ) ? $items[ $item_index ] : false;
 
 							break;
@@ -202,6 +244,16 @@ if ( ! class_exists( 'Jet_Engine_Popup_Package' ) ) {
 								$item_index = absint( $id_data[1] );
 
 								$query->setup_query();
+
+								if ( function_exists( 'jet_smart_filters' ) && ! empty( $popup_data['filtered_query'] ) ) {
+									$filtered_query = jet_smart_filters()->query->get_query_from_request( $popup_data['filtered_query'] );
+
+									if ( ! empty( $filtered_query ) ) {
+										foreach ( $filtered_query as $prop => $value ) {
+											$query->set_filtered_prop( $prop, $value );
+										}
+									}
+								}
 
 								$advanced_query = $query->get_advanced_query();
 
@@ -219,6 +271,12 @@ if ( ! class_exists( 'Jet_Engine_Popup_Package' ) ) {
 							}
 
 							break;
+
+						default:
+							$post_obj = apply_filters(
+								'jet-engine/compatibility/popup-package/query/' . $query->query_type . '/post-object',
+								$post_obj, $popup_data, $query, $query_id
+							);
 					}
 				}
 			}
@@ -276,7 +334,8 @@ if ( ! class_exists( 'Jet_Engine_Popup_Package' ) ) {
 				$popup_post = get_post( $popup_id );
 
 				if ( $popup_post ) {
-					$content = do_blocks( $popup_post->post_content );
+					$content = $this->maybe_get_blocks_css( $popup_id );
+					$content .= do_blocks( $popup_post->post_content );
 					$content = do_shortcode( $content );
 				}
 			}

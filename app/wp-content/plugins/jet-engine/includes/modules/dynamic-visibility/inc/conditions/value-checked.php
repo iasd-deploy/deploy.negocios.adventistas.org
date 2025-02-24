@@ -39,6 +39,10 @@ class Value_Checked extends Base {
 
 		$type          = ! empty( $args['type'] ) ? $args['type'] : 'show';
 		$current_value = $this->get_current_value( $args );
+		
+		if ( \Jet_Engine_Tools::is_empty( $current_value ) ) {
+			$current_value = array();
+		}
 
 		if ( ! is_array( $current_value ) ) {
 			$current_value = explode( ', ', $current_value );

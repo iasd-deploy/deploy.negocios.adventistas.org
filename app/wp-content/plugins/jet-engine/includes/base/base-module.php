@@ -85,6 +85,15 @@ if ( ! class_exists( 'Jet_Engine_Module_Base' ) ) {
 		}
 
 		/**
+		 * Is module supports blocks view
+		 *
+		 * @return [type] [description]
+		 */
+		public function support_bricks() {
+			return true;
+		}
+
+		/**
 		 * Returns slug of the module to install it from the crocoblock.com
 		 * 
 		 * @return false or string
